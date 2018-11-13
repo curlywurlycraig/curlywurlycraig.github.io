@@ -6,3 +6,5 @@ tags: story technology
 ---
 Taking yet another pamphlet from the stranger's hand, he gazed at it with glassy
 eyes.
+
+TODO.
