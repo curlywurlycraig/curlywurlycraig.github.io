@@ -1,8 +1,33 @@
 ---
 layout: default
 ---
+<style>
+ .postContainer {
+     display: flex;
+     flex-direction: row;
+     align-items: center;
+     justify-content: space-between;
+ }
+
+ #date {
+     color: #555555;
+ }
+</style>
+
+
 <h2>{{ page.title }}</h2>
+<p id="date">{{ page.date | date: "%-d %B %Y"}}</p>
 {{ content }}
 
 <hr />
-<a href="/">All posts</a>
+
+<div class="postContainer">
+    {% if page.previous %}
+    <a href="{{ page.previous.url }}">← {{ page.previous.title }}</a>
+    {% endif %}
+
+    <a href="/">All posts</a>
+
+    {% if page.next %}
+    <a href="{{ page.next.url }}">{{ page.next.title }} →</a>
+    {% endif %}
