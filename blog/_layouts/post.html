@@ -10,15 +10,11 @@ layout: default
      margin-top: 40px;
 
  }
-
- #date {
-     color: #555555;
- }
 </style>
 
 
 <h2>{{ page.title }}</h2>
-<p id="date">{{ page.date | date: "%-d %B %Y"}}</p>
+<p class="date">{{ page.date | date: "%-d %B %Y"}}</p>
 {{ content }}
 
 <div class="post__controls__container">
