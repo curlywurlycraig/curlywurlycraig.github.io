@@ -1,8 +1,35 @@
+header {
+    margin: 40px 40px;
+    height: 60px;
+}
+
+.header__img {
+    height: 100%;
+}
+
 body {
     max-width: 600px;
-    font-size: 17px;
-    line-height: 21px;
+    font-size: 18px;
+    line-height: 22px;
+    background-color: #FFFFFF;
+    color: #444444;
+    font: sans;
+    padding-bottom: 20px;
 }
 
 h2 {
+    margin-bottom: 0;
+}
+
+.date {
+    margin-top: 10px;
+    color: #777777;
+}
+
+a {
+    color: #444444;
+}
+
+main {
+    margin: 0 40px;
 }

@@ -2,11 +2,13 @@
 layout: default
 ---
 <style>
- .postContainer {
+ .post__controls__container {
      display: flex;
      flex-direction: row;
      align-items: center;
      justify-content: space-between;
+     margin-top: 40px;
+
  }
 
  #date {
@@ -19,9 +21,7 @@ layout: default
 <p id="date">{{ page.date | date: "%-d %B %Y"}}</p>
 {{ content }}
 
-<hr />
-
-<div class="postContainer">
+<div class="post__controls__container">
     {% if page.previous %}
     <a href="{{ page.previous.url }}">← {{ page.previous.title }}</a>
     {% endif %}
@@ -31,3 +31,4 @@ layout: default
     {% if page.next %}
     <a href="{{ page.next.url }}">{{ page.next.title }} →</a>
     {% endif %}
+</div>
