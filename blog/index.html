@@ -3,6 +3,6 @@ title: Craig's Cool Site
 layout: default
 ---
 {% for post in site.posts %}
-<h2><a href="{{ post.url }}">{{ post.title }}</a></h2>
-<p class="date">{{ post.date | date: "%-d %B %Y"}}</p>
+  <h2><a href="{{ post.url }}">{{ post.title }}</a></h2>
+  <p class="date">{{ post.date | date: "%-d %B %Y"}}</p>
 {% endfor %}
