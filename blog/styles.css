@@ -32,3 +32,13 @@ a {
 main {
     margin: 0 40px;
 }
+
+@media (max-width: 500px) {
+    main {
+        margin: 0 10px;
+    }
+
+    header {
+        margin: 40px 10px;
+    }
+}
