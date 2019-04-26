@@ -3,6 +3,7 @@ layout: post
 title: What's dangerous about dangerouslySetInnerHTML?
 date:   2019-04-26 07:28:00 +0100
 tags: programming frontend security react
+published: false
 ---
 I've been working on a side project in which I need to dynamically set the inner
 HTML of a react component based on some text. To do this, I need to use React's
@@ -29,6 +30,7 @@ danger of exposing your users to XSS attacks.
 
 
 ### Conclusion
+
 
 This investigation also upholds the value of naming an attribute in this way.
 Including `dangerous` in the attribute name itself set me on a path of education
