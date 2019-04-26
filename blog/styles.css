@@ -30,6 +30,11 @@ a {
     color: #444444;
 }
 
+a:visited {
+    color: #666666;
+}
+
+
 main {
     margin: 0 40px;
 }
