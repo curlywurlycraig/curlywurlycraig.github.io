@@ -13,7 +13,7 @@ researched what risks are involved in using it. Why is it dangerous?
 
 React's
 [documentation on this attribute](https://reactjs.org/docs/dom-elements.html#dangerouslysetinnerhtml)
-graciously let's us know that:
+graciously lets us know that:
 
 > setting HTML from code is risky because it’s easy to inadvertently expose your
 > users to
