@@ -8,7 +8,7 @@ header {
 }
 
 body {
-    max-width: 600px;
+    max-width: 700px;
     font-size: 18px;
     line-height: 22px;
     background-color: #FFFFFF;
@@ -42,4 +42,18 @@ main {
     header {
         margin: 40px 10px;
     }
+}
+
+blockquote {
+    border-left: 5px solid #ececec;
+    margin: 0;
+    padding: 5px 0 5px 20px;
+}
+
+blockquote > p {
+    margin: 0;
+}
+
+.post_summary {
+    margin-bottom: 40px;
 }
