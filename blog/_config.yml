@@ -17,6 +17,8 @@ title: Craig\'s Cool Site
 email: curlywurlycraig@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
   Making the web better through cool blog posts and applications.
+site.description: >- # So does this
+  Making the web better through cool blog posts and applications.
 baseurl: "/" # the subpath of your site, e.g. /blog
 url: "https://crwi.uk" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: curlywurlycraig
