@@ -62,3 +62,10 @@ blockquote > p {
 .post_summary {
     margin-bottom: 40px;
 }
+
+code {
+    background-color: #eeeeee;
+    border-radius: 3px;
+    padding: 2px;
+    color: #158fc1;
+}
