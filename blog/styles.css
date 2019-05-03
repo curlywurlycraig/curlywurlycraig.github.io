@@ -5,7 +5,11 @@ header {
     width: 100%;
     max-width: 600px;
     margin: 20px 0;
-    float: left;
+}
+
+.header__img_container {
+    height: 100%;
+    margin: 0 0;
 }
 
 .header__img {
@@ -44,19 +48,8 @@ a:visited {
 }
 
 main {
-    margin: 0 10px;
+    margin: 0;
     max-width: 600px;
-}
-
-@media (max-width: 500px) {
-    main {
-        margin: 0 10px;
-    }
-
-    header {
-        padding-left: 10px;
-        margin: 20px 0px;
-    }
 }
 
 blockquote {
