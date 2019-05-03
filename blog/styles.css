@@ -1,6 +1,11 @@
+@import url('https://fonts.googleapis.com/css?family=Merriweather');
+
 header {
-    margin: 40px 40px;
     height: 60px;
+    width: 100%;
+    max-width: 600px;
+    margin: 20px 0;
+    float: left;
 }
 
 .header__img {
@@ -8,12 +13,16 @@ header {
 }
 
 body {
-    max-width: 700px;
+    hyphens: auto;
     font-size: 18px;
-    line-height: 22px;
+    line-height: 26px;
     background-color: #FFFFFF;
     color: #444444;
     padding-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items:center;
+    font-family: 'Merriweather', serif;
 }
 
 h2 {
@@ -34,9 +43,9 @@ a:visited {
     color: #666666;
 }
 
-
 main {
-    margin: 0 40px;
+    margin: 0 10px;
+    max-width: 600px;
 }
 
 @media (max-width: 500px) {
@@ -45,7 +54,8 @@ main {
     }
 
     header {
-        margin: 40px 10px;
+        padding-left: 10px;
+        margin: 20px 0px;
     }
 }
 
