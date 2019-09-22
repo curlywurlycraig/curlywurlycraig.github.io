@@ -5,7 +5,12 @@ description: Making the web better through cool blog posts and applications.
 ---
 {% for post in site.posts %}
 <div class="post_summary">
-  <h2><a href="{{ post.url }}">{{ post.title }}</a></h2>
+  {% if post.type == 'app' %}
+    <h2><a href="{{ post.app_url }}">{{ post.title }}</a></h2>
+  {% else %}
+    <h2><a href="{{ post.url }}">{{ post.title }}</a></h2>
+  {% endif %}
+
   <p class="date">{{ post.date | date: "%-d %B %Y"}}</p>
 </div>
 {% endfor %}
