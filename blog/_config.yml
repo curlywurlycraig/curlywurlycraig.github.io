@@ -22,7 +22,7 @@ site.description: >- # So does this
 baseurl: "/" # the subpath of your site, e.g. /blog
 url: "https://crwi.uk" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: curlywurlycraig
-github_username:  curlywurlycraig
+github_username: curlywurlycraig
 
 # Build settings
 markdown: kramdown
