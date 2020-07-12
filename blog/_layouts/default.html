@@ -1,29 +1,23 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="{% if page.description %}{{ page.description }}{% else %}{{ site.description }}{% endif %}">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="{% if page.description %}{{ page.description }}{% else %}{{ site.description }}{% endif %}"
+    />
 
-    <link rel="icon" href="/res/favicon.ico" type="image/x-icon"/>
-    <link rel="shortcut icon" href="/res/favicon.ico" type="image/x-icon"/>
+    <link rel="icon" href="/res/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="/res/favicon.ico" type="image/x-icon" />
 
     <title>{{ page.title }}</title>
-    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/styles.css" />
 
-    <style>
-    </style>
+    <style></style>
   </head>
 
   <body>
-    <header>
-      <div class="header__img_container">
-        <a href="/">
-            <img class="header__img" src="/res/me_small.png" alt="Home button that looks like my own face" />
-        </a>
-      </div>
-    </header>
-
     <main>
       {{ content }}
     </main>
