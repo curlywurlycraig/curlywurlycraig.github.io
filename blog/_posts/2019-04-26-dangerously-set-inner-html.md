@@ -2,7 +2,7 @@
 layout: post
 title: What's dangerous about dangerouslySetInnerHTML?
 date:   2019-04-26 07:28:00 +0100
-tags: programming frontend security react
+tags: programming frontend security react javascript
 ---
 I've been working on a side project in which I need to dynamically set the inner
 HTML of a react component based on some text. To do this, I need to use React's
@@ -42,7 +42,7 @@ comment, and sets the inner HTML dangerously, the script tag will be placed onto
 the page and executed.
 
 If you still want to do something like this, then you'll need to look into
-[sanitising](https://www.npmjs.com/package/sanitize-html) your data first. 
+[sanitising](https://www.npmjs.com/package/sanitize-html) your data first.
 
 ### Safe case
 
