@@ -4,7 +4,7 @@
 header {
   height: 60px;
   width: 100%;
-  max-width: 600px;
+  max-width: 700px;
   margin: 20px 0;
 }
 
@@ -14,16 +14,16 @@ header {
 }
 
 .header__img {
-  height: 40px;
+  height: 80px;
 }
 
 body {
   hyphens: auto;
   font-size: 15px;
   line-height: 24px;
-  background-color: #ffffff;
-  color: #444444;
-  padding-bottom: 20px;
+  background-color: #fffbe9;
+  color: #58564f;
+  padding-bottom: 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -37,26 +37,26 @@ h2 {
 
 .date {
   margin-top: 10px;
-  color: #777777;
+  color: #c1b6a0;
 }
 
 a {
-  color: #444444;
+  color: #5f96c5;
 }
 
 a:visited {
-  color: #666666;
+  color: #9e9084;
 }
 
 main {
   margin: 0;
-  padding-top: 80px;
-  max-width: 600px;
+  padding-top: 40px;
+  max-width: 700px;
   width: 100%;
 }
 
 blockquote {
-  border-left: 5px solid #ececec;
+  border-left: 5px solid #dad1b2;
   margin: 0;
   padding: 5px 0 5px 20px;
 }
@@ -70,14 +70,14 @@ blockquote > p {
 }
 
 code {
-  background-color: #eeeeee;
+  background-color: #f3e9d6;
   border-radius: 3px;
   padding: 2px;
-  color: #158fc1;
+  color: #3a322c;
 }
 
 div.highlight {
-  background-color: #eeeeee;
+  background-color: #f3e9da59;
   border-radius: 3px;
   padding: 2px;
   color: #158fc1;
@@ -88,8 +88,12 @@ pre.highlight {
   margin: 5px;
 }
 
+pre.highlight > code {
+  background-color: transparent;
+}
+
 hr {
   border-width: 0;
   height: 1px;
-  background-color: #aaaaaa;
+  background-color: #e4dcc6;
 }

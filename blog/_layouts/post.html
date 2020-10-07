@@ -16,15 +16,3 @@ layout: default
 <h2>{{ page.title }}</h2>
 <p class="date">{{ page.date | date: "%-d %B %Y"}}</p>
 {{ content }}
-
-<div class="post__controls__container">
-    {% if page.previous %}
-    <a href="{{ page.previous.url }}">← {{ page.previous.title }}</a>
-    {% endif %}
-
-    <a href="/">All posts</a>
-
-    {% if page.next %}
-    <a href="{{ page.next.url }}">{{ page.next.title }} →</a>
-    {% endif %}
-</div>
