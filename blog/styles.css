@@ -15,6 +15,7 @@ header {
 
 .header__img {
   height: 80px;
+  opacity: 0.8;
 }
 
 body {
