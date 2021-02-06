@@ -1,5 +1,0 @@
-* TODO Add a robots.txt
-* TODO Add atom/rss feed (https://github.com/jekyll/jekyll-feed)
-* TODO Add way to include links to applications
-* TODO Improve deployment process
-* TODO Investigate google indexing of the posts

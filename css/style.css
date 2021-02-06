@@ -1,0 +1,36 @@
+#canvas {
+    width: 400px;
+    height: 300px;
+}
+
+body {
+    background-color: #151515;
+    padding: 0;
+    color: #aaa;
+    max-width: 600px;
+    font-size: 14px;
+}
+
+html {
+    color: #aaa;
+    font-family: Courier, Courier New, monospace;
+}
+
+p {
+    line-height: 140%;
+}
+
+a {
+    color: #aad;
+}
+
+a:visited {
+    color: #daa;
+}
+
+.quote {
+    border-left: 3px solid #aaa;
+    padding-left: 8px;
+    background-color: #222;
+    padding: 5px 5px 5px 8px;
+}
