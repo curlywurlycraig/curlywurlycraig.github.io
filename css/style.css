@@ -4,33 +4,42 @@
 }
 
 body {
-    background-color: #151515;
+    background-color: #09152b;
     padding: 0;
-    color: #aaa;
     max-width: 600px;
     font-size: 14px;
+    hyphens: auto;
 }
 
 html {
-    color: #aaa;
+    color: #dee3f0;
+    font-family: Verdana, sans-serif;
+}
+
+.code {
     font-family: Courier, Courier New, monospace;
 }
 
 p {
-    line-height: 140%;
+    line-height: 150%;
 }
 
 a {
-    color: #aad;
+    color: #88d;
 }
 
 a:visited {
-    color: #daa;
+    color: #aad;
 }
 
 .quote {
-    border-left: 3px solid #aaa;
+    border-left: 3px solid #dee3f0;
     padding-left: 8px;
-    background-color: #222;
+    background-color: #252540;
     padding: 5px 5px 5px 8px;
+}
+
+.silent-iframe {
+    overflow: hidden;
+    border: none;
 }

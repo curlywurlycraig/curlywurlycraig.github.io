@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="./style.css">
   </head>
@@ -11,6 +13,18 @@
     <p>Draw a waveform, then play the result.</p>
 
     <canvas width="800px" height="600px" id="canvas"></canvas>
+
+    <p>This is achieved by performing audio logic in wasm (compiled
+      from C) and dispatching frames to JS. The JS then creates a
+      BufferSourceNode and plays it on the fly.</p>
+
+    <p>
+      It would probably be more performant to use
+      an <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioWorkletNode">AudioWorkletNode</a>
+      instead. I'll maybe try that in the future.
+    </p>
+
+    <p>Also, note the wasm size!</p>
 
     <script type="module" src="./index.js">
     </script>

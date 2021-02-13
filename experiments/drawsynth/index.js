@@ -5,11 +5,13 @@ async function start() {
     const errorText = document.querySelector("#errors");
 
     function logError(error) {
-        errorText.innerHTML = error;
+	errorText.innerHTML = error;
     }
 
     const memory = new WebAssembly.Memory({
-        initial: 200
+	initial: 200,
+	maximum: 200,
+	shared: true
     });
 
     // Each HEAP is simply a different "view" into the memory.
@@ -24,49 +26,52 @@ async function start() {
 
     let toUtf8Decoder = new TextDecoder( "utf-8" );
     function toUTF8(ptr) {
-        // Remember, in C strings are null terminated strings.
-        // Argument is a pointer to the first character.
-        // Iterate and find null.
-        // This is almost directly copied from rawdraw.
-        let len = 0;
-        for(let i = ptr; HEAPU8[i] != 0; i++) len++;
-        return toUtf8Decoder.decode(HEAPU8.subarray(ptr, ptr+len));
+	// Remember, in C strings are null terminated strings.
+	// Argument is a pointer to the first character.
+	// Iterate and find null.
+	// This is almost directly copied from rawdraw.
+	let len = 0;
+	for(let i = ptr; HEAPU8[i] != 0; i++) len++;
+	return toUtf8Decoder.decode(HEAPU8.subarray(ptr, ptr+len));
     }
 
     const imports = {
-        env: {
-            memory,
-            random: Math.random,
-            cos: Math.cos,
-            sin: Math.sin,
-            tan: Math.tan,
-            prints: (ptr) => console.log(ptr, toUTF8(ptr)),
-            printfl: (f) => console.log(f),
-        }
+	env: {
+	    memory,
+	    random: Math.random,
+	    cos: Math.cos,
+	    sin: Math.sin,
+	    tan: Math.tan,
+	    prints: (ptr) => console.log(ptr, toUTF8(ptr)),
+	    printfl: (f) => console.log(f),
+	}
     };
 
     // instantiateStreaming is not supported by mobile safari
     const wasmResponse = await fetch('main.wasm');
     const wasmArray = await wasmResponse.arrayBuffer();
     const { instance } = await WebAssembly.instantiate(
-        wasmArray,
-        imports
+	wasmArray,
+	imports
     );
+    instance.exports.init();
 
-    // TODO Create an audio worklet node
-    // Give the audio worklet node the wasm instance
-    // The audio worklet node can request new audio data
+    let initialisedAudioContext = false;
+    window.onmousedown = async function(e) {
+	if (!initialisedAudioContext) {
+	    const audioContext = new AudioContext()
+	    await audioContext.audioWorklet.addModule('worklet.js')
+	    const workletNode = new AudioWorkletNode(audioContext, 'wasm-processor', {
+		processorOptions: {
+		    buf: HEAPF32
+		}
+	    })
+	    workletNode.connect(audioContext.destination)
 
-    window.onmousemove = function(e) {
-        instance.exports.setCursorPosition(e.clientX, e.clientY);
-    }
+	    initialisedAudioContext = true;
+	}
 
-    window.onmousedown = function(e) {
-	instance.exports.onMouseDown();
-    }
-
-    window.onmouseup = function(e) {
-	instance.exports.onMouseUp();
+	instance.exports.toggle();
     }
 }
 
