@@ -19,7 +19,7 @@
     <p>
 
       Synthesis takes place in a wasm file compiled from C (without Emscripten!).
-     
+      
     <p>
 
       WebAudio is a little weird given that its primitive is the
@@ -28,10 +28,15 @@
       allow me to just do what I want in C and write a bunch of floats
       to a buffer.
 
-    <p>
+    <div class="todo">
+      <p>
+	TODO: Fix fast mouse movement leaving spikes
+      <p>
+	TODO: Fix strange need to multiply x position by 2
+    </div>
 
-    <script type="module" src="./index.js">
-    </script>
+      <script type="module" src="./index.js">
+      </script>
   </body>
 </html>
 
