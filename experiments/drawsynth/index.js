@@ -64,7 +64,7 @@ async function start() {
     instance.exports.init();
 
     let initialisedAudioContext = false;
-    window.onmousedown = async function(e) {
+    async function maybeInitialiseContext() {
 	if (!initialisedAudioContext) {
 	    const audioContext = new AudioContext()
 	    await audioContext.audioWorklet.addModule('worklet.js')
@@ -77,7 +77,10 @@ async function start() {
 
 	    initialisedAudioContext = true;
 	}
+    }
 
+    canvas.onmousedown = async function(e) {
+	await maybeInitialiseContext();
 	instance.exports.onMouseDown();
     }
 
@@ -85,12 +88,13 @@ async function start() {
 	instance.exports.setCursorPosition(e.offsetX, e.offsetY);
     }
 
-    canvas.onmousedown = function(e) {
-	instance.exports.onMouseDown();
-    }
-
     canvas.onmouseup = function(e) {
 	instance.exports.onMouseUp();
+    }
+
+    document.toggle = async function() {
+	await maybeInitialiseContext();
+	instance.exports.toggle();
     }
 }
 
