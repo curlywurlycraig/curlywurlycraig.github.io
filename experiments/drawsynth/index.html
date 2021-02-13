@@ -14,17 +14,21 @@
 
     <canvas width="800px" height="600px" id="canvas"></canvas>
 
-    <p>This is achieved by performing audio logic in wasm (compiled
-      from C) and dispatching frames to JS. The JS then creates a
-      BufferSourceNode and plays it on the fly.</p>
+    <h2>Notes</h2>
 
     <p>
-      It would probably be more performant to use
-      an <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioWorkletNode">AudioWorkletNode</a>
-      instead. I'll maybe try that in the future.
-    </p>
 
-    <p>Also, note the wasm size!</p>
+      Synthesis takes place in a wasm file compiled from C.
+     
+    <p>
+
+      WebAudio is a little weird given that its primitive is the
+      node. What I ultimately want is just a buffer of samples I can
+      write to. This setup is the nearest thing to that world and does
+      allow me to just do what I want in C and write a bunch of floats
+      to a buffer.
+
+    <p>
 
     <script type="module" src="./index.js">
     </script>

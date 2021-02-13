@@ -13,11 +13,13 @@ body {
 
 html {
     color: #dee3f0;
-    font-family: Verdana, sans-serif;
+    font-family: Consolas, monospace;
 }
 
 .code {
-    font-family: Courier, Courier New, monospace;
+    color: #e4a85c;
+    background-color: #FFFFFF22;
+    font-family: Consolas, Courier New, monospace;
 }
 
 p {

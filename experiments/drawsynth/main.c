@@ -9,39 +9,34 @@ void dispatchAudioFrame(const float *samples);
 
 #include "mem.c"
 
-#define SAMPLE_COUNT 256
+#define SAMPLE_COUNT 128
 
 const float CANVAS_WIDTH = 800.0f;
 const float CANVAS_HEIGHT = 600.0f;
 
-float cursorX = 400.0f;
-float cursorY = 300.0f;
+float cursorX = 0.0f;
+float cursorY = 0.0f;
+
 float amplitude = 0.0f;
 
 float* samples;
 void init() {
-  samples = (float*) mmalloc(sizeof(float) * 256);
+  samples = (float*) mmalloc(sizeof(float) * SAMPLE_COUNT);
 }
 
-float* weirdsin() {
+float* generate_buffer() {
   for (int i = 0; i < SAMPLE_COUNT; i++) {
-    samples[i] = amplitude * sin(cursorX * i / 1280.0f);
+
+    samples[i] = amplitude * sin(i / (2.0f * 3.1415f));
   }
 
   return samples;
 }
 
-void setCursorPosition(float x, float y) {
-  cursorX = x;
-  cursorY = y;
-
-  weirdsin();
-}
-
-void onMouseDown() {
-}
-
-void onMouseUp() {
+void set_samples(float new_samples[SAMPLE_COUNT]) {
+  for (int i = 0; i < SAMPLE_COUNT; i++) {
+    samples[i] = new_samples[i];
+  }
 }
 
 int is_playing = 0;
@@ -54,5 +49,17 @@ void toggle() {
     is_playing = 1;
   }
 
-  weirdsin();
+  generate_buffer();
 }
+
+void setCursorPosition(float x, float y) {
+  cursorX = x;
+  cursorY = y;
+}
+
+void onMouseDown() {
+}
+
+void onMouseUp() {
+}
+

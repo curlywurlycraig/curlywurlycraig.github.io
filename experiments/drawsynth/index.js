@@ -2,6 +2,7 @@
 // https://developers.google.com/web/updates/2018/06/audio-worklet-design-pattern
 async function start() {
     const canvas = document.querySelector("#canvas");
+    const canvasCtx = canvas.getContext('2d');
     const errorText = document.querySelector("#errors");
 
     function logError(error) {
@@ -44,6 +45,9 @@ async function start() {
 	    tan: Math.tan,
 	    prints: (ptr) => console.log(ptr, toUTF8(ptr)),
 	    printfl: (f) => console.log(f),
+	    clear: () => canvasCtx.clearRect(0, 0, 800, 600),
+	    moveTo: (x, y) => canvasCtx.moveTo(x, y),
+	    lineTo: (x, y) => canvasCtx.lineTo(x, y)
 	}
     };
 
@@ -71,11 +75,19 @@ async function start() {
 	    initialisedAudioContext = true;
 	}
 
-	instance.exports.toggle();
+	instance.exports.onMouseDown();
     }
 
-    window.onmousemove = function(e) {
-	instance.exports.setCursorPosition(e.screenX, e.screenY);
+    canvas.onmousemove = function(e) {
+	instance.exports.setCursorPosition(e.offsetX, e.offsetY);
+    }
+
+    canvas.onmousedown = function(e) {
+	instance.exports.onMouseDown();
+    }
+
+    canvas.onmouseup = function(e) {
+	instance.exports.onMouseUp();
     }
 }
 
