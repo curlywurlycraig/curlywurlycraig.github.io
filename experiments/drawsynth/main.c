@@ -16,15 +16,26 @@ const float CANVAS_HEIGHT = 600.0f;
 
 float cursorX = 400.0f;
 float cursorY = 300.0f;
+float amplitude = 0.0f;
 
 float* samples;
 void init() {
   samples = (float*) mmalloc(sizeof(float) * 256);
 }
 
+float* weirdsin() {
+  for (int i = 0; i < SAMPLE_COUNT; i++) {
+    samples[i] = amplitude * sin(cursorX * i / 1280.0f);
+  }
+
+  return samples;
+}
+
 void setCursorPosition(float x, float y) {
   cursorX = x;
   cursorY = y;
+
+  weirdsin();
 }
 
 void onMouseDown() {
@@ -33,32 +44,15 @@ void onMouseDown() {
 void onMouseUp() {
 }
 
-float* silence() {
-  for (int i = 0; i < SAMPLE_COUNT; i++) {
-    samples[i] = 0;
-  }
-
-  return samples;
-}
-
-float* weirdsin() {
-  for (int i = 0; i < SAMPLE_COUNT; i++) {
-    samples[i] = sin(i / 1280.0f);
-  }
-
-  return samples;
-}
-
 int is_playing = 0;
-float* toggle() {
-  float* result;
+void toggle() {
   if (is_playing) {
-    result = silence();
+    amplitude = 0.0f;
     is_playing = 0;
   } else {
-    result = weirdsin();
+    amplitude = 1.0f;
     is_playing = 1;
   }
 
-  return result;
+  weirdsin();
 }

@@ -73,6 +73,10 @@ async function start() {
 
 	instance.exports.toggle();
     }
+
+    window.onmousemove = function(e) {
+	instance.exports.setCursorPosition(e.screenX, e.screenY);
+    }
 }
 
 window.onload = function() {
