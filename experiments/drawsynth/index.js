@@ -87,12 +87,21 @@ async function start() {
     canvas.onmousemove = function(e) {
 	instance.exports.setCursorPosition(e.offsetX, e.offsetY);
     }
+    
+    canvas.ontouchstart = canvas.onmousedown;
+
+    canvas.ontouchmove = function(e) {
+	const touch = e.touches[0];
+	instance.exports.setCursorPosition(touch.clientX, touch.clientY);
+	e.preventDefault();
+	e.stopPropagation();
+    }
 
     canvas.onmouseup = function(e) {
 	instance.exports.onMouseUp();
     }
 
-    document.toggle = async function() {
+    document.mute = async function() {
 	await maybeInitialiseContext();
 	instance.exports.toggle();
     }
