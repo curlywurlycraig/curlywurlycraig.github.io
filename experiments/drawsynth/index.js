@@ -4,6 +4,7 @@ async function start() {
     const canvas = document.querySelector("#canvas");
     const canvasCtx = canvas.getContext('2d');
     const errorText = document.querySelector("#errors");
+    canvasCtx.strokeStyle = '#dee3f0';
 
     function logError(error) {
 	errorText.innerHTML = error;
@@ -47,7 +48,9 @@ async function start() {
 	    printfl: (f) => console.log(f),
 	    clear: () => canvasCtx.clearRect(0, 0, 800, 600),
 	    moveTo: (x, y) => canvasCtx.moveTo(x, y),
-	    lineTo: (x, y) => canvasCtx.lineTo(x, y)
+	    lineTo: (x, y) => canvasCtx.lineTo(x, y),
+	    beginPath: () => canvasCtx.beginPath(),
+	    stroke: () => canvasCtx.stroke()
 	}
     };
 
