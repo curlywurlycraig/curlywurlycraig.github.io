@@ -1,7 +1,4 @@
-This is a basic project template for writing C code that builds to WASM.
-
-It is a good starting point for a C WASM project without all the extras that
-come with Emscripten.
+[Live link](https://crwi.uk/experiments/drawsynth/)
 
 # Why C?
 
@@ -16,7 +13,7 @@ I wanted to do away with the misdirection of faking things like OpenGL, and
 wanted to know the real story, understanding how everything fits together.
 
 Emscripten also pulls in a lot of extra stuff, and renders things like SVG
-files or whatever by default. I wanted something lighter.
+files or whatever by default. I wanted something lighter (observe the filesize in the live link).
 
 Most importantly, I wanted to explore how all this stuff fits together at a
 lower level than Emscripten can provide (though it was helpful for poking
