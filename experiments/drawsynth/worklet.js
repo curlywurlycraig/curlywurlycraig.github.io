@@ -4,7 +4,6 @@
 class WasmProcessor extends AudioWorkletProcessor {
     constructor (options) {
 	super();
-	console.log('opts are ', options);
 	this.buf = options.processorOptions.buf;
     }
 
