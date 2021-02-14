@@ -18,8 +18,10 @@ void clear();
 #define CANVAS_WIDTH 800.0f
 #define CANVAS_HEIGHT 600.0f
 
-float cursorX = 0.0f;
-float cursorY = 0.0f;
+float lastCursorX = -1.0f;
+float lastCursorY = -1.0f;
+float cursorX = -1.0f;
+float cursorY = -1.0f;
 
 int is_mouse_down = 0;
 float amplitude = 0.0f;
@@ -73,12 +75,40 @@ void toggle() {
   applyAmplitude();
 }
 
+float linear_interpolate(float startX, float startY, float endX, float endY, float currX) {
+  float proportion = (currX - startX) / (endX - startX);
+  return startY + proportion * (endY - startY);
+}
+
+// Sets samples at all positions between last and current cursor
+// positions
 void set_sample_at_cursor() {
   // update buffer
   // TODO Why x2?
-  unsigned int cursor_pos_as_index = 2.0f * (cursorX / CANVAS_WIDTH) * SAMPLE_COUNT;
-  float cursor_pos_as_sample = (-4.0f * cursorY / CANVAS_HEIGHT) + 1.0f;
-  samplesBeforeAmplitudeChange[cursor_pos_as_index] = cursor_pos_as_sample;
+  unsigned int start_cursor_pos_as_index = 2.0f * (lastCursorX / CANVAS_WIDTH) * SAMPLE_COUNT;
+  unsigned int end_cursor_pos_as_index = 2.0f * (cursorX / CANVAS_WIDTH) * SAMPLE_COUNT;
+  float start_cursor_pos_as_sample = (-4.0f * lastCursorY / CANVAS_HEIGHT) + 1.0f;
+  float end_cursor_pos_as_sample = (-4.0f * cursorY / CANVAS_HEIGHT) + 1.0f;
+
+  if (start_cursor_pos_as_index == end_cursor_pos_as_index) {
+    samplesBeforeAmplitudeChange[start_cursor_pos_as_index] = start_cursor_pos_as_sample;
+  } else if (start_cursor_pos_as_index < end_cursor_pos_as_index) {
+    for (unsigned int i = start_cursor_pos_as_index; i <= end_cursor_pos_as_index; i++) {
+      samplesBeforeAmplitudeChange[i] = linear_interpolate(start_cursor_pos_as_index,
+							   start_cursor_pos_as_sample,
+							   end_cursor_pos_as_index,
+							   end_cursor_pos_as_sample,
+							   i);
+    }
+  } else {
+    for (unsigned int i = end_cursor_pos_as_index; i <= start_cursor_pos_as_index; i++) {
+      samplesBeforeAmplitudeChange[i] = linear_interpolate(end_cursor_pos_as_index,
+							   end_cursor_pos_as_sample,
+							   start_cursor_pos_as_index,
+							   start_cursor_pos_as_sample,
+							   i);
+    }
+  }
 
   // redraw lines
   draw_buffer_to_canvas();
@@ -87,6 +117,9 @@ void set_sample_at_cursor() {
 }
 
 void setCursorPosition(float x, float y) {
+  lastCursorX = cursorX;
+  lastCursorY = cursorY;
+
   cursorX = x;
   cursorY = y;
 
@@ -97,6 +130,9 @@ void setCursorPosition(float x, float y) {
 
 void onMouseDown() {
   is_mouse_down = 1;
+  lastCursorX = cursorX;
+  lastCursorY = cursorY;
+
   set_sample_at_cursor();
 }
 
