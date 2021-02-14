@@ -1,3 +1,4 @@
 #canvas {
     border: 1px solid #546190;
+    touch-action: none;
 }

@@ -84,11 +84,10 @@ float linear_interpolate(float startX, float startY, float endX, float endY, flo
 // positions
 void set_sample_at_cursor() {
   // update buffer
-  // TODO Why x2?
-  unsigned int start_cursor_pos_as_index = 2.0f * (lastCursorX / CANVAS_WIDTH) * SAMPLE_COUNT;
-  unsigned int end_cursor_pos_as_index = 2.0f * (cursorX / CANVAS_WIDTH) * SAMPLE_COUNT;
-  float start_cursor_pos_as_sample = (-4.0f * lastCursorY / CANVAS_HEIGHT) + 1.0f;
-  float end_cursor_pos_as_sample = (-4.0f * cursorY / CANVAS_HEIGHT) + 1.0f;
+  unsigned int start_cursor_pos_as_index = (lastCursorX / CANVAS_WIDTH) * SAMPLE_COUNT;
+  unsigned int end_cursor_pos_as_index = (cursorX / CANVAS_WIDTH) * SAMPLE_COUNT;
+  float start_cursor_pos_as_sample = (-2.0f * lastCursorY / CANVAS_HEIGHT) + 1.0f;
+  float end_cursor_pos_as_sample = (-2.0f * cursorY / CANVAS_HEIGHT) + 1.0f;
 
   if (start_cursor_pos_as_index == end_cursor_pos_as_index) {
     samplesBeforeAmplitudeChange[start_cursor_pos_as_index] = start_cursor_pos_as_sample;
@@ -116,12 +115,14 @@ void set_sample_at_cursor() {
   applyAmplitude();
 }
 
+// Cursor positions need to be multiplied by two because of screen
+// scaling issues
 void setCursorPosition(float x, float y) {
   lastCursorX = cursorX;
   lastCursorY = cursorY;
 
-  cursorX = x;
-  cursorY = y;
+  cursorX = x * 2.0f;
+  cursorY = y * 2.0f;
 
   if (is_mouse_down) {
     set_sample_at_cursor();

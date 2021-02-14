@@ -81,10 +81,6 @@ async function start() {
     }
 
     canvas.onmousedown = async function(e) {
-	if (workletNode) {
-	    workletNode.port.postMessage({ type: 'onmousedown', args: { x: 10 }});
-	}
-
 	await maybeInitialiseContext();
 	instance.exports.onMouseDown();
     }
@@ -97,7 +93,7 @@ async function start() {
 
     canvas.ontouchmove = function(e) {
 	const touch = e.touches[0];
-	instance.exports.setCursorPosition(touch.clientX, touch.clientY);
+	instance.exports.setCursorPosition(touch.clientX - e.target.offsetLeft, touch.clientY - e.target.offsetTop);
 	e.preventDefault();
 	e.stopPropagation();
     }
