@@ -93,8 +93,8 @@ async function start() {
 	instance.exports.onMouseUp();
     }
     
-    canvas.touchstart = canvas.onmousedown;
-    canvas.touchend = canvas.onmouseup;
+    canvas.ontouchstart = canvas.onmousedown;
+    canvas.ontouchend = canvas.onmouseup;
 
     canvas.ontouchmove = function(e) {
 	const touch = e.touches[0];
