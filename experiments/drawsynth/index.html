@@ -18,8 +18,6 @@
 	<button id="mute" onclick="mute()">play/stop</button>
     </div>
 
-    <h2>Notes</h2>
-
     <p>
 
       Synthesis takes place in a wasm file compiled from C (without Emscripten!).
@@ -31,6 +29,36 @@
       write to. This setup is the nearest thing to that world and does
       allow me to just do what I want in C and write a bunch of floats
       to a buffer.
+
+    <p>
+
+      This works by creating
+      an <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioWorkletProcessor">AudioWorkletProcessor</a>
+      and just reading from
+      a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer">SharedArrayBuffer</a>.
+
+    <p>
+
+      There are some pros and cons with this approach. It is very
+      simple and performant to share memory this way, since the main
+      thread can make changes to the memory (such as when you edit the
+      waveform) directly instead of having to pass messages and so on.
+
+    <p>
+      However, <span class="code">SharedArrayBuffer</span>s present <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer#security_requirements">a security concern</a> which may affect browser support if not carefully considered.
+
+    <p>
+      I'm still experimenting with the best approach for this kind of
+      audio programming. Maybe
+      the <span class="code">AudioWorkletProcessor</span> should
+      initialise the WASM instead, and
+      accept <span class="code">AudioParam</span>s when configuration
+      is changed instead. This would result in some overhead for
+      passing messages between the main thread (where user interaction
+      takes place) and
+      the <span class="code">AudioWorkletProcessor</span>, but this probably
+      won't make a meaningful enough effect on audio processing
+      performance to be a problem.
 
     <div class="todo">
       <p>

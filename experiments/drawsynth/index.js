@@ -64,11 +64,12 @@ async function start() {
     instance.exports.init();
 
     let initialisedAudioContext = false;
+    let workletNode;
     async function maybeInitialiseContext() {
 	if (!initialisedAudioContext) {
 	    const audioContext = new AudioContext()
 	    await audioContext.audioWorklet.addModule('worklet.js')
-	    const workletNode = new AudioWorkletNode(audioContext, 'wasm-processor', {
+	    workletNode = new AudioWorkletNode(audioContext, 'wasm-processor', {
 		processorOptions: {
 		    buf: HEAPF32
 		}
@@ -80,6 +81,10 @@ async function start() {
     }
 
     canvas.onmousedown = async function(e) {
+	if (workletNode) {
+	    workletNode.port.postMessage({ type: 'onmousedown', args: { x: 10 }});
+	}
+
 	await maybeInitialiseContext();
 	instance.exports.onMouseDown();
     }
