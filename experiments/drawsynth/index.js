@@ -88,18 +88,19 @@ async function start() {
     canvas.onmousemove = function(e) {
 	instance.exports.setCursorPosition(e.offsetX, e.offsetY);
     }
+
+    canvas.onmouseup = function(e) {
+	instance.exports.onMouseUp();
+    }
     
-    canvas.ontouchstart = canvas.onmousedown;
+    canvas.touchstart = canvas.onmousedown;
+    canvas.touchend = canvas.onmouseup;
 
     canvas.ontouchmove = function(e) {
 	const touch = e.touches[0];
 	instance.exports.setCursorPosition(touch.clientX - e.target.offsetLeft, touch.clientY - e.target.offsetTop);
 	e.preventDefault();
 	e.stopPropagation();
-    }
-
-    canvas.onmouseup = function(e) {
-	instance.exports.onMouseUp();
     }
 
     document.mute = async function() {

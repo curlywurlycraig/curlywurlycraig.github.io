@@ -118,6 +118,8 @@ void set_sample_at_cursor() {
 // Cursor positions need to be multiplied by two because of screen
 // scaling issues
 void setCursorPosition(float x, float y) {
+  if (x < 0) x = 0;
+  if (y < 0) y = 0;
   lastCursorX = cursorX;
   lastCursorY = cursorY;
 
@@ -131,8 +133,11 @@ void setCursorPosition(float x, float y) {
 
 void onMouseDown() {
   is_mouse_down = 1;
-  lastCursorX = cursorX;
-  lastCursorY = cursorY;
+
+  if (cursorX > 0 && cursorY > 0) {
+    lastCursorX = cursorX;
+    lastCursorY = cursorY;
+  }
 
   set_sample_at_cursor();
 }
