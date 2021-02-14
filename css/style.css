@@ -24,8 +24,20 @@ html {
     font-family: Consolas, Courier New, monospace;
 }
 
+.footnote {
+    font-size: 0.8em;
+    opacity: 0.9;
+}
+
 .todo {
     opacity: 0.5;
+}
+
+hr {
+    height: 1px;
+    border: none;
+    background-color: #aad;
+    opacity: 0.3;
 }
 
 p {

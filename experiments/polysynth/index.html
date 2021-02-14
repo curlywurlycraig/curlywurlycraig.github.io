@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="./style.css">
+  </head>
+
+  <body>
+    <h1>polysynth <span class="todo">(in progress)</span></h1>
+
+    <p>
+      In <a href="/experiments/drawsynth/">drawsynth</a>, I presented
+      the ability to allow a user to draw the waveform for a
+      synthesizer. It worked by storing an output buffer in a C
+      array which was copied every 128-sample frame in
+      an <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioWorkletProcessor">AudioWorkletProcessor</a>.
+
+    <p>
+      I like this approach for its speed and flexibility. Using a raw
+      array buffer from C allows literally any digital signals
+      processing technique to be used at a performance about as high
+      as is possible on the web.
+
+    <p>
+      The solution so far has one important drawback: it cannot be
+      played at a different pitch. This is because the output buffer
+      is a fixed 128-sample frame. It is impossible to play a tone at
+      a different fundamental frequency<a href="#footnote_1"><sup>1</sup></a> because the same waveform is
+      always played at the same rate.
+
+    <p>
+      Consider the following sine wave:
+
+    <p class="todo">Insert sine wave example</p>
+
+    <p>
+      It is easy to imagine the wave oscillating on into the future
+      beyond the right hand side of the box, but this is not what is
+      happening. If we draw two samples, we see that the sample is
+      just duplicated:
+
+    <p class="todo">Insert extended example</p>
+
+    <p>
+      The solution to this problem is for the oscillator defined in C to offset the phase with the appropriate amount every frame.
+
+    <hr />
+    <p id="footnote_1" class="footnote">1: Technically higher f0 is possible, but only at whole multiples of (sample_rate) / (frame_size)</p>
+</h2>
+
+    <p>
+	<a href="https://github.com/curlywurlycraig/curlywurlycraig.github.io/tree/master/experiments/drawsynth">View source</a>
+
+      <script type="module" src="./index.js">
+      </script>
+  </body>
+</html>
+
