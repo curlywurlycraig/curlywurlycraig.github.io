@@ -33,7 +33,9 @@
     <p>
       Consider the following sine wave:
 
-    <p class="todo">Insert sine wave example</p>
+      <div>
+	<canvas class="example_1" width="400px" height="200px" alt="A sine wave" />
+      </div>
 
     <p>
       It is easy to imagine the wave oscillating on into the future
@@ -41,20 +43,25 @@
       happening. If we draw two samples, we see that the sample is
       just duplicated:
 
-    <p class="todo">Insert extended example</p>
+      <div>
+	<canvas class="example_2" width="800px" height="200px" alt="A sine wave, raggedly joined on to another sine wave" />
+      </div>
+
+    <p>
+      That strange tooth in the middle is the problem.
 
     <p>
       The solution to this problem is for the oscillator defined in C to offset the phase with the appropriate amount every frame.
 
-    <hr />
+      <hr />
     <p id="footnote_1" class="footnote">1: Technically higher f0 is possible, but only at whole multiples of (sample_rate) / (frame_size)</p>
 </h2>
 
-    <p>
-	<a href="https://github.com/curlywurlycraig/curlywurlycraig.github.io/tree/master/experiments/drawsynth">View source</a>
+<p>
+  <a href="https://github.com/curlywurlycraig/curlywurlycraig.github.io/tree/master/experiments/drawsynth">View source</a>
 
-      <script type="module" src="./index.js">
-      </script>
-  </body>
+  <script type="module" src="./index.js">
+  </script>
+</body>
 </html>
 

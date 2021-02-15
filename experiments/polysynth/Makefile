@@ -5,7 +5,7 @@
 
 # --max-memory=13107200
 # 200 pages of 65536 bytes
-build:
+build-draw:
 	clang \
 		--target=wasm32 \
 		--no-standard-libraries \
@@ -20,5 +20,5 @@ build:
 		-Wl,--no-check-features \
 		-Wl,--shared-memory \
 		-Wl,--max-memory=13107200 \
-		-o main.wasm \
-		main.c
+		-o draw.wasm \
+		draw.c
