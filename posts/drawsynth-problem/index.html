@@ -11,11 +11,17 @@
     <h1>A small problem with my drawsynth and how to solve it</h1>
 
     <p>
+      To be honest, this post is largely an excuse to experiment with
+      having multiple canvases on the same page, as well as loading
+      WASM code from inside
+      an <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioWorkletProcessor">AudioWorkletProcessor</a>.
+      
+    <p>
       In <a href="/experiments/drawsynth/">drawsynth</a>, I presented
       the ability to allow a user to draw the waveform for a
       synthesizer. It worked by storing an output buffer in a C
       array which was copied every 128-sample frame in
-      an <a href="https://developer.mozilla.org/en-US/docs/Web/API/AudioWorkletProcessor">AudioWorkletProcessor</a>.
+      an <span class="code">AudioWorkletProcessor</span>.
 
     <p>
       I like this approach for its speed and flexibility. Using a raw
