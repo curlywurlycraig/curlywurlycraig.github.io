@@ -81,6 +81,9 @@ async function start() {
     canvas_3.ontouchend = canvas_3.onmouseout;
     canvas_3.ontouchstart = canvas_3.onmouseover;
 
+    // The below is overridden immediately after, I'm just leaving
+    // this here because it will come in handy later when I want to
+    // remember how I passed the wasm array buffer into the worklet
     canvas_3.onclick = async () => {
 	const wasmResponse = await fetch('sound.wasm');
 	const wasmArray = await wasmResponse.arrayBuffer();
@@ -93,6 +96,7 @@ async function start() {
 	wasmNode.port.postMessage({ wasmArray });
     };
 
+    canvas_3.onclick = () => {};
 }
 
 window.onload = function() {
