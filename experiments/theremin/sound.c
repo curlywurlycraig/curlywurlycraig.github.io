@@ -24,8 +24,7 @@ void gen(float frequency, float amplitude) {
   }
 
   phase = phase + (128 / wavelength) * two_pi;
-  while (phase > two_pi) {
-    phase -= two_pi;
-  }
+  int divisions = (int) (phase / two_pi);
+  phase = phase - (divisions * two_pi);
 }
 

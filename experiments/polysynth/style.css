@@ -1,0 +1,19 @@
+canvas {
+    border: 1px solid #546190;
+    touch-action: none;
+}
+
+.example_1 {
+    width: 200px;
+    height: 100px;
+}
+
+.example_2 {
+    width: 400px;
+    height: 100px;
+}
+
+.example_3 {
+    width: 400px;
+    height: 100px;
+}
