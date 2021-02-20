@@ -45,13 +45,13 @@ float get_amplitude(adsr_envelope* env) {
 }
 
 void adsr_attack(adsr_envelope* env) {
-  env->state = attack;
   env->t = 0.0f;
+  env->state = attack;
 }
 
 void adsr_release(adsr_envelope* env) {
-  env->state = release;
   env->t = 0.0f;
+  env->state = release;
 }
 
 float* buffer;
@@ -71,7 +71,7 @@ void init() {
 
   adsr.state = none;
   adsr.a_a = 0.2f;
-  adsr.a_t = 0.02f;
+  adsr.a_t = 0.05f;
   adsr.r_t = 0.5f;
   adsr.t = 0;
 }
