@@ -1,4 +1,0 @@
-* TODO Try making a worklet processor that handles its own wasm
-* TODO Then can have a separate wasm thing to handle drawing
-Benefit of this approach is it all still happens in C. but we don't
-need to do message passing
