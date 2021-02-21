@@ -27,6 +27,9 @@ async function start() {
 	    });
 	}
     };
+
+    window.ontouchstart = window.onmousedown;
+    window.ontouchend = window.onmouseup;
 }
 
 window.onload = function() {
