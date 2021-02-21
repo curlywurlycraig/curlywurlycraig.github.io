@@ -18,9 +18,9 @@ void init() {
   for (int i = 0; i < 3; i++) phases[i] = 0;
 
   frequencies = mmalloc(sizeof(float) * 3);
-  frequencies[0] = 440.0f / 2.0f; // A
-  frequencies[1] = 554.3653f / 2.0f; // C#
-  frequencies[2] = 659.2551 / 2.0f; // E
+  frequencies[0] = 440.0f; // A
+  frequencies[1] = 554.3653f; // C#
+  frequencies[2] = 659.2551; // E
 
   adsr.state = none;
   adsr.a_a = 0.2f;
