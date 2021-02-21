@@ -54,8 +54,6 @@ void dispatch() {
     adsr.t += 1.0f / SAMPLE_RATE;
   }
 
-  printf(buffer[0]);
-
   for (int note = 0; note < 3; note++) {
     float wavelength = (float) SAMPLE_RATE / frequencies[note];
     phases[note] = phases[note] + (128 / wavelength) * two_pi;
