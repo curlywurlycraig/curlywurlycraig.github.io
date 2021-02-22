@@ -39,6 +39,10 @@ class WasmProcessor extends AudioWorkletProcessor {
     }
 
     process (inputs, outputs, parameters) {
+	if (!this.instance) {
+	    return true;
+	}
+
 	this.instance.exports.dispatch();
 
 	const memoryIndex = 0;
