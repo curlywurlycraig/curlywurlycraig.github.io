@@ -1,21 +1,16 @@
 // JS imports
 float sin(float rads);
 float printf(float input);
+void printp(void *input);
 
 #include "mem.c"
 #include "adsr.c"
-
-#define SAMPLE_RATE 44100
-
-float* buffer;
 
 typedef struct osc {
   adsr_envelope adsr;
   float frequency;
   float phase;
 } osc;
-
-osc* oscillators;
 
 osc osc_make(float frequency) {
   osc new_osc;
@@ -42,10 +37,14 @@ void osc_release(osc *o) {
   adsr_release(&o->adsr);
 }
 
+
+#define SAMPLE_RATE 44100
+
+float* buffer;
+osc oscillators[12];
+
 void init() {
   buffer = mmalloc(sizeof(float) * 128);
-
-  oscillators = mmalloc(sizeof(osc) * 3);
 
   oscillators[0] = osc_make(261.6256f); // C
   oscillators[1] = osc_make(329.6276f); // E

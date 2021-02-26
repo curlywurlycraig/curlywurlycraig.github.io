@@ -17,6 +17,7 @@ class WasmProcessor extends AudioWorkletProcessor {
 		memory,
 		sin: Math.sin,
 		printf: f => console.log(f),
+		printp: console.log
 	    }
 	};
 
