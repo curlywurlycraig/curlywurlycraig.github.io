@@ -6,6 +6,10 @@ void printp(void *input);
 #include "mem.c"
 #include "adsr.c"
 
+#define SAMPLE_RATE 44100
+#define BUFFER_SIZE 128
+#define TWO_PI 6.283f
+
 typedef struct osc {
   adsr_envelope adsr;
   float frequency;
@@ -37,14 +41,18 @@ void osc_release(osc *o) {
   adsr_release(&o->adsr);
 }
 
+void osc_update_phase(osc *o) {
+  float wavelength = (float) SAMPLE_RATE / o->frequency;
+  o->phase += (BUFFER_SIZE / wavelength) * TWO_PI;
+  int divisions = (int) (o->phase / TWO_PI);
+  o->phase -= divisions * TWO_PI;
+}
 
-#define SAMPLE_RATE 44100
-
-float* buffer;
+float *buffer;
 osc oscillators[12];
 
 void init() {
-  buffer = mmalloc(sizeof(float) * 128);
+  buffer = mmalloc(sizeof(float) * BUFFER_SIZE);
 
   oscillators[0] = osc_make(261.6256f); // C
   oscillators[1] = osc_make(329.6276f); // E
@@ -65,15 +73,13 @@ void trigger_release() {
 
 /* Prepares the 128 sample output buffer for playback */
 void dispatch() {
-  float two_pi = 2.0f * 3.1415;
-
   for (int i = 0; i < 128; i++) {
     buffer[i] = 0.0f;
     for (int note = 0; note < 3; note++) {
       osc *oscillator = &oscillators[note];
       float amplitude = adsr_amplitude(&oscillator->adsr);
       float wavelength = (float) SAMPLE_RATE / oscillator->frequency;
-      float sinx = oscillator->phase + (i / wavelength) * two_pi;
+      float sinx = oscillator->phase + (i / wavelength) * TWO_PI;
       buffer[i] += amplitude * sin(sinx);
       oscillator->adsr.t = oscillator->adsr.t + 1.0f / SAMPLE_RATE;
     }
@@ -81,10 +87,7 @@ void dispatch() {
 
   for (int note = 0; note < 3; note++) {
     osc *oscillator = &oscillators[note];
-    float wavelength = (float) SAMPLE_RATE / oscillator->frequency;
-    oscillator->phase += (128 / wavelength) * two_pi;
-    int divisions = (int) (oscillator->phase / two_pi);
-    oscillator->phase -= divisions * two_pi;
+    osc_update_phase(oscillator);
   }
 }
 
