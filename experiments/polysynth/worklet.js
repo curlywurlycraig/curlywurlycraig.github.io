@@ -17,7 +17,8 @@ class WasmProcessor extends AudioWorkletProcessor {
 		memory,
 		sin: Math.sin,
 		printf: f => console.log(f),
-		printp: console.log
+		printp: console.log,
+		random: Math.random
 	    }
 	};
 
@@ -32,9 +33,9 @@ class WasmProcessor extends AudioWorkletProcessor {
 		this.instance = instance;
 		this.instance.exports.init();
 	    } else if (e.data.type === "ATTACK_NOTE") {
-		this.instance.exports.trigger_attack();
+		this.instance.exports.trigger_attack(e.data.note_index);
 	    } else if (e.data.type === "RELEASE_NOTE") {
-		this.instance.exports.trigger_release();
+		this.instance.exports.trigger_release(e.data.note_index);
 	    }
 	};
     }
