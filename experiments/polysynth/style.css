@@ -1,19 +1,16 @@
-canvas {
-    border: 1px solid #546190;
-    touch-action: none;
+.key {
+    opacity: 0.5;
+    width: 2px;
+    max-width: 2px;
+    display: inline-block;
 }
 
-.example_1 {
-    width: 200px;
-    height: 100px;
+.active {
+    opacity: 1.0;
+    color: #e4a85c;
 }
 
-.example_2 {
-    width: 400px;
-    height: 100px;
-}
-
-.example_3 {
-    width: 400px;
-    height: 100px;
+.sharp {
+    width: 1px;
+    transform: translateY(-5px);
 }
