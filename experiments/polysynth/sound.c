@@ -79,6 +79,20 @@ void trigger_release(unsigned int index) {
   osc_release(&oscillators[index]);
 }
 
+void adjust_attack(float new_attack) {
+  for (int i = 0; i < osc_count; i++) {
+    osc* o = &oscillators[i];
+    o->adsr.a_t = new_attack;
+  }
+}
+
+void adjust_release(float new_release) {
+  for (int i = 0; i < osc_count; i++) {
+    osc* o = &oscillators[i];
+    o->adsr.r_t = new_release;
+  }
+}
+
 /* Prepares the 128 sample output buffer for playback */
 void dispatch() {
   for (int i = 0; i < 128; i++) {

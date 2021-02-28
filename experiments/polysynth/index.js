@@ -17,7 +17,7 @@ const notes = [
 async function start() {
     let wasmNode;
 
-    const elements = [
+    const noteElements = [
 	document.getElementById('c'),
 	document.getElementById('cs'),
 	document.getElementById('d'),
@@ -32,6 +32,26 @@ async function start() {
 	document.getElementById('b'),
 	document.getElementById('uc'),
     ];
+    const attackSlider = document.getElementById('attack');
+    const releaseSlider = document.getElementById('release');
+
+    attackSlider.oninput = function() {
+	if (!wasmNode) return;
+
+	wasmNode.port.postMessage({
+	    type: "ADJUST_ATTACK",
+	    value: this.value
+	});
+    }
+
+    releaseSlider.oninput = function() {
+	if (!wasmNode) return;
+
+	wasmNode.port.postMessage({
+	    type: "ADJUST_RELEASE",
+	    value: this.value
+	});
+    }
 
     window.onmousedown = async () => {
 	if (wasmNode) return;
@@ -57,7 +77,7 @@ async function start() {
 	const note_index = notes.indexOf(e.key);
 	if (note_index === -1) return;
 
-	elements[note_index].classList.add("active");
+	noteElements[note_index].classList.add("active");
 
 	wasmNode.port.postMessage({
 	    type: "ATTACK_NOTE",
@@ -73,7 +93,7 @@ async function start() {
 	const note_index = notes.indexOf(e.key);
 	if (note_index === -1) return;
 
-	elements[note_index].classList.remove("active");
+	noteElements[note_index].classList.remove("active");
 
 	wasmNode.port.postMessage({
 	    type: "RELEASE_NOTE",
