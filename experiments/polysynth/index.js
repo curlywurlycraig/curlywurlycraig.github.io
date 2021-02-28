@@ -33,6 +33,8 @@ async function start() {
 	document.getElementById('uc'),
     ];
     const attackSlider = document.getElementById('attack');
+    const decaySlider = document.getElementById('decay');
+    const sustainSlider = document.getElementById('sustain');
     const releaseSlider = document.getElementById('release');
 
     attackSlider.oninput = function() {
@@ -40,6 +42,24 @@ async function start() {
 
 	wasmNode.port.postMessage({
 	    type: "ADJUST_ATTACK",
+	    value: this.value
+	});
+    }
+
+    decaySlider.oninput = function() {
+	if (!wasmNode) return;
+
+	wasmNode.port.postMessage({
+	    type: "ADJUST_DECAY",
+	    value: this.value
+	});
+    }
+
+    sustainSlider.oninput = function() {
+	if (!wasmNode) return;
+
+	wasmNode.port.postMessage({
+	    type: "ADJUST_SUSTAIN",
 	    value: this.value
 	});
     }
@@ -70,7 +90,7 @@ async function start() {
     window.ontouchstart = window.onmousedown;
 
     document.addEventListener("keydown", (e) => {
-	if (!wasmNode) {
+	if (!wasmNode || e.repeat) {
 	    return;
 	}
 

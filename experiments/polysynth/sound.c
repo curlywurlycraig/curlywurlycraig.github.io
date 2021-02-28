@@ -21,9 +21,11 @@ osc osc_make(float frequency) {
   osc new_osc;
   adsr_envelope adsr;
   adsr.state = none;
-  adsr.a_a = 0.2f;
-  adsr.a_t = 1.5f;
-  adsr.r_t = 2.2f;
+  adsr.amp = 0.2f;
+  adsr.a = 0.002f;
+  adsr.d = 0.2f;
+  adsr.s = 0.15f;
+  adsr.r = 0.8f;
   adsr.l_a = 0.0f;
   adsr.t = 0.0f;
 
@@ -82,14 +84,28 @@ void trigger_release(unsigned int index) {
 void adjust_attack(float new_attack) {
   for (int i = 0; i < osc_count; i++) {
     osc* o = &oscillators[i];
-    o->adsr.a_t = new_attack;
+    o->adsr.a = new_attack;
+  }
+}
+
+void adjust_decay(float new_decay) {
+  for (int i = 0; i < osc_count; i++) {
+    osc* o = &oscillators[i];
+    o->adsr.d = new_decay;
+  }
+}
+
+void adjust_sustain(float new_sustain) {
+  for (int i = 0; i < osc_count; i++) {
+    osc* o = &oscillators[i];
+    o->adsr.s = new_sustain;
   }
 }
 
 void adjust_release(float new_release) {
   for (int i = 0; i < osc_count; i++) {
     osc* o = &oscillators[i];
-    o->adsr.r_t = new_release;
+    o->adsr.r = new_release;
   }
 }
 
@@ -103,7 +119,7 @@ void dispatch() {
       float wavelength = (float) SAMPLE_RATE / oscillator->frequency;
       float sinx = oscillator->phase + (i / wavelength) * TWO_PI;
       buffer[i] += amplitude * sin(sinx);
-      oscillator->adsr.t = oscillator->adsr.t + 1.0f / SAMPLE_RATE;
+      adsr_advance(&oscillator->adsr, 1.0f / SAMPLE_RATE);
     }
   }
 

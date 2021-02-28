@@ -38,6 +38,10 @@ class WasmProcessor extends AudioWorkletProcessor {
 		this.instance.exports.trigger_release(e.data.note_index);
 	    } else if (e.data.type === "ADJUST_ATTACK") {
 		this.instance.exports.adjust_attack(e.data.value);
+	    } else if (e.data.type === "ADJUST_DECAY") {
+		this.instance.exports.adjust_decay(e.data.value);
+	    } else if (e.data.type === "ADJUST_SUSTAIN") {
+		this.instance.exports.adjust_sustain(e.data.value);
 	    } else if (e.data.type === "ADJUST_RELEASE") {
 		this.instance.exports.adjust_release(e.data.value);
 	    }
