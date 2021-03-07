@@ -1,2 +1,2 @@
-[Live link](https://crwi.uk/experiments/theremin/)
+[Live link](https://crwi.uk/experiments/polysynth/)
 

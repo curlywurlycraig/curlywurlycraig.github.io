@@ -1,0 +1,16 @@
+.key {
+    opacity: 0.5;
+    width: 4px;
+    font-size: 40px;
+    display: inline-block;
+}
+
+.active {
+    opacity: 1.0;
+    color: #e4a85c;
+}
+
+.sharp {
+    width: 4px;
+    transform: translateY(-8px);
+}
