@@ -17,6 +17,7 @@ extern float random();
 
 static float *outputBuffer;
 static float *editorBuffer;
+static float *silence;
 
 static int isPlaying;
 static int playingSamplePosition;
@@ -27,8 +28,11 @@ static unsigned int selectEnd;
 void init() {
   outputBuffer = mmalloc(sizeof(float) * BUFFER_SIZE);
   editorBuffer = mmalloc(sizeof(float) * MAX_EDITOR_BUFFER_LENGTH_SECS);
-  printp(outputBuffer);
-  printp(editorBuffer);
+  silence = mmalloc(sizeof(float) * BUFFER_SIZE);
+  for (int i = 0; i < BUFFER_SIZE; i++) {
+    silence[i] = 0;
+  }
+
   isPlaying = 0;
   playingSamplePosition = 0;
   maxSamplePosition = 0;
@@ -37,14 +41,14 @@ void init() {
 /* Prepares the 128 sample output buffer for playback. Returns the
 location of the output buffer */
 float* dispatch() {
-  if (!isPlaying || playingSamplePosition >= maxSamplePosition) {
-    return 0;
+  if (!isPlaying) {
+    return silence;
   }
 
   for (int i = 0; i < 128; i++) {
+    // loop for now
     if (playingSamplePosition >= maxSamplePosition) {
-      outputBuffer[i] = 0;
-      continue;
+      playingSamplePosition = 0;
     }
 
     outputBuffer[i] = editorBuffer[playingSamplePosition];

@@ -1,0 +1,32 @@
+body {
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+#graph {
+    border: 1px solid #546190;
+}
+
+textarea {
+    background-color: rgb(11, 23, 59);
+    border: none;
+    border-radius: 0;
+    color: white;
+    padding: 10px;
+}
+
+textarea:focus {
+    background-color: rgb(24, 38, 82);
+    border: none;
+    border-radius: 0;
+    color: white;
+    padding: 10px;
+    outline: none;
+}
+
+::placeholder {
+    color: #546190;
+}
