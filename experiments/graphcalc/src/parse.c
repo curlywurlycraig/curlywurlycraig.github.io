@@ -1,6 +1,3 @@
-#include "string.c";
-#include "mem.c";
-
 // Formula parsing functions
 
 // basic idea:
@@ -19,7 +16,7 @@
 // -
 // <neg operator>
 
-enum CharType {
+typedef enum CharType {
     START,
     DIGIT,
     HYPHEN,
@@ -27,23 +24,22 @@ enum CharType {
     SPACE,
     END,
     UNKNOWN
-};
+} CharType;
 
-enum Validity {
+typedef enum Validity {
     INVALID,
     PARTIAL,
     VALID
-};
+} Validity;
 
-enum Token {
-    INVALID,
+typedef enum Token {
     NUMBER,
     OP_NEG,
     OP_PLUS
-};
+} Token;
 
 typedef struct CharState {
-    char* name;
+    int id;
     CharType type;
 } CharState;
 
@@ -54,6 +50,7 @@ typedef struct StateTransition {
 
 typedef struct TokenFinder {
     StateTransition *transitions;
+    unsigned int transitionCount;
     Token token;
 } TokenFinder;
 
@@ -61,6 +58,9 @@ typedef struct TokenFinder {
 
 TokenFinder *tokenFinders;
 unsigned int numTokenFinders;
+
+CharState startState;
+CharState endState;
 
 CharType getCharType(char input) {
     if (input >= '0' && input <= '9') {
@@ -70,45 +70,63 @@ CharType getCharType(char input) {
     if (input == '.') {
         return PERIOD;
     }
+
+    if (input == ' ') {
+        return SPACE;
+    }
+
+    return UNKNOWN;
 }
 
 Validity validateRange(char* range, TokenFinder finder) {
-    Validity result = VALID;
-    CharType currentCharType = START;
-    unsigned int index = 0;
-    for (int i = 0; i < strlen(range) i++) {
+    CharState currentCharState = startState;
+    for (int i = 0; i < strlen(range); i++) {
+        CharType nextCharType = getCharType(range[i]);
+        int hasValidTransition = 0;
         // find matching transition
-        // if there isn't one, INVALID! Return early
-        // update current char type
+        for (int j = 0; j < finder.transitionCount; j++) {
+            StateTransition transition = finder.transitions[j];
+            // TODO This will allow repeating periods in number. Need to
+            if (transition.fromState.id == currentCharState.id && transition.toState.type == nextCharType) {
+                hasValidTransition = 1;
+
+                currentCharState = transition.toState;
+                break;
+            }
+        }
+
+        if (!hasValidTransition) {
+            return INVALID;
+        }
     }
 
-    // If there is a transition to END from current char type, VALID!
-    // Else, PARTIAL!
+    for (int i = 0; i < finder.transitionCount; i++) {
+        StateTransition transition = finder.transitions[i];
+        if (transition.fromState.id == currentCharState.id && transition.toState.id == endState.id) {
+            return VALID;
+        }
+    }
 
-    return result;
+    return PARTIAL;
+}
+
+Validity validateNumber(char* range) {
+    return validateRange(range, tokenFinders[0]);
 }
 
 // TODO Is there a better way to construct these?
 TokenFinder makeNumberFinder() {
-    CharState startState;
-    numberState.name = "start-state";
-    numberState.type = START;
-
     CharState numberState;
-    numberState.name = "number-state";
+    numberState.id = 0;
     numberState.type = DIGIT;
 
     CharState periodState;
-    periodState.name = "period-state";
+    periodState.id = 1;
     periodState.type = PERIOD;
 
     CharState fractionState;
-    fractionState.name = "fraction-state";
+    fractionState.id = 2;
     fractionState.type = DIGIT;
-
-    CharState endState;
-    numberState.name = "end-state";
-    numberState.type = END;
 
     // number is
     // 1
@@ -118,33 +136,48 @@ TokenFinder makeNumberFinder() {
     // <some digits><maybe period & more digits>
     TokenFinder numberFinder;
     numberFinder.token = NUMBER;
-    numberFinder.transitions = mmalloc(sizeof(StateTransition) * 5);
+    numberFinder.transitionCount = 7;
+    numberFinder.transitions = mmalloc(sizeof(StateTransition) * numberFinder.transitionCount);
 
-    numberFinder.transitions[0] = {
+    numberFinder.transitions[0] = (StateTransition) {
         .fromState = startState,
         .toState = numberState
     };
-    numberFinder.transitions[1] = {
+    numberFinder.transitions[1] = (StateTransition) {
         .fromState = numberState,
         .toState = endState
     };
-    numberFinder.transitions[2] = {
+    numberFinder.transitions[2] = (StateTransition) {
         .fromState = numberState,
         .toState = periodState
     };
-    numberFinder.transitions[3] = {
+    numberFinder.transitions[3] = (StateTransition) {
+        .fromState = numberState,
+        .toState = numberState
+    };
+    numberFinder.transitions[4] = (StateTransition) {
         .fromState = periodState,
         .toState = fractionState
     };
-    numberFinder.transitions[4] = {
+    numberFinder.transitions[5] = (StateTransition) {
         .fromState = fractionState,
         .toState = endState
+    };
+    numberFinder.transitions[6] = (StateTransition) {
+        .fromState = fractionState,
+        .toState = fractionState
     };
 
     return numberFinder;
 }
 
 void initTokenFinders() {
+    startState.id = -1;
+    startState.type = START;
+
+    endState.id = -2;
+    endState.type = END;
+
     numTokenFinders = 0;
     tokenFinders = mmalloc(sizeof(TokenFinder) * MAX_TOKENS);
 
@@ -164,25 +197,25 @@ typedef struct LexInfo {
     unsigned int endIndex;
 
     unsigned int farthestGood;
-    Lex bestLex;
+    Token bestToken;
     Validity validity;
 } LexInfo;
 
-RangeInfo analyseRange(char* range) {
-    RangeInfo result;
+// RangeInfo analyseRange(char* range) {
+//     RangeInfo result;
 
-    return result;
-}
+//     return result;
+// }
 
 // lexer
-LexInfo lex(char* formula) {
-    LexInfo result;
-    result.startIndex = 0;
-    result.endIndex = 1;
+// LexInfo lex(char* formula) {
+//     LexInfo result;
+//     result.startIndex = 0;
+//     result.endIndex = 1;
 
-    while (startIndex < strlen(formula)) {
-        while (endIndex <= strlen(formula) &&
-    }
+//     while (startIndex < strlen(formula)) {
+//         while (endIndex <= strlen(formula) &&
+//     }
 
-    return result;
-}
+//     return result;
+// }
