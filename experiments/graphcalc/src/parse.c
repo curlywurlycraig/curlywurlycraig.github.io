@@ -287,6 +287,7 @@ TokenizeResult tokenize(char* formula) {
     Token bestToken;
     int startIndex = 0;
     int endIndex = 1;
+    int bestStartIndex = 0;
     int bestEndIndex = 0;
 
     int formulaLen = strlen(formula);
@@ -302,6 +303,7 @@ TokenizeResult tokenize(char* formula) {
                     anyValid = 1;
                     bestToken = tokenFinder.token;
                     bestEndIndex = endIndex;
+                    bestStartIndex = startIndex;
                     break;
                 } else if (validity == PARTIAL) {
                     anyValid = 1;
@@ -330,12 +332,12 @@ TokenizeResult tokenize(char* formula) {
     // Do one final check
     for (int i = 0; i < numTokenFinders; i++) {
         TokenFinder tokenFinder = tokenFinders[i];
-        Validity validity = validateRange(formula, startIndex - 1, endIndex - 1, tokenFinder);
+        Validity validity = validateRange(formula, bestStartIndex, endIndex - 1, tokenFinder);
         if (validity == VALID) {
             TokenInfo newToken;
             newToken.token = tokenFinder.token;
             newToken.validity = VALID;
-            newToken.startIndex = startIndex - 1;
+            newToken.startIndex = bestStartIndex;
             newToken.endIndex = endIndex - 1;
             result.tokens[result.tokenCount] = newToken;
             result.tokenCount++;
