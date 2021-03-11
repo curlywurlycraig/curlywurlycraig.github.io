@@ -21,6 +21,8 @@ typedef enum CharType {
     DIGIT,
     HYPHEN,
     PERIOD,
+    ASTERISK,
+    PLUS,
     SPACE,
     END,
     UNKNOWN
@@ -33,9 +35,12 @@ typedef enum Validity {
 } Validity;
 
 typedef enum Token {
+    NO_TOKEN,
     NUMBER,
+    OP_MULT,
     OP_NEG,
-    OP_PLUS
+    OP_PLUS,
+    WHITESPACE
 } Token;
 
 typedef struct CharState {
@@ -54,7 +59,8 @@ typedef struct TokenFinder {
     Token token;
 } TokenFinder;
 
-#define MAX_TOKENS 10
+#define MAX_TOKENS 256
+#define MAX_FINDERS 16
 
 TokenFinder *tokenFinders;
 unsigned int numTokenFinders;
@@ -75,12 +81,16 @@ CharType getCharType(char input) {
         return SPACE;
     }
 
+    if (input == '+') {
+        return PLUS;
+    }
+
     return UNKNOWN;
 }
 
-Validity validateRange(char* range, TokenFinder finder) {
+Validity validateRange(char* range, int startIndex, int endIndex, TokenFinder finder) {
     CharState currentCharState = startState;
-    for (int i = 0; i < strlen(range); i++) {
+    for (int i = startIndex; i < endIndex; i++) {
         CharType nextCharType = getCharType(range[i]);
         int hasValidTransition = 0;
         // find matching transition
@@ -110,11 +120,6 @@ Validity validateRange(char* range, TokenFinder finder) {
     return PARTIAL;
 }
 
-Validity validateNumber(char* range) {
-    return validateRange(range, tokenFinders[0]);
-}
-
-// TODO Is there a better way to construct these?
 TokenFinder makeNumberFinder() {
     CharState numberState;
     numberState.id = 0;
@@ -171,6 +176,76 @@ TokenFinder makeNumberFinder() {
     return numberFinder;
 }
 
+TokenFinder makeAsteriskFinder() {
+    CharState asteriskState;
+    asteriskState.id = 0;
+    asteriskState.type = ASTERISK;
+
+    TokenFinder asteriskFinder;
+    asteriskFinder.token = OP_MULT;
+    asteriskFinder.transitionCount = 2;
+    asteriskFinder.transitions = mmalloc(sizeof(StateTransition) * asteriskFinder.transitionCount);
+
+    asteriskFinder.transitions[0] = (StateTransition) {
+        .fromState = startState,
+        .toState = asteriskState
+    };
+    asteriskFinder.transitions[1] = (StateTransition) {
+        .fromState = asteriskState,
+        .toState = endState
+    };
+
+    return asteriskFinder;
+}
+
+TokenFinder makePlusFinder() {
+    CharState plusState;
+    plusState.id = 0;
+    plusState.type = PLUS;
+
+    TokenFinder plusFinder;
+    plusFinder.token = OP_PLUS;
+    plusFinder.transitionCount = 2;
+    plusFinder.transitions = mmalloc(sizeof(StateTransition) * plusFinder.transitionCount);
+
+    plusFinder.transitions[0] = (StateTransition) {
+        .fromState = startState,
+        .toState = plusState
+    };
+    plusFinder.transitions[1] = (StateTransition) {
+        .fromState = plusState,
+        .toState = endState
+    };
+
+    return plusFinder;
+}
+
+TokenFinder makeWhitespaceFinder() {
+    CharState whitespaceState;
+    whitespaceState.id = 0;
+    whitespaceState.type = SPACE;
+
+    TokenFinder whitespaceFinder;
+    whitespaceFinder.token = WHITESPACE;
+    whitespaceFinder.transitionCount = 3;
+    whitespaceFinder.transitions = mmalloc(sizeof(StateTransition) * whitespaceFinder.transitionCount);
+
+    whitespaceFinder.transitions[0] = (StateTransition) {
+        .fromState = startState,
+        .toState = whitespaceState
+    };
+    whitespaceFinder.transitions[1] = (StateTransition) {
+        .fromState = whitespaceState,
+        .toState = whitespaceState
+    };
+    whitespaceFinder.transitions[2] = (StateTransition) {
+        .fromState = whitespaceState,
+        .toState = endState
+    };
+
+    return whitespaceFinder;
+}
+
 void initTokenFinders() {
     startState.id = -1;
     startState.type = START;
@@ -179,43 +254,93 @@ void initTokenFinders() {
     endState.type = END;
 
     numTokenFinders = 0;
-    tokenFinders = mmalloc(sizeof(TokenFinder) * MAX_TOKENS);
+    tokenFinders = mmalloc(sizeof(TokenFinder) * MAX_FINDERS);
 
     tokenFinders[0] = makeNumberFinder();
     numTokenFinders++;
+    tokenFinders[1] = makeAsteriskFinder();
+    numTokenFinders++;
+    tokenFinders[2] = makePlusFinder();
+    numTokenFinders++;
+    tokenFinders[3] = makeWhitespaceFinder();
+    numTokenFinders++;
 }
 
-// Range + Lex
+// Lexer
 
-typedef struct RangeInfo {
+typedef struct TokenInfo {
     Validity validity;
     Token token;
-} RangeInfo;
+    int startIndex;
+    int endIndex;
+} TokenInfo;
 
-typedef struct LexInfo {
-    unsigned int startIndex;
-    unsigned int endIndex;
+typedef struct TokenizeResult {
+    TokenInfo *tokens;
+    int tokenCount;
+} TokenizeResult;
 
-    unsigned int farthestGood;
+TokenizeResult tokenize(char* formula) {
+    TokenizeResult result;
+    result.tokens = mmalloc(sizeof(TokenInfo) * MAX_TOKENS);
+    result.tokenCount = 0;
     Token bestToken;
-    Validity validity;
-} LexInfo;
+    int startIndex = 0;
+    int endIndex = 1;
+    int bestEndIndex = 0;
 
-// RangeInfo analyseRange(char* range) {
-//     RangeInfo result;
+    int formulaLen = strlen(formula);
+    while (startIndex < formulaLen) {
+        bestToken = NO_TOKEN;
 
-//     return result;
-// }
+        while (endIndex <= formulaLen) {
+            int anyValid = 0;
+            for (int i = 0; i < numTokenFinders; i++) {
+                TokenFinder tokenFinder = tokenFinders[i];
+                Validity validity = validateRange(formula, startIndex, endIndex, tokenFinder);
+                if (validity == VALID) {
+                    anyValid = 1;
+                    bestToken = tokenFinder.token;
+                    bestEndIndex = endIndex;
+                    break;
+                } else if (validity == PARTIAL) {
+                    anyValid = 1;
+                }
+            }
 
-// lexer
-// LexInfo lex(char* formula) {
-//     LexInfo result;
-//     result.startIndex = 0;
-//     result.endIndex = 1;
+            if (anyValid == 0 && bestToken != NO_TOKEN) {
+                TokenInfo newToken;
+                newToken.token = bestToken;
+                newToken.validity = VALID;
+                newToken.startIndex = startIndex;
+                newToken.endIndex = bestEndIndex;
+                result.tokens[result.tokenCount] = newToken;
+                result.tokenCount++;
+                startIndex = bestEndIndex - 1;
+                endIndex = startIndex;
+                break;
+            }
 
-//     while (startIndex < strlen(formula)) {
-//         while (endIndex <= strlen(formula) &&
-//     }
+            endIndex++;
+        }
 
-//     return result;
-// }
+        startIndex++;
+    }
+
+    // Do one final check
+    for (int i = 0; i < numTokenFinders; i++) {
+        TokenFinder tokenFinder = tokenFinders[i];
+        Validity validity = validateRange(formula, startIndex - 1, endIndex - 1, tokenFinder);
+        if (validity == VALID) {
+            TokenInfo newToken;
+            newToken.token = tokenFinder.token;
+            newToken.validity = VALID;
+            newToken.startIndex = startIndex - 1;
+            newToken.endIndex = endIndex - 1;
+            result.tokens[result.tokenCount] = newToken;
+            result.tokenCount++;
+        }
+    }
+
+    return result;
+}

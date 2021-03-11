@@ -19,10 +19,14 @@ char* getInputPointer() {
 }
 
 void executeFormula(unsigned int formulaSize) {
-    // TODO Parse the formula and execute it
-    if (validateNumber(formulaInput) == VALID) {
-        prints("It is a number!");
-    } else if (validateNumber(formulaInput) == INVALID) {
-        prints("It is not a number :(");
+    // tokenize
+    prints("\n\n");
+    TokenizeResult result = tokenize(formulaInput);
+    for (int i = 0; i < result.tokenCount; i++) {
+        printf(result.tokens[i].token);
+        printf(result.tokens[i].startIndex);
+        printf(result.tokens[i].endIndex);
+        prints("---");
     }
+    prints("stop");
 }
