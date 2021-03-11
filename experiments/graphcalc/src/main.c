@@ -20,13 +20,14 @@ char* getInputPointer() {
 
 void executeFormula(unsigned int formulaSize) {
     // tokenize
-    prints("\n\n");
+    // prints("\n\n");
     TokenizeResult result = tokenize(formulaInput);
-    for (int i = 0; i < result.tokenCount; i++) {
-        printf(result.tokens[i].token);
-        printf(result.tokens[i].startIndex);
-        printf(result.tokens[i].endIndex);
-        prints("---");
-    }
-    prints("stop");
+    interpret(result, formulaInput);
+    // for (int i = 0; i < result.tokenCount; i++) {
+    //     printf(result.tokens[i].token);
+    //     printf(result.tokens[i].startIndex);
+    //     printf(result.tokens[i].endIndex);
+    //     prints("---");
+    // }
+    // prints("stop");
 }

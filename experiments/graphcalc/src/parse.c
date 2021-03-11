@@ -1,21 +1,3 @@
-// Formula parsing functions
-
-// basic idea:
-// mark current character
-// iterate through characters
-// track most recent "valid" range
-//     (not including "valid but incomplete")
-// Keep going until an invalid state is encountered.
-// if an invalid state is encountered, categorise and lex that range
-
-// + operator is simply
-// +
-// <plus operator>
-
-// - operator is simply
-// -
-// <neg operator>
-
 typedef enum CharType {
     START,
     DIGIT,
@@ -345,4 +327,34 @@ TokenizeResult tokenize(char* formula) {
     }
 
     return result;
+}
+
+
+// Interpreter
+
+double ten_pow(int pow) {
+    double result = 1;
+    for (int i = 0; i < pow; i++) {
+        result = result * 10;
+    }
+    return result;
+}
+
+// characters to double
+double ctod(char* str, int startIndex, int endIndex) {
+    double result = 0;
+    for (int i = 0; i < endIndex - startIndex; i++) {
+        result += ten_pow(i) * (str[endIndex-i-1] - '0');
+    }
+    return result;
+}
+
+void interpret(TokenizeResult tokens, char* input) {
+    // number addition
+    if (tokens.tokenCount == 3 && tokens.tokens[0].token == NUMBER && tokens.tokens[1].token == OP_PLUS && tokens.tokens[2].token == NUMBER) {
+        double firstNum = ctod(input, tokens.tokens[0].startIndex, tokens.tokens[0].endIndex);
+        double secondNum = ctod(input, tokens.tokens[2].startIndex, tokens.tokens[2].endIndex);
+
+        printf(firstNum + secondNum);
+    }
 }
