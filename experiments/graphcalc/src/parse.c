@@ -24,6 +24,8 @@ typedef enum Token {
     T_MULT,
     T_NEG,
     T_PLUS,
+    T_OPEN_PAREN,
+    T_CLOSE_PAREN,
     T_WHITESPACE
 } Token;
 
@@ -67,6 +69,14 @@ CharType getCharType(char input) {
 
     if (input == '+') {
         return PLUS;
+    }
+
+    if (input == '(') {
+        return OPEN_PAREN;
+    }
+
+    if (input == ')') {
+        return CLOSE_PAREN;
     }
 
     return UNKNOWN;
@@ -182,6 +192,50 @@ TokenFinder makeAsteriskFinder() {
     return asteriskFinder;
 }
 
+TokenFinder makeOpenParenFinder() {
+    CharState parenState;
+    parenState.id = 0;
+    parenState.type = OPEN_PAREN;
+
+    TokenFinder openParenFinder;
+    openParenFinder.token = T_OPEN_PAREN;
+    openParenFinder.transitionCount = 2;
+    openParenFinder.transitions = mmalloc(sizeof(StateTransition) * openParenFinder.transitionCount);
+
+    openParenFinder.transitions[0] = (StateTransition) {
+        .fromState = startState,
+        .toState = parenState
+    };
+    openParenFinder.transitions[1] = (StateTransition) {
+        .fromState = parenState,
+        .toState = endState
+    };
+
+    return openParenFinder;
+}
+
+TokenFinder makeCloseParenFinder() {
+    CharState parenState;
+    parenState.id = 0;
+    parenState.type = CLOSE_PAREN;
+
+    TokenFinder closeParenFinder;
+    closeParenFinder.token = T_CLOSE_PAREN;
+    closeParenFinder.transitionCount = 2;
+    closeParenFinder.transitions = mmalloc(sizeof(StateTransition) * closeParenFinder.transitionCount);
+
+    closeParenFinder.transitions[0] = (StateTransition) {
+        .fromState = startState,
+        .toState = parenState
+    };
+    closeParenFinder.transitions[1] = (StateTransition) {
+        .fromState = parenState,
+        .toState = endState
+    };
+
+    return closeParenFinder;
+}
+
 TokenFinder makePlusFinder() {
     CharState plusState;
     plusState.id = 0;
@@ -248,9 +302,11 @@ void initTokenFinders() {
     numTokenFinders++;
     tokenFinders[3] = makeWhitespaceFinder();
     numTokenFinders++;
+    tokenFinders[4] = makeOpenParenFinder();
+    numTokenFinders++;
+    tokenFinders[5] = makeCloseParenFinder();
+    numTokenFinders++;
 }
-
-// Lexer
 
 typedef struct TokenInfo {
     Validity validity;
@@ -331,74 +387,131 @@ TokenizeResult tokenize(char* formula) {
     return result;
 }
 
-
 // Interpreter
 
-typedef struct ParseUnit {
+typedef struct TokenRange {
     int start;
     int end;
+    char* raw;
     TokenInfo *tokens;
-    ParseUnit *children;
 } ParseUnit;
+
+TokenRange rangeFrom(TokenRange *range, int startOffset, int endOffset) {
+    return (TokenRange) {
+        .start = range->start + startOffset,
+        .end = range->end - endOffset,
+        .raw = range->raw,
+        .tokens = range->tokens
+    };
+}
 
 typedef struct TokenUnit {
     int index;
     TokenInfo *tokens;
 } TokenUnit;
 
-enum ParseSubUnitKind {
-    PARSE_UNIT_KIND,
-    TOKEN_UNIT_KIND
+typedef struct EvaluationResult {
+    double result;
+    int didFail;
+    TokenRange *range;
 }
 
-typedef struct Unit {
-    enum ParseSubUnitKind kind;
-    union {
-        ParseUnit parseUnit;
-        TokenUnit tokenUnit;
-    } unit;
-} Unit;
-
-enum RuleKind {
-    RULE_EXPR_MULT_EXPR,
-    RULE_EXPR_ADD_EXPR,
-    RULE_PAREN_EXPR,
-    RULE_NUMBER
-};
-
-typedef struct ParseRule {
-    enum RuleKind kind;
-    Unit *units;
+TokenInfo trFirst(TokenRange *tokenRange) {
+    return tokenRange->tokens[tokenRange->start];
 }
 
-// All expressions evaluate to a double for now
-double evaluate(ParseUnit *unit, ParseRule *rules) {
-    // Find an appropriate matching rule for the unit
-        // iterate through each rule
-        // if the rule is relevant for the unit token sequence
-        // evaluate each sub unit
-        // execute matching rule
+TokenInfo trLast(TokenRange *tokenRange) {
+    return tokenRange->tokens[tokenRange->end - 1];
+}
 
-    // Evaluate each sub unit
+int trSize(TokenRange *tokenRange) {
+    return tokenRange->end - tokenRange->start;
+}
 
-    // Execute matching rule
+EvaluationResult fail(TokenRange *range) {
+    return (EvaluationResult) {
+        .result = 0.0,
+        .didFail = 1,
+        .range = range
+    };
+}
+
+EvaluationResult success(TokenRange *range, double result) {
+    return (EvaluationResult) {
+        .result = result,
+        .didFail = 0,
+        .range = range
+    };
+}
+
+EvaluationResult num(TokenRange *tokenRange) {
+    if (trSize(tokenRange) != 1) {
+        return fail(tokenRange);
+    }
+
+    TokenInfo nextToken = trFirst(tokenRange);
+
+    if (nextToken.token != T_NUMBER) {
+        return fail(tokenRange);
+    }
+
+    return success(tokenRange, ctod(tokenRange->raw, nextToken.startIndex, nextToken.endIndex))
+}
+
+EvaluationResult expParen(TokenRange *tokenRange) {
+    if (trSize(tokenRange) < 3) {
+        return fail(tokenRange);
+    }
+
+    TokenInfo nextToken = trFirst(tokenRange);
+    TokenInfo lastToken = trLast(tokenRange);
+
+    if (nextToken.token != T_OPEN_PAREN) {
+        return fail(tokenRange);
+    }
+
+    if (lastToken.token != T_CLOSE_PAREN) {
+        return fail(tokenRange);
+    }
+
+    return expression(
+        rangeFrom(tokenRange, 1, 1)
+    );
+}
+
+EvaluationResult expOp(TokenRange *tokenRange) {
+    EvaluationResult tryFirstExp = expression(tokenRange);
+    if (!tryFirstExp) {
+        return fail(tokenRange);
+    }
+
+    // TODO This rangeFrom arg is weird and confusing (the offsets)
+    EvaluationResult tryOp = op(rangeFrom(tokenRange, tryFirstExp.range->start, tryFirstExp.range->start + 1));
+
+    return
+}
+
+EvaluationResult expression(TokenRange *tokenRange) {
+    EvaluationResult tryNum = num(tokenRange);
+    if (!tryNum.didFail) {
+        return tryNum;
+    }
+
+    EvaluationResult tryParen = expParen(tokenRange);
+    if (!tryParen.didFail) {
+        return tryParen;
+    }
+
+    return expOp(tokenRange);
 }
 
 void interpret(TokenizeResult tokens, char* input) {
-    ParseUnit root;
+    TokenRange root;
     root.start = 0;
     root.end = tokens.tokenCount;
+    root.raw = input;
     root.tokens = tokens;
-    root.isLeaf = 0;
 
-    double result = evaluate(&root, rules);
-    printf(result);
-
-    // number addition
-    if (tokens.tokenCount == 3 && tokens.tokens[0].token == T_NUMBER && tokens.tokens[1].token == T_PLUS && tokens.tokens[2].token == T_NUMBER) {
-        double firstNum = ctod(input, tokens.tokens[0].startIndex, tokens.tokens[0].endIndex);
-        double secondNum = ctod(input, tokens.tokens[2].startIndex, tokens.tokens[2].endIndex);
-
-        printf(firstNum + secondNum);
-    }
+    EvaluationResult result = expression(&root);
+    printf(result.result);
 }
