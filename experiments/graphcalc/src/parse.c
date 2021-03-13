@@ -389,62 +389,15 @@ TokenizeResult tokenize(char* formula) {
 
 // Interpreter
 
-typedef struct TokenRange {
-    int start;
-    int end;
+typedef struct ParseInfo {
+    int tokenIndex;
+    int didFail;
+    double result;
+    TokenizeResult *tokenizeResult;
     char* raw;
-    TokenInfo *tokens;
 } ParseUnit;
 
-TokenRange rangeFrom(TokenRange *range, int startOffset, int endOffset) {
-    return (TokenRange) {
-        .start = range->start + startOffset,
-        .end = range->end - endOffset,
-        .raw = range->raw,
-        .tokens = range->tokens
-    };
-}
-
-typedef struct TokenUnit {
-    int index;
-    TokenInfo *tokens;
-} TokenUnit;
-
-typedef struct EvaluationResult {
-    double result;
-    int didFail;
-    TokenRange *range;
-}
-
-TokenInfo trFirst(TokenRange *tokenRange) {
-    return tokenRange->tokens[tokenRange->start];
-}
-
-TokenInfo trLast(TokenRange *tokenRange) {
-    return tokenRange->tokens[tokenRange->end - 1];
-}
-
-int trSize(TokenRange *tokenRange) {
-    return tokenRange->end - tokenRange->start;
-}
-
-EvaluationResult fail(TokenRange *range) {
-    return (EvaluationResult) {
-        .result = 0.0,
-        .didFail = 1,
-        .range = range
-    };
-}
-
-EvaluationResult success(TokenRange *range, double result) {
-    return (EvaluationResult) {
-        .result = result,
-        .didFail = 0,
-        .range = range
-    };
-}
-
-EvaluationResult num(TokenRange *tokenRange) {
+void num(ParseInfo *info) {
     if (trSize(tokenRange) != 1) {
         return fail(tokenRange);
     }
@@ -455,10 +408,10 @@ EvaluationResult num(TokenRange *tokenRange) {
         return fail(tokenRange);
     }
 
-    return success(tokenRange, ctod(tokenRange->raw, nextToken.startIndex, nextToken.endIndex))
+    return success(tokenRange, ctod(tokenRange.raw, nextToken.startIndex, nextToken.endIndex))
 }
 
-EvaluationResult expParen(TokenRange *tokenRange) {
+void expParen(ParseInfo *info) {
     if (trSize(tokenRange) < 3) {
         return fail(tokenRange);
     }
@@ -479,19 +432,19 @@ EvaluationResult expParen(TokenRange *tokenRange) {
     );
 }
 
-EvaluationResult expOp(TokenRange *tokenRange) {
+EvaluationResult expOp(ParseInfo *info) {
     EvaluationResult tryFirstExp = expression(tokenRange);
     if (!tryFirstExp) {
         return fail(tokenRange);
     }
 
     // TODO This rangeFrom arg is weird and confusing (the offsets)
-    EvaluationResult tryOp = op(rangeFrom(tokenRange, tryFirstExp.range->start, tryFirstExp.range->start + 1));
+    EvaluationResult tryOp = op(rangeFrom(tokenRange, tryFirstExp.range.start, tryFirstExp.range.start + 1));
 
     return
 }
 
-EvaluationResult expression(TokenRange *tokenRange) {
+EvaluationResult expression(ParseInfo *info) {
     EvaluationResult tryNum = num(tokenRange);
     if (!tryNum.didFail) {
         return tryNum;
@@ -505,13 +458,15 @@ EvaluationResult expression(TokenRange *tokenRange) {
     return expOp(tokenRange);
 }
 
+// TODO Next steps: refactor above functions to use ParseInfo instead of tokenRange
 void interpret(TokenizeResult tokens, char* input) {
-    TokenRange root;
-    root.start = 0;
-    root.end = tokens.tokenCount;
-    root.raw = input;
-    root.tokens = tokens;
+    ParseInfo info;
+    info.tokenIndex = 0;
+    info.didFail = 0;
+    info.result = 0.0;
+    info.tokenizeResult = &tokens;
+    info.raw = input;
 
-    EvaluationResult result = expression(&root);
-    printf(result.result);
+    expression(info);
+    printf(info.result);
 }
