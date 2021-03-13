@@ -1,0 +1,33 @@
+double ten_pow(int pow) {
+    double result = 1;
+    for (int i = 0; i < pow; i++) {
+        result = result * 10;
+    }
+    return result;
+}
+
+int findPeriod(char* str, int startIndex, int endIndex) {
+    for (int i = startIndex; i < endIndex; i++) {
+        if (str[i] == '.') return i;
+    }
+
+    return -1;
+}
+
+// characters to double
+double ctod(char* str, int startIndex, int endIndex) {
+    double result = 0;
+    int periodPos = findPeriod(str, startIndex, endIndex);
+    int endOfNatural = periodPos == -1 ? endIndex : periodPos;
+
+    for (int i = 0; i < endOfNatural - startIndex; i++) {
+        result += ten_pow(i) * (str[endOfNatural-i-1] - '0');
+    }
+
+    if (periodPos != -1) {
+        for (int i = periodPos + 1; i < endIndex; i++) {
+            result += ((double) (str[i] - '0')) / ten_pow(i-periodPos);
+        }
+    }
+    return result;
+}

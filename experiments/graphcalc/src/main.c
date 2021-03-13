@@ -3,6 +3,7 @@ extern void printf(float f);
 
 #include "mem.c"
 #include "string.c"
+#include "math.c"
 #include "parse.c"
 
 #define MAX_FORMULA_CHARS 200

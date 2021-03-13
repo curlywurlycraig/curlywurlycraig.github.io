@@ -6,6 +6,8 @@ typedef enum CharType {
     ASTERISK,
     PLUS,
     SPACE,
+    OPEN_PAREN,
+    CLOSE_PAREN,
     END,
     UNKNOWN
 } CharType;
@@ -17,12 +19,12 @@ typedef enum Validity {
 } Validity;
 
 typedef enum Token {
-    NO_TOKEN,
-    NUMBER,
-    OP_MULT,
-    OP_NEG,
-    OP_PLUS,
-    WHITESPACE
+    T_NO_TOKEN,
+    T_NUMBER,
+    T_MULT,
+    T_NEG,
+    T_PLUS,
+    T_WHITESPACE
 } Token;
 
 typedef struct CharState {
@@ -122,7 +124,7 @@ TokenFinder makeNumberFinder() {
     // NOT 123415. (don't allow trailing period)
     // <some digits><maybe period & more digits>
     TokenFinder numberFinder;
-    numberFinder.token = NUMBER;
+    numberFinder.token = T_NUMBER;
     numberFinder.transitionCount = 7;
     numberFinder.transitions = mmalloc(sizeof(StateTransition) * numberFinder.transitionCount);
 
@@ -164,7 +166,7 @@ TokenFinder makeAsteriskFinder() {
     asteriskState.type = ASTERISK;
 
     TokenFinder asteriskFinder;
-    asteriskFinder.token = OP_MULT;
+    asteriskFinder.token = T_MULT;
     asteriskFinder.transitionCount = 2;
     asteriskFinder.transitions = mmalloc(sizeof(StateTransition) * asteriskFinder.transitionCount);
 
@@ -186,7 +188,7 @@ TokenFinder makePlusFinder() {
     plusState.type = PLUS;
 
     TokenFinder plusFinder;
-    plusFinder.token = OP_PLUS;
+    plusFinder.token = T_PLUS;
     plusFinder.transitionCount = 2;
     plusFinder.transitions = mmalloc(sizeof(StateTransition) * plusFinder.transitionCount);
 
@@ -208,7 +210,7 @@ TokenFinder makeWhitespaceFinder() {
     whitespaceState.type = SPACE;
 
     TokenFinder whitespaceFinder;
-    whitespaceFinder.token = WHITESPACE;
+    whitespaceFinder.token = T_WHITESPACE;
     whitespaceFinder.transitionCount = 3;
     whitespaceFinder.transitions = mmalloc(sizeof(StateTransition) * whitespaceFinder.transitionCount);
 
@@ -274,7 +276,7 @@ TokenizeResult tokenize(char* formula) {
 
     int formulaLen = strlen(formula);
     while (startIndex < formulaLen) {
-        bestToken = NO_TOKEN;
+        bestToken = T_NO_TOKEN;
 
         while (endIndex <= formulaLen) {
             int anyValid = 0;
@@ -292,7 +294,7 @@ TokenizeResult tokenize(char* formula) {
                 }
             }
 
-            if (anyValid == 0 && bestToken != NO_TOKEN) {
+            if (anyValid == 0 && bestToken != T_NO_TOKEN) {
                 TokenInfo newToken;
                 newToken.token = bestToken;
                 newToken.validity = VALID;
@@ -332,43 +334,68 @@ TokenizeResult tokenize(char* formula) {
 
 // Interpreter
 
-double ten_pow(int pow) {
-    double result = 1;
-    for (int i = 0; i < pow; i++) {
-        result = result * 10;
-    }
-    return result;
+typedef struct ParseUnit {
+    int start;
+    int end;
+    TokenInfo *tokens;
+    ParseUnit *children;
+} ParseUnit;
+
+typedef struct TokenUnit {
+    int index;
+    TokenInfo *tokens;
+} TokenUnit;
+
+enum ParseSubUnitKind {
+    PARSE_UNIT_KIND,
+    TOKEN_UNIT_KIND
 }
 
-int findPeriod(char* str, int startIndex, int endIndex) {
-    for (int i = startIndex; i < endIndex; i++) {
-        if (str[i] == '.') return i;
-    }
+typedef struct Unit {
+    enum ParseSubUnitKind kind;
+    union {
+        ParseUnit parseUnit;
+        TokenUnit tokenUnit;
+    } unit;
+} Unit;
 
-    return -1;
+enum RuleKind {
+    RULE_EXPR_MULT_EXPR,
+    RULE_EXPR_ADD_EXPR,
+    RULE_PAREN_EXPR,
+    RULE_NUMBER
+};
+
+typedef struct ParseRule {
+    enum RuleKind kind;
+    Unit *units;
 }
 
-// characters to double
-double ctod(char* str, int startIndex, int endIndex) {
-    double result = 0;
-    int periodPos = findPeriod(str, startIndex, endIndex);
-    int endOfNatural = periodPos == -1 ? endIndex : periodPos;
+// All expressions evaluate to a double for now
+double evaluate(ParseUnit *unit, ParseRule *rules) {
+    // Find an appropriate matching rule for the unit
+        // iterate through each rule
+        // if the rule is relevant for the unit token sequence
+        // evaluate each sub unit
+        // execute matching rule
 
-    for (int i = 0; i < endOfNatural - startIndex; i++) {
-        result += ten_pow(i) * (str[endOfNatural-i-1] - '0');
-    }
+    // Evaluate each sub unit
 
-    if (periodPos != -1) {
-        for (int i = periodPos + 1; i < endIndex; i++) {
-            result += ((double) (str[i] - '0')) / ten_pow(i-periodPos);
-        }
-    }
-    return result;
+    // Execute matching rule
 }
 
 void interpret(TokenizeResult tokens, char* input) {
+    ParseUnit root;
+    root.start = 0;
+    root.end = tokens.tokenCount;
+    root.tokens = tokens;
+    root.isLeaf = 0;
+
+    double result = evaluate(&root, rules);
+    printf(result);
+
     // number addition
-    if (tokens.tokenCount == 3 && tokens.tokens[0].token == NUMBER && tokens.tokens[1].token == OP_PLUS && tokens.tokens[2].token == NUMBER) {
+    if (tokens.tokenCount == 3 && tokens.tokens[0].token == T_NUMBER && tokens.tokens[1].token == T_PLUS && tokens.tokens[2].token == T_NUMBER) {
         double firstNum = ctod(input, tokens.tokens[0].startIndex, tokens.tokens[0].endIndex);
         double secondNum = ctod(input, tokens.tokens[2].startIndex, tokens.tokens[2].endIndex);
 
