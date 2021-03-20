@@ -22,9 +22,7 @@ function main() {
         const byteView = new Uint8Array(memory.buffer);
         const doubleView = new Float64Array(memory.buffer);
         function renderYSamples(resultsPtr) {
-            console.log('results ptr ', resultsPtr);
             const startIndex = resultsPtr >> 3;
-            console.log('first res is ', doubleView[startIndex]);
             graphContext.clearRect(0, 0, graph.width, graph.height);
             graphContext.beginPath();
             graphContext.moveTo(0, (graph.height / 2.0) - doubleView[startIndex]);
