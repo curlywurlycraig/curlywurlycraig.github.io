@@ -30,8 +30,6 @@ void executeFormula(unsigned int formulaSize) {
 
     // Draw the results
     draw(results);
-    for (int i = 0; i < 800; i++) {
-        // printd(results[i]);
-    }
+
     resetmem();
 }
