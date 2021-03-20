@@ -456,6 +456,7 @@ double parseNumToken(TokenInfo numToken, char* raw) {
 // Expression : Term ExpressionA
 
 // ExpressionA : + Term ExpressionA
+// ExpressionA : - Term ExpressionA
 // ExpressionA : <nothing>
 
 // Term : Factor TermM
@@ -507,15 +508,27 @@ double expression(ParseInfo *info) {
 }
 
 double expressionA(ParseInfo *info) {
-    if (!expect(info, T_PLUS)) return 0;
+    if (!expect(info, T_PLUS) && !expect(info, T_NEG)) return 0;
 
-    consume(info, T_PLUS);
-    if (info->didFail) return 0;
+    if (expect(info, T_PLUS)) {
+        consume(info, T_PLUS);
+        if (info->didFail) return 0;
 
-    double a = term(info);
-    if (info->didFail) return 0;
+        double a = term(info);
+        if (info->didFail) return 0;
 
-    return a + expressionA(info);
+        return a + expressionA(info);
+    } else if (expect(info, T_NEG)) {
+        consume(info, T_NEG);
+        if (info->didFail) return 0;
+
+        double a = term(info);
+        if (info->didFail) return 0;
+
+        return -1 * a + expressionA(info);
+    } else {
+        return 0;
+    }
 }
 
 double term(ParseInfo *info) {
@@ -581,7 +594,7 @@ void interpret(TokenizeResult tokens, char* input) {
     double result = expression(info);
     int cantParse = info->didFail || !info->reachedEnd;
     if (cantParse) {
-        prints("no");
+        prints("syntax error");
     } else {
         printd(result);
     }
