@@ -320,6 +320,12 @@ typedef struct TokenizeResult {
     int tokenCount;
 } TokenizeResult;
 
+void printTokens(TokenizeResult result) {
+    for (int i=0; i < result.tokenCount; i++) {
+        printf(result.tokens[i].token);
+    }
+}
+
 TokenizeResult tokenize(char* formula) {
     TokenizeResult result;
     result.tokens = mmalloc(sizeof(TokenInfo) * MAX_TOKENS);
@@ -392,81 +398,128 @@ TokenizeResult tokenize(char* formula) {
 typedef struct ParseInfo {
     int tokenIndex;
     int didFail;
+    int reachedEnd;
     double result;
     TokenizeResult *tokenizeResult;
     char* raw;
-} ParseUnit;
+} ParseInfo;
+
+TokenInfo lookAhead(ParseInfo *info, int ahead) {
+    return info->tokenizeResult->tokens[info->tokenIndex + ahead];
+}
+
+double parseNumToken(TokenInfo numToken, char* raw) {
+    return ctod(raw, numToken.startIndex, numToken.endIndex);
+}
+
+void plus(ParseInfo *info);
+void num(ParseInfo *info);
+void expression(ParseInfo *info);
+void expParen(ParseInfo *info);
+void expOp(ParseInfo *info);
+
+void error(ParseInfo *info) {
+    info->didFail = 1;
+    info->reachedEnd = 0;
+}
+
+void next(ParseInfo *info) {
+    info->tokenIndex++;
+    if (info->tokenIndex >= info->tokenizeResult->tokenCount) {
+        info->reachedEnd = 1;
+    }
+}
+
+// TODO mult
+
+void plus(ParseInfo *info) {
+    TokenInfo currToken = lookAhead(info, 0);
+    if (currToken.token != T_PLUS) {
+        error(info);
+        return;
+    }
+
+    next(info);
+}
 
 void num(ParseInfo *info) {
-    if (trSize(tokenRange) != 1) {
-        return fail(tokenRange);
-    }
-
-    TokenInfo nextToken = trFirst(tokenRange);
-
+    TokenInfo nextToken = lookAhead(info, 0);
     if (nextToken.token != T_NUMBER) {
-        return fail(tokenRange);
+        error(info);
+        return;
     }
 
-    return success(tokenRange, ctod(tokenRange.raw, nextToken.startIndex, nextToken.endIndex))
+    next(info);
+    info->result = parseNumToken(nextToken, info->raw);
 }
 
 void expParen(ParseInfo *info) {
-    if (trSize(tokenRange) < 3) {
-        return fail(tokenRange);
+    TokenInfo currToken = lookAhead(info, 0);
+    if (currToken.token != T_OPEN_PAREN) {
+        error(info);
+        return;
     }
 
-    TokenInfo nextToken = trFirst(tokenRange);
-    TokenInfo lastToken = trLast(tokenRange);
+    next(info);
+    expression(info);
 
-    if (nextToken.token != T_OPEN_PAREN) {
-        return fail(tokenRange);
+    currToken = lookAhead(info, 0);
+    if (currToken.token != T_CLOSE_PAREN) {
+        error(info);
+        return;
     }
-
-    if (lastToken.token != T_CLOSE_PAREN) {
-        return fail(tokenRange);
-    }
-
-    return expression(
-        rangeFrom(tokenRange, 1, 1)
-    );
+    info->didFail = 0;
+    next(info);
 }
 
-EvaluationResult expOp(ParseInfo *info) {
-    EvaluationResult tryFirstExp = expression(tokenRange);
-    if (!tryFirstExp) {
-        return fail(tokenRange);
+// This is actually just expPlus for now. TODO Impl mult
+void expOp(ParseInfo *info) {
+    expression(info);
+    if (info->didFail) {
+        return;
     }
+    double leftSide = info->result;
 
-    // TODO This rangeFrom arg is weird and confusing (the offsets)
-    EvaluationResult tryOp = op(rangeFrom(tokenRange, tryFirstExp.range.start, tryFirstExp.range.start + 1));
-
-    return
-}
-
-EvaluationResult expression(ParseInfo *info) {
-    EvaluationResult tryNum = num(tokenRange);
-    if (!tryNum.didFail) {
-        return tryNum;
+    plus(info);
+    if (info->didFail) {
+        return;
     }
-
-    EvaluationResult tryParen = expParen(tokenRange);
-    if (!tryParen.didFail) {
-        return tryParen;
-    }
-
-    return expOp(tokenRange);
-}
-
-// TODO Next steps: refactor above functions to use ParseInfo instead of tokenRange
-void interpret(TokenizeResult tokens, char* input) {
-    ParseInfo info;
-    info.tokenIndex = 0;
-    info.didFail = 0;
-    info.result = 0.0;
-    info.tokenizeResult = &tokens;
-    info.raw = input;
 
     expression(info);
-    printf(info.result);
+    double rightSide = info->result;
+
+    info->result = leftSide + rightSide;
+}
+
+void expression(ParseInfo *info) {
+    if (info->reachedEnd) {
+        return;
+    }
+
+    num(info);
+    if (!info->didFail) {
+        return;
+    }
+
+    expParen(info);
+    if (!info->didFail) {
+        return;
+    }
+
+    // expOp(info);
+    // if (!info->reachedEnd) {
+    //     return;
+    // }
+}
+
+void interpret(TokenizeResult tokens, char* input) {
+    ParseInfo *info = mmalloc(sizeof(ParseInfo));
+    info->tokenIndex = 0;
+    info->didFail = 0;
+    info->result = 0.0;
+    info->tokenizeResult = &tokens;
+    info->raw = input;
+
+    expression(info);
+    if (!info->didFail && info->reachedEnd) printf(info->result);
 }
