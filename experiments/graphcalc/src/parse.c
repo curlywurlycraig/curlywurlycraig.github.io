@@ -71,6 +71,14 @@ CharType getCharType(char input) {
         return PLUS;
     }
 
+    if (input == '-') {
+        return HYPHEN;
+    }
+
+    if (input == '*') {
+        return ASTERISK;
+    }
+
     if (input == '(') {
         return OPEN_PAREN;
     }
@@ -258,6 +266,28 @@ TokenFinder makePlusFinder() {
     return plusFinder;
 }
 
+TokenFinder makeMinusFinder() {
+    CharState minusState;
+    minusState.id = 0;
+    minusState.type = HYPHEN;
+
+    TokenFinder minusFinder;
+    minusFinder.token = T_NEG;
+    minusFinder.transitionCount = 2;
+    minusFinder.transitions = mmalloc(sizeof(StateTransition) * minusFinder.transitionCount);
+
+    minusFinder.transitions[0] = (StateTransition) {
+        .fromState = startState,
+        .toState = minusState
+    };
+    minusFinder.transitions[1] = (StateTransition) {
+        .fromState = minusState,
+        .toState = endState
+    };
+
+    return minusFinder;
+}
+
 TokenFinder makeWhitespaceFinder() {
     CharState whitespaceState;
     whitespaceState.id = 0;
@@ -305,6 +335,8 @@ void initTokenFinders() {
     tokenFinders[4] = makeOpenParenFinder();
     numTokenFinders++;
     tokenFinders[5] = makeCloseParenFinder();
+    numTokenFinders++;
+    tokenFinders[6] = makeMinusFinder();
     numTokenFinders++;
 }
 
@@ -412,11 +444,35 @@ double parseNumToken(TokenInfo numToken, char* raw) {
     return ctod(raw, numToken.startIndex, numToken.endIndex);
 }
 
-void plus(ParseInfo *info);
-void num(ParseInfo *info);
+// left recursive grammar
+// ----
+// expression : expression + expression
+// expression : expression * expression
+// expression : number
+// expression : ( expression )
+
+// with left recursion removed
+// ----
+// Expression : Term ExpressionA
+
+// ExpressionA : + Term ExpressionA
+// ExpressionA : <nothing>
+
+// Term : Factor TermM
+
+// TermM : * Factor TermM
+// TermM : <nothing>
+
+// Factor : ( Expression )
+// Factor : -number
+// Factor : -( Expression )
+// Factor : number
+
 void expression(ParseInfo *info);
-void expParen(ParseInfo *info);
-void expOp(ParseInfo *info);
+void expressionA(ParseInfo *info);
+void term(ParseInfo *info);
+void termM(ParseInfo *info);
+void factor(ParseInfo *info);
 
 void error(ParseInfo *info) {
     info->didFail = 1;
@@ -430,86 +486,83 @@ void next(ParseInfo *info) {
     }
 }
 
-// TODO mult
-
-void plus(ParseInfo *info) {
+int expect(ParseInfo *info, Token token) {
     TokenInfo currToken = lookAhead(info, 0);
-    if (currToken.token != T_PLUS) {
-        error(info);
-        return;
-    }
-
-    next(info);
+    return currToken.token == token;
 }
 
-void num(ParseInfo *info) {
-    TokenInfo nextToken = lookAhead(info, 0);
-    if (nextToken.token != T_NUMBER) {
+void consume(ParseInfo *info, Token token) {
+    if (!expect(info, token)) {
         error(info);
         return;
     }
-
     next(info);
-    info->result = parseNumToken(nextToken, info->raw);
-}
-
-void expParen(ParseInfo *info) {
-    TokenInfo currToken = lookAhead(info, 0);
-    if (currToken.token != T_OPEN_PAREN) {
-        error(info);
-        return;
-    }
-
-    next(info);
-    expression(info);
-
-    currToken = lookAhead(info, 0);
-    if (currToken.token != T_CLOSE_PAREN) {
-        error(info);
-        return;
-    }
-    info->didFail = 0;
-    next(info);
-}
-
-// This is actually just expPlus for now. TODO Impl mult
-void expOp(ParseInfo *info) {
-    expression(info);
-    if (info->didFail) {
-        return;
-    }
-    double leftSide = info->result;
-
-    plus(info);
-    if (info->didFail) {
-        return;
-    }
-
-    expression(info);
-    double rightSide = info->result;
-
-    info->result = leftSide + rightSide;
 }
 
 void expression(ParseInfo *info) {
-    if (info->reachedEnd) {
+    term(info);
+    if (info->didFail) return;
+
+    expressionA(info);
+}
+
+void expressionA(ParseInfo *info) {
+    if (!expect(info, T_PLUS)) return;
+
+    consume(info, T_PLUS);
+    if (info->didFail) return;
+
+    term(info);
+    if (info->didFail) return;
+
+    expressionA(info);
+}
+
+
+void term(ParseInfo *info) {
+    factor(info);
+    if (info->didFail) return;
+
+    termM(info);
+}
+
+void termM(ParseInfo *info) {
+    if (!expect(info, T_MULT)) return;
+
+    consume(info, T_MULT);
+    if (info->didFail) return;
+    factor(info);
+    if (info->didFail) return;
+
+    termM(info);
+}
+
+void factor(ParseInfo *info) {
+    if (expect(info, T_OPEN_PAREN)) {
+        consume(info, T_OPEN_PAREN);
+        expression(info);
+        consume(info, T_CLOSE_PAREN);
         return;
     }
 
-    num(info);
-    if (!info->didFail) {
+    if (expect(info, T_NUMBER)) {
+        consume(info, T_NUMBER);
         return;
     }
 
-    expParen(info);
-    if (!info->didFail) {
+    if (expect(info, T_NEG)) {
+        consume(info, T_NEG);
+        if (expect(info, T_OPEN_PAREN)) {
+            consume(info, T_OPEN_PAREN);
+            expression(info);
+            consume(info, T_CLOSE_PAREN);
+        } else {
+            consume(info, T_NUMBER);
+        }
         return;
     }
 
-    // expOp(info);
-    // if (!info->reachedEnd) {
-    //     return;
-    // }
+    info->didFail = 1;
 }
 
 void interpret(TokenizeResult tokens, char* input) {
@@ -521,5 +574,10 @@ void interpret(TokenizeResult tokens, char* input) {
     info->raw = input;
 
     expression(info);
-    if (!info->didFail && info->reachedEnd) printf(info->result);
+    int cantParse = info->didFail || !info->reachedEnd;
+    if (cantParse) {
+        prints("no");
+    } else {
+        prints("yes");
+    }
 }
