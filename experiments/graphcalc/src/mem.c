@@ -16,6 +16,8 @@ void* memcpy(void* dest, const void* src, unsigned int n) {
 }
 
 void* p = &__heap_base;
+void* resetMark = &__heap_base;
+
 /**
    An unfreeable memory allocator.
    This makes sense in wasm where we don't actually "allocate"
@@ -26,4 +28,21 @@ void* mmalloc(unsigned int size) {
   void* result = p;
   p += size;
   return result;
+}
+
+void markmem() {
+  resetMark = p;
+}
+
+/**
+  Instead of freeing, just allow resetting of the pointer.
+  Requires a little more care, but is easy to implement
+  */
+void resetmem() {
+  // zero it all first
+  for (char* i = (char*) resetMark; i <= (char*) p; i++) {
+    *i = 0;
+  }
+
+  p = resetMark;
 }

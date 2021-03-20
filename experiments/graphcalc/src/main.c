@@ -1,6 +1,7 @@
 extern void prints(char* str);
 extern void printf(float f);
 extern void printd(double d);
+extern void draw(double* results);
 
 #include "mem.c"
 #include "string.c"
@@ -8,6 +9,7 @@ extern void printd(double d);
 #include "parse.c"
 
 #define MAX_FORMULA_CHARS 200
+#define WIDTH 800
 
 char* formulaInput;
 
@@ -21,6 +23,15 @@ char* getInputPointer() {
 }
 
 void executeFormula(unsigned int formulaSize) {
-    TokenizeResult result = tokenize(formulaInput);
-    interpret(result, formulaInput);
+    markmem();
+    TokenizeResult tokens = tokenize(formulaInput);
+    double* results = mmalloc(sizeof(double) * WIDTH);
+    interpret(tokens, formulaInput, results, WIDTH);
+
+    // Draw the results
+    draw(results);
+    for (int i = 0; i < 800; i++) {
+        // printd(results[i]);
+    }
+    resetmem();
 }

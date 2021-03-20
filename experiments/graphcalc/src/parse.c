@@ -9,6 +9,7 @@ typedef enum CharType {
     OPEN_PAREN,
     CLOSE_PAREN,
     END,
+    LETTER,
     UNKNOWN
 } CharType;
 
@@ -26,7 +27,8 @@ typedef enum Token {
     T_PLUS,
     T_OPEN_PAREN,
     T_CLOSE_PAREN,
-    T_WHITESPACE
+    T_WHITESPACE,
+    T_IDENT
 } Token;
 
 typedef struct CharState {
@@ -57,6 +59,10 @@ CharState endState;
 CharType getCharType(char input) {
     if (input >= '0' && input <= '9') {
         return DIGIT;
+    }
+
+    if ((input >= 'a' && input <= 'z') || (input >= 'A' && input <= 'Z')) {
+        return LETTER;
     }
 
     if (input == '.') {
@@ -176,6 +182,32 @@ TokenFinder makeNumberFinder() {
     };
 
     return numberFinder;
+}
+
+TokenFinder makeIdentifierFinder() {
+    CharState identState;
+    identState.id = 0;
+    identState.type = LETTER;
+
+    TokenFinder identFinder;
+    identFinder.token = T_IDENT;
+    identFinder.transitionCount = 3;
+    identFinder.transitions = mmalloc(sizeof(StateTransition) * identFinder.transitionCount);
+
+    identFinder.transitions[0] = (StateTransition) {
+        .fromState = startState,
+        .toState = identState
+    };
+    identFinder.transitions[1] = (StateTransition) {
+        .fromState = identState,
+        .toState = identState
+    };
+    identFinder.transitions[2] = (StateTransition) {
+        .fromState = identState,
+        .toState = endState
+    };
+
+    return identFinder;
 }
 
 TokenFinder makeAsteriskFinder() {
@@ -338,6 +370,8 @@ void initTokenFinders() {
     numTokenFinders++;
     tokenFinders[6] = makeMinusFinder();
     numTokenFinders++;
+    tokenFinders[7] = makeIdentifierFinder();
+    numTokenFinders++;
 }
 
 typedef struct TokenInfo {
@@ -434,6 +468,9 @@ typedef struct ParseInfo {
     double result;
     TokenizeResult *tokenizeResult;
     char* raw;
+
+    double x;
+    double t;
 } ParseInfo;
 
 TokenInfo lookAhead(ParseInfo *info, int ahead) {
@@ -468,6 +505,7 @@ double parseNumToken(TokenInfo numToken, char* raw) {
 // Factor : -number
 // Factor : -( Expression )
 // Factor : number
+// Factor : identifier
 
 double expression(ParseInfo *info);
 double expressionA(ParseInfo *info);
@@ -579,23 +617,28 @@ double factor(ParseInfo *info) {
         }
     }
 
+    if (expect(info, T_IDENT)) {
+        consume(info, T_IDENT);
+        return info->x;
+    }
+
     info->didFail = 1;
     return 0;
 }
 
-void interpret(TokenizeResult tokens, char* input) {
+void interpret(TokenizeResult tokens, char* input, double* results, int xSamples) {
     ParseInfo *info = mmalloc(sizeof(ParseInfo));
-    info->tokenIndex = 0;
-    info->didFail = 0;
-    info->result = 0.0;
-    info->tokenizeResult = &tokens;
-    info->raw = input;
 
-    double result = expression(info);
-    int cantParse = info->didFail || !info->reachedEnd;
-    if (cantParse) {
-        prints("syntax error");
-    } else {
-        printd(result);
+    for (double i = 0; i < xSamples; i += 1.0) {
+        info->tokenIndex = 0;
+        info->didFail = 0;
+        info->result = 0.0;
+        info->tokenizeResult = &tokens;
+        info->raw = input;
+        info->x = 0.0;
+        info->t = 0.0;
+        info->x = i;
+        double result = expression(info);
+        results[(int) i] = result;
     }
 }

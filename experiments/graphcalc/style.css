@@ -8,6 +8,7 @@ body {
 
 #graph {
     border: 1px solid #546190;
+    max-width: 400px;
 }
 
 textarea {
