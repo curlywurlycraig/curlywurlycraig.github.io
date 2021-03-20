@@ -19,7 +19,8 @@ function main() {
             env: {
                 memory,
                 prints: (strPtr) => console.log(fromAscii(strPtr)),
-                printf: console.log
+                printf: console.log,
+                printd: console.log
             },
         };
         function fromAscii(strPtr) {

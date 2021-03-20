@@ -1,5 +1,6 @@
 extern void prints(char* str);
 extern void printf(float f);
+extern void printd(double d);
 
 #include "mem.c"
 #include "string.c"

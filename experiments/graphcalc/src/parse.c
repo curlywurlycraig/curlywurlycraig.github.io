@@ -468,11 +468,11 @@ double parseNumToken(TokenInfo numToken, char* raw) {
 // Factor : -( Expression )
 // Factor : number
 
-void expression(ParseInfo *info);
-void expressionA(ParseInfo *info);
-void term(ParseInfo *info);
-void termM(ParseInfo *info);
-void factor(ParseInfo *info);
+double expression(ParseInfo *info);
+double expressionA(ParseInfo *info);
+double term(ParseInfo *info);
+double termM(ParseInfo *info);
+double factor(ParseInfo *info);
 
 void error(ParseInfo *info) {
     info->didFail = 1;
@@ -499,70 +499,75 @@ void consume(ParseInfo *info, Token token) {
     next(info);
 }
 
-void expression(ParseInfo *info) {
-    term(info);
-    if (info->didFail) return;
+double expression(ParseInfo *info) {
+    double a = term(info);
+    if (info->didFail) return 0;
 
-    expressionA(info);
+    return a + expressionA(info);
 }
 
-void expressionA(ParseInfo *info) {
-    if (!expect(info, T_PLUS)) return;
+double expressionA(ParseInfo *info) {
+    if (!expect(info, T_PLUS)) return 0;
 
     consume(info, T_PLUS);
-    if (info->didFail) return;
+    if (info->didFail) return 0;
 
-    term(info);
-    if (info->didFail) return;
+    double a = term(info);
+    if (info->didFail) return 0;
 
-    expressionA(info);
+    return a + expressionA(info);
 }
 
+double term(ParseInfo *info) {
+    double a = factor(info);
+    if (info->didFail) return 0;
 
-void term(ParseInfo *info) {
-    factor(info);
-    if (info->didFail) return;
-
-    termM(info);
+    return a * termM(info);
 }
 
-void termM(ParseInfo *info) {
-    if (!expect(info, T_MULT)) return;
+double termM(ParseInfo *info) {
+    if (!expect(info, T_MULT)) return 1;
 
     consume(info, T_MULT);
-    if (info->didFail) return;
-    factor(info);
-    if (info->didFail) return;
+    if (info->didFail) return 0;
+    double a = factor(info);
+    if (info->didFail) return 0;
 
-    termM(info);
+    return a * termM(info);
 }
 
-void factor(ParseInfo *info) {
+double factor(ParseInfo *info) {
     if (expect(info, T_OPEN_PAREN)) {
         consume(info, T_OPEN_PAREN);
-        expression(info);
+        double a = expression(info);
         consume(info, T_CLOSE_PAREN);
-        return;
+        return a;
     }
 
     if (expect(info, T_NUMBER)) {
+        TokenInfo currToken = lookAhead(info, 0);
+        double a = ctod(info->raw, currToken.startIndex, currToken.endIndex);
         consume(info, T_NUMBER);
-        return;
+        return a;
     }
 
     if (expect(info, T_NEG)) {
         consume(info, T_NEG);
         if (expect(info, T_OPEN_PAREN)) {
             consume(info, T_OPEN_PAREN);
-            expression(info);
+            double a = expression(info);
             consume(info, T_CLOSE_PAREN);
+            return a * -1;
         } else {
+            TokenInfo currToken = lookAhead(info, 0);
+            double a = ctod(info->raw, currToken.startIndex, currToken.endIndex);
             consume(info, T_NUMBER);
+            return -1 * a;
         }
-        return;
     }
 
     info->didFail = 1;
+    return 0;
 }
 
 void interpret(TokenizeResult tokens, char* input) {
@@ -573,11 +578,11 @@ void interpret(TokenizeResult tokens, char* input) {
     info->tokenizeResult = &tokens;
     info->raw = input;
 
-    expression(info);
+    double result = expression(info);
     int cantParse = info->didFail || !info->reachedEnd;
     if (cantParse) {
         prints("no");
     } else {
-        prints("yes");
+        printd(result);
     }
 }

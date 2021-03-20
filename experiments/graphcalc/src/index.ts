@@ -10,7 +10,8 @@ async function main() {
         env: {
             memory,
             prints: (strPtr: number) => console.log(fromAscii(strPtr)),
-            printf: console.log
+            printf: console.log,
+            printd: console.log
         },
     };
 
