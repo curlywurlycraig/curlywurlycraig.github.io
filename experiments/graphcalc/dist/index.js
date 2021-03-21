@@ -27,7 +27,7 @@ function main() {
             graphContext.beginPath();
             graphContext.moveTo(0, (graph.height / 2.0) - doubleView[startIndex]);
             for (let i = startIndex + 1; i < 800 + startIndex; i++) {
-                graphContext.lineTo(i - startIndex, (graph.height / 2.0) - doubleView[i]);
+                graphContext.lineTo(i - startIndex, (graph.height / 2.0) - doubleView[i] * (graph.height / 2.0));
             }
             graphContext.stroke();
             graphContext.closePath();

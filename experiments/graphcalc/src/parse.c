@@ -626,10 +626,10 @@ double factor(ParseInfo *info) {
     return 0;
 }
 
-void interpret(TokenizeResult tokens, char* input, double* results, int xSamples) {
+void interpret(double* results, TokenizeResult tokens, char* input, double startX, double endX) {
     ParseInfo *info = mmalloc(sizeof(ParseInfo));
 
-    for (double i = 0; i < xSamples; i += 1.0) {
+    for (int i = 0; i < 800; i++) {
         info->tokenIndex = 0;
         info->didFail = 0;
         info->result = 0.0;
@@ -637,8 +637,8 @@ void interpret(TokenizeResult tokens, char* input, double* results, int xSamples
         info->raw = input;
         info->x = 0.0;
         info->t = 0.0;
-        info->x = i;
+        info->x = startX + i * (endX - startX) / 800.0;
         double result = expression(info);
-        results[(int) i] = result;
+        results[i] = result;
     }
 }

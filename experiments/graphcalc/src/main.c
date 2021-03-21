@@ -24,9 +24,11 @@ char* getInputPointer() {
 
 void executeFormula(unsigned int formulaSize) {
     markmem();
+    double startX = -1;
+    double endX = 1;
     TokenizeResult tokens = tokenize(formulaInput);
     double* results = mmalloc(sizeof(double) * WIDTH);
-    interpret(tokens, formulaInput, results, WIDTH);
+    interpret(results, tokens, formulaInput, startX, endX);
 
     // Draw the results
     draw(results);
