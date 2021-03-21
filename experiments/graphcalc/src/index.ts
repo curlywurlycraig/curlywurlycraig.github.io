@@ -31,7 +31,8 @@ async function main() {
             prints: (strPtr: number) => console.log(fromAscii(strPtr)),
             printf: console.log,
             printd: console.log,
-            draw: (resultsPtr: number) => renderYSamples(resultsPtr)
+            draw: (resultsPtr: number) => renderYSamples(resultsPtr),
+            sin: Math.sin
         },
     };
 

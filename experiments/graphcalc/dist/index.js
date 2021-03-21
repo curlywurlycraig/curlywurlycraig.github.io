@@ -38,7 +38,8 @@ function main() {
                 prints: (strPtr) => console.log(fromAscii(strPtr)),
                 printf: console.log,
                 printd: console.log,
-                draw: (resultsPtr) => renderYSamples(resultsPtr)
+                draw: (resultsPtr) => renderYSamples(resultsPtr),
+                sin: Math.sin
             },
         };
         function fromAscii(strPtr) {

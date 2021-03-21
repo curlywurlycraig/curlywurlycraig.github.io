@@ -505,13 +505,17 @@ double parseNumToken(TokenInfo numToken, char* raw) {
 // Factor : -number
 // Factor : -( Expression )
 // Factor : number
+// Factor : Function
 // Factor : identifier
+
+// Function : identifier(Expression)
 
 double expression(ParseInfo *info);
 double expressionA(ParseInfo *info);
 double term(ParseInfo *info);
 double termM(ParseInfo *info);
 double factor(ParseInfo *info);
+double function(ParseInfo *info);
 
 void error(ParseInfo *info) {
     info->didFail = 1;
@@ -525,9 +529,13 @@ void next(ParseInfo *info) {
     }
 }
 
-int expect(ParseInfo *info, Token token) {
-    TokenInfo currToken = lookAhead(info, 0);
+int expectk(ParseInfo *info, Token token, int k) {
+    TokenInfo currToken = lookAhead(info, k-1);
     return currToken.token == token;
+}
+
+int expect(ParseInfo *info, Token token) {
+    return expectk(info, token, 1);
 }
 
 void consume(ParseInfo *info, Token token) {
@@ -536,6 +544,10 @@ void consume(ParseInfo *info, Token token) {
         return;
     }
     next(info);
+}
+
+TokenInfo last(ParseInfo *info) {
+    return lookAhead(info, -1);
 }
 
 double expression(ParseInfo *info) {
@@ -617,6 +629,11 @@ double factor(ParseInfo *info) {
         }
     }
 
+    if (expect(info, T_IDENT) && expectk(info, T_OPEN_PAREN, 2)) {
+        double a = function(info);
+        return a;
+    }
+
     if (expect(info, T_IDENT)) {
         consume(info, T_IDENT);
         return info->x;
@@ -624,6 +641,24 @@ double factor(ParseInfo *info) {
 
     info->didFail = 1;
     return 0;
+}
+
+double function(ParseInfo *info) {
+    consume(info, T_IDENT);
+    if (info->didFail) return 0;
+    TokenInfo identToken = last(info);
+
+    // TODO function lookup
+    // assuming sin for now
+    consume(info, T_OPEN_PAREN);
+    if (info->didFail) return 0;
+
+    double result = expression(info);
+
+    consume(info, T_CLOSE_PAREN);
+    if (info->didFail) return 0;
+
+    return sin(result);
 }
 
 void interpret(double* results, TokenizeResult tokens, char* input, double startX, double endX) {
