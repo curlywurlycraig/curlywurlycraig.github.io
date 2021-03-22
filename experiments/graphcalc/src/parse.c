@@ -8,6 +8,7 @@ typedef enum CharType {
     SPACE,
     OPEN_PAREN,
     CLOSE_PAREN,
+    SLASH,
     END,
     LETTER,
     UNKNOWN
@@ -28,7 +29,8 @@ typedef enum Token {
     T_OPEN_PAREN,
     T_CLOSE_PAREN,
     T_WHITESPACE,
-    T_IDENT
+    T_IDENT,
+    T_DIV
 } Token;
 
 typedef struct CharState {
@@ -83,6 +85,10 @@ CharType getCharType(char input) {
 
     if (input == '*') {
         return ASTERISK;
+    }
+
+    if (input == '/') {
+        return SLASH;
     }
 
     if (input == '(') {
@@ -184,166 +190,84 @@ TokenFinder makeNumberFinder() {
     return numberFinder;
 }
 
-TokenFinder makeIdentifierFinder() {
-    CharState identState;
-    identState.id = 0;
-    identState.type = LETTER;
+TokenFinder makeSingleCharacterFinder(CharType type, Token token) {
+    CharState charState;
+    charState.id = 0;
+    charState.type = type;
 
-    TokenFinder identFinder;
-    identFinder.token = T_IDENT;
-    identFinder.transitionCount = 3;
-    identFinder.transitions = mmalloc(sizeof(StateTransition) * identFinder.transitionCount);
+    TokenFinder charFinder;
+    charFinder.token = token;
+    charFinder.transitionCount = 2;
+    charFinder.transitions = mmalloc(sizeof(StateTransition) * charFinder.transitionCount);
 
-    identFinder.transitions[0] = (StateTransition) {
+    charFinder.transitions[0] = (StateTransition) {
         .fromState = startState,
-        .toState = identState
+        .toState = charState
     };
-    identFinder.transitions[1] = (StateTransition) {
-        .fromState = identState,
-        .toState = identState
-    };
-    identFinder.transitions[2] = (StateTransition) {
-        .fromState = identState,
+    charFinder.transitions[1] = (StateTransition) {
+        .fromState = charState,
         .toState = endState
     };
 
-    return identFinder;
+    return charFinder;
+}
+
+TokenFinder makeRepeatingCharacterFinder(CharType type, Token token) {
+    CharState charState;
+    charState.id = 0;
+    charState.type = type;
+
+    TokenFinder charFinder;
+    charFinder.token = token;
+    charFinder.transitionCount = 3;
+    charFinder.transitions = mmalloc(sizeof(StateTransition) * charFinder.transitionCount);
+
+    charFinder.transitions[0] = (StateTransition) {
+        .fromState = startState,
+        .toState = charState
+    };
+    charFinder.transitions[1] = (StateTransition) {
+        .fromState = charState,
+        .toState = charState
+    };
+    charFinder.transitions[2] = (StateTransition) {
+        .fromState = charState,
+        .toState = endState
+    };
+
+    return charFinder;
+}
+
+TokenFinder makeIdentifierFinder() {
+    return makeRepeatingCharacterFinder(LETTER, T_IDENT);
 }
 
 TokenFinder makeAsteriskFinder() {
-    CharState asteriskState;
-    asteriskState.id = 0;
-    asteriskState.type = ASTERISK;
-
-    TokenFinder asteriskFinder;
-    asteriskFinder.token = T_MULT;
-    asteriskFinder.transitionCount = 2;
-    asteriskFinder.transitions = mmalloc(sizeof(StateTransition) * asteriskFinder.transitionCount);
-
-    asteriskFinder.transitions[0] = (StateTransition) {
-        .fromState = startState,
-        .toState = asteriskState
-    };
-    asteriskFinder.transitions[1] = (StateTransition) {
-        .fromState = asteriskState,
-        .toState = endState
-    };
-
-    return asteriskFinder;
+    return makeSingleCharacterFinder(ASTERISK, T_MULT);
 }
 
 TokenFinder makeOpenParenFinder() {
-    CharState parenState;
-    parenState.id = 0;
-    parenState.type = OPEN_PAREN;
-
-    TokenFinder openParenFinder;
-    openParenFinder.token = T_OPEN_PAREN;
-    openParenFinder.transitionCount = 2;
-    openParenFinder.transitions = mmalloc(sizeof(StateTransition) * openParenFinder.transitionCount);
-
-    openParenFinder.transitions[0] = (StateTransition) {
-        .fromState = startState,
-        .toState = parenState
-    };
-    openParenFinder.transitions[1] = (StateTransition) {
-        .fromState = parenState,
-        .toState = endState
-    };
-
-    return openParenFinder;
+    return makeSingleCharacterFinder(OPEN_PAREN, T_OPEN_PAREN);
 }
 
 TokenFinder makeCloseParenFinder() {
-    CharState parenState;
-    parenState.id = 0;
-    parenState.type = CLOSE_PAREN;
-
-    TokenFinder closeParenFinder;
-    closeParenFinder.token = T_CLOSE_PAREN;
-    closeParenFinder.transitionCount = 2;
-    closeParenFinder.transitions = mmalloc(sizeof(StateTransition) * closeParenFinder.transitionCount);
-
-    closeParenFinder.transitions[0] = (StateTransition) {
-        .fromState = startState,
-        .toState = parenState
-    };
-    closeParenFinder.transitions[1] = (StateTransition) {
-        .fromState = parenState,
-        .toState = endState
-    };
-
-    return closeParenFinder;
+    return makeSingleCharacterFinder(CLOSE_PAREN, T_CLOSE_PAREN);
 }
 
 TokenFinder makePlusFinder() {
-    CharState plusState;
-    plusState.id = 0;
-    plusState.type = PLUS;
-
-    TokenFinder plusFinder;
-    plusFinder.token = T_PLUS;
-    plusFinder.transitionCount = 2;
-    plusFinder.transitions = mmalloc(sizeof(StateTransition) * plusFinder.transitionCount);
-
-    plusFinder.transitions[0] = (StateTransition) {
-        .fromState = startState,
-        .toState = plusState
-    };
-    plusFinder.transitions[1] = (StateTransition) {
-        .fromState = plusState,
-        .toState = endState
-    };
-
-    return plusFinder;
+    return makeSingleCharacterFinder(PLUS, T_PLUS);
 }
 
 TokenFinder makeMinusFinder() {
-    CharState minusState;
-    minusState.id = 0;
-    minusState.type = HYPHEN;
-
-    TokenFinder minusFinder;
-    minusFinder.token = T_NEG;
-    minusFinder.transitionCount = 2;
-    minusFinder.transitions = mmalloc(sizeof(StateTransition) * minusFinder.transitionCount);
-
-    minusFinder.transitions[0] = (StateTransition) {
-        .fromState = startState,
-        .toState = minusState
-    };
-    minusFinder.transitions[1] = (StateTransition) {
-        .fromState = minusState,
-        .toState = endState
-    };
-
-    return minusFinder;
+    return makeSingleCharacterFinder(HYPHEN, T_NEG);
 }
 
 TokenFinder makeWhitespaceFinder() {
-    CharState whitespaceState;
-    whitespaceState.id = 0;
-    whitespaceState.type = SPACE;
+    return makeRepeatingCharacterFinder(SPACE, T_WHITESPACE);
+}
 
-    TokenFinder whitespaceFinder;
-    whitespaceFinder.token = T_WHITESPACE;
-    whitespaceFinder.transitionCount = 3;
-    whitespaceFinder.transitions = mmalloc(sizeof(StateTransition) * whitespaceFinder.transitionCount);
-
-    whitespaceFinder.transitions[0] = (StateTransition) {
-        .fromState = startState,
-        .toState = whitespaceState
-    };
-    whitespaceFinder.transitions[1] = (StateTransition) {
-        .fromState = whitespaceState,
-        .toState = whitespaceState
-    };
-    whitespaceFinder.transitions[2] = (StateTransition) {
-        .fromState = whitespaceState,
-        .toState = endState
-    };
-
-    return whitespaceFinder;
+TokenFinder makeDivisionFinder() {
+    return makeSingleCharacterFinder(SLASH, T_DIV);
 }
 
 void initTokenFinders() {
@@ -372,6 +296,8 @@ void initTokenFinders() {
     numTokenFinders++;
     tokenFinders[7] = makeIdentifierFinder();
     numTokenFinders++;
+    tokenFinders[8] = makeDivisionFinder();
+    numTokenFinders++;
 }
 
 typedef struct TokenInfo {
@@ -385,12 +311,6 @@ typedef struct TokenizeResult {
     TokenInfo *tokens;
     int tokenCount;
 } TokenizeResult;
-
-void printTokens(TokenizeResult result) {
-    for (int i=0; i < result.tokenCount; i++) {
-        printf(result.tokens[i].token);
-    }
-}
 
 TokenizeResult tokenize(char* formula) {
     TokenizeResult result;
@@ -485,6 +405,7 @@ double parseNumToken(TokenInfo numToken, char* raw) {
 // ----
 // expression : expression + expression
 // expression : expression * expression
+// expression : expression / expression
 // expression : number
 // expression : ( expression )
 
@@ -497,8 +418,8 @@ double parseNumToken(TokenInfo numToken, char* raw) {
 // ExpressionA : <nothing>
 
 // Term : Factor TermM
-
 // TermM : * Factor TermM
+// TermM : / Factor TermM
 // TermM : <nothing>
 
 // Factor : ( Expression )
@@ -558,8 +479,6 @@ double expression(ParseInfo *info) {
 }
 
 double expressionA(ParseInfo *info) {
-    if (!expect(info, T_PLUS) && !expect(info, T_NEG)) return 0;
-
     if (expect(info, T_PLUS)) {
         consume(info, T_PLUS);
         if (info->didFail) return 0;
@@ -585,18 +504,35 @@ double term(ParseInfo *info) {
     double a = factor(info);
     if (info->didFail) return 0;
 
-    return a * termM(info);
+    if (expect(info, T_MULT)) {
+        return a * termM(info);
+    } else if (expect(info, T_DIV)) {
+        return a / termM(info);
+    } else {
+        return a * termM(info);
+    }
 }
 
 double termM(ParseInfo *info) {
-    if (!expect(info, T_MULT)) return 1;
+    if (expect(info, T_MULT)) {
+        consume(info, T_MULT);
+    } else if (expect(info, T_DIV)) {
+        consume(info, T_DIV);
+    } else {
+        return 1.0;
+    }
 
-    consume(info, T_MULT);
     if (info->didFail) return 0;
     double a = factor(info);
     if (info->didFail) return 0;
 
-    return a * termM(info);
+    if (expect(info, T_MULT)) {
+        return a * termM(info);
+    } else if (expect(info, T_DIV)) {
+        return a / termM(info);
+    } else {
+        return a * termM(info);
+    }
 }
 
 double factor(ParseInfo *info) {
