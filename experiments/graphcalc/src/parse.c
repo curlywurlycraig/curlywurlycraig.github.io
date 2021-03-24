@@ -555,9 +555,9 @@ double termM(ParseInfo *info) {
         return 1.0;
     }
 
-    if (info->didFail) return 0;
+    if (info->didFail) return 1.0;
     double a = factor(info);
-    if (info->didFail) return 0;
+    if (info->didFail) return 1.0;
 
     if (expect(info, T_MULT)) {
         return a * termM(info);

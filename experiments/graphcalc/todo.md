@@ -1,5 +1,3 @@
-- [ ] Support multiple functions
-  - [ ] tan and cos
 - [ ] Zooming/panning
 - [ ] Highlight when fail to parse
 - [ ] ticks, axes
