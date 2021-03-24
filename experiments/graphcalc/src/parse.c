@@ -351,6 +351,7 @@ TokenizeResult tokenize(char* formula) {
                 newToken.endIndex = bestEndIndex;
                 newToken.raw = mmalloc(sizeof(char) * 256);
                 strcpy(newToken.raw, formula, newToken.startIndex, newToken.endIndex);
+                prints("ok");
                 result.tokens[result.tokenCount] = newToken;
                 result.tokenCount++;
                 startIndex = bestEndIndex - 1;
@@ -374,6 +375,8 @@ TokenizeResult tokenize(char* formula) {
             newToken.validity = VALID;
             newToken.startIndex = bestStartIndex;
             newToken.endIndex = endIndex - 1;
+            newToken.raw = mmalloc(sizeof(char) * 256);
+            strcpy(newToken.raw, formula, newToken.startIndex, newToken.endIndex);
             result.tokens[result.tokenCount] = newToken;
             result.tokenCount++;
         }
