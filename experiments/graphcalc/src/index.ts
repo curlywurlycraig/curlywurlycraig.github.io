@@ -32,7 +32,9 @@ async function main() {
             printf: console.log,
             printd: console.log,
             draw: (resultsPtr: number) => renderYSamples(resultsPtr),
-            sin: Math.sin
+            sin: Math.sin,
+            cos: Math.cos,
+            tan: Math.tan
         },
     };
 

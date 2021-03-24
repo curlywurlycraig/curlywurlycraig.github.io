@@ -1,0 +1,12 @@
+- [ ] Support multiple functions
+  - [ ] tan and cos
+- [ ] Zooming/panning
+- [ ] Highlight when fail to parse
+- [ ] ticks, axes
+- [ ] t param
+- [ ] parametric equations
+- [ ] 3d
+  - [ ] Make this instant, as soon as a z ident is involved. Can have another canvas prepared with 3d context initialised already and just "flip"
+  - [ ] Use mouse to rotate
+- [ ] Handle asymptotes
+- [ ] Search functions

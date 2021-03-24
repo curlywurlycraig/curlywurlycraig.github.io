@@ -303,6 +303,7 @@ void initTokenFinders() {
 typedef struct TokenInfo {
     Validity validity;
     Token token;
+    char* raw;
     int startIndex;
     int endIndex;
 } TokenInfo;
@@ -348,6 +349,8 @@ TokenizeResult tokenize(char* formula) {
                 newToken.validity = VALID;
                 newToken.startIndex = startIndex;
                 newToken.endIndex = bestEndIndex;
+                newToken.raw = mmalloc(sizeof(char) * 256);
+                strcpy(newToken.raw, formula, newToken.startIndex, newToken.endIndex);
                 result.tokens[result.tokenCount] = newToken;
                 result.tokenCount++;
                 startIndex = bestEndIndex - 1;
@@ -381,6 +384,40 @@ TokenizeResult tokenize(char* formula) {
 
 // Interpreter
 
+typedef double (*doubleFunc)(double);
+
+struct FunctionIdent {
+    doubleFunc func;
+    char* name;
+};
+
+static int functionIdentCount = 3;
+static struct FunctionIdent functionIdents[] = {
+    {
+        .func = &sin,
+        .name = "sin"
+    },
+    {
+        .func = &cos,
+        .name = "cos"
+    },
+    {
+        .func = &tan,
+        .name = "tan"
+    }
+};
+
+double executeFunctionIdent(char* identName, double input) {
+    for (int i = 0; i < functionIdentCount; i++) {
+        if (streq(identName, functionIdents[i].name)) {
+            return functionIdents[i].func(input);
+        }
+    }
+
+    // Error case
+    return 0.0;
+}
+
 typedef struct ParseInfo {
     int tokenIndex;
     int didFail;
@@ -395,10 +432,6 @@ typedef struct ParseInfo {
 
 TokenInfo lookAhead(ParseInfo *info, int ahead) {
     return info->tokenizeResult->tokens[info->tokenIndex + ahead];
-}
-
-double parseNumToken(TokenInfo numToken, char* raw) {
-    return ctod(raw, numToken.startIndex, numToken.endIndex);
 }
 
 // left recursive grammar
@@ -545,7 +578,7 @@ double factor(ParseInfo *info) {
 
     if (expect(info, T_NUMBER)) {
         TokenInfo currToken = lookAhead(info, 0);
-        double a = ctod(info->raw, currToken.startIndex, currToken.endIndex);
+        double a = ctod(currToken.raw);
         consume(info, T_NUMBER);
         return a;
     }
@@ -559,7 +592,7 @@ double factor(ParseInfo *info) {
             return a * -1;
         } else {
             TokenInfo currToken = lookAhead(info, 0);
-            double a = ctod(info->raw, currToken.startIndex, currToken.endIndex);
+            double a = ctod(currToken.raw);
             consume(info, T_NUMBER);
             return -1 * a;
         }
@@ -584,8 +617,6 @@ double function(ParseInfo *info) {
     if (info->didFail) return 0;
     TokenInfo identToken = last(info);
 
-    // TODO function lookup
-    // assuming sin for now
     consume(info, T_OPEN_PAREN);
     if (info->didFail) return 0;
 
@@ -594,7 +625,7 @@ double function(ParseInfo *info) {
     consume(info, T_CLOSE_PAREN);
     if (info->didFail) return 0;
 
-    return sin(result);
+    return executeFunctionIdent(identToken.raw, result);
 }
 
 void interpret(double* results, TokenizeResult tokens, char* input, double startX, double endX) {
