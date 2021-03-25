@@ -98,8 +98,8 @@ function main() {
         graph.onmousemove = (e) => {
             if (!interactionInfo.isDragging)
                 return;
-            graphInfo.centerX -= 3 * (e.x - interactionInfo.lastDragXPos) / (graph.width * graphInfo.zoom);
-            graphInfo.centerY += 3 * (e.y - interactionInfo.lastDragYPos) / (graph.height * graphInfo.zoom);
+            graphInfo.centerX -= 4 * (e.x - interactionInfo.lastDragXPos) / (graph.width * graphInfo.zoom);
+            graphInfo.centerY += 4 * (e.y - interactionInfo.lastDragYPos) / (graph.height * graphInfo.zoom);
             submitFormulaToWasm();
             interactionInfo.lastDragXPos = e.x;
             interactionInfo.lastDragYPos = e.y;
