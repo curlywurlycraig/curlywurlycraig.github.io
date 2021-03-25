@@ -13,8 +13,14 @@ function main() {
         const graphInfo = {
             centerX: 0,
             centerY: 0,
-            zoom: 1
+            zoom: 0.5
         };
+        const interactionInfo = {
+            lastDragXPos: 0,
+            lastDragYPos: 0,
+            isDragging: false
+        };
+        let formula = "";
         const graph = document.querySelector("#graph");
         const graphContext = graph.getContext("2d");
         graphContext.strokeStyle = '#e4a85c';
@@ -37,7 +43,6 @@ function main() {
             }
             graphContext.stroke();
             graphContext.closePath();
-            graphInfo.centerY += 0.1;
         }
         const imports = {
             env: {
@@ -67,20 +72,38 @@ function main() {
         const getInputPtr = result.instance.exports.getInputPointer;
         const executeFormula = result.instance.exports.executeFormula;
         init();
-        const submitFormulaToWasm = (value) => {
+        const submitFormulaToWasm = () => {
             const ptr = getInputPtr();
-            const offsetByteView = new Uint8Array(memory.buffer, ptr, value.length + 1);
-            const encodedText = new TextEncoder().encode(value);
+            const offsetByteView = new Uint8Array(memory.buffer, ptr, formula.length + 1);
+            const encodedText = new TextEncoder().encode(formula);
             offsetByteView.set([...encodedText, 0]);
-            executeFormula(value.length);
+            executeFormula(formula.length, graphInfo.centerX - (1 / graphInfo.zoom), graphInfo.centerX + (1 / graphInfo.zoom));
         };
         const textArea = document.querySelector("textarea");
         if (textArea) {
             textArea.oninput = (e) => {
                 const element = e === null || e === void 0 ? void 0 : e.target;
-                submitFormulaToWasm(element === null || element === void 0 ? void 0 : element.value);
+                formula = element === null || element === void 0 ? void 0 : element.value;
+                submitFormulaToWasm();
             };
         }
+        graph.onmousedown = (e) => {
+            interactionInfo.isDragging = true;
+            interactionInfo.lastDragXPos = e.x;
+            interactionInfo.lastDragYPos = e.y;
+        };
+        graph.onmouseup = (e) => {
+            interactionInfo.isDragging = false;
+        };
+        graph.onmousemove = (e) => {
+            if (!interactionInfo.isDragging)
+                return;
+            graphInfo.centerX -= 3 * (e.x - interactionInfo.lastDragXPos) / (graph.width * graphInfo.zoom);
+            graphInfo.centerY += 3 * (e.y - interactionInfo.lastDragYPos) / (graph.height * graphInfo.zoom);
+            submitFormulaToWasm();
+            interactionInfo.lastDragXPos = e.x;
+            interactionInfo.lastDragYPos = e.y;
+        };
     });
 }
 window.onload = function () {

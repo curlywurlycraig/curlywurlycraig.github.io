@@ -2,8 +2,13 @@ async function main() {
     const graphInfo = {
         centerX: 0,
         centerY: 0,
-        zoom: 1
+        zoom: 0.5
     };
+    const interactionInfo = {
+        lastDragXPos: 0,
+        lastDragYPos: 0,
+        isDragging: false
+    }
     let formula = "";
 
     const graph = document.querySelector("#graph") as HTMLCanvasElement;
@@ -76,7 +81,7 @@ async function main() {
         const offsetByteView = new Uint8Array(memory.buffer, ptr, formula.length + 1);
         const encodedText = new TextEncoder().encode(formula);
         offsetByteView.set([...encodedText, 0]);
-        executeFormula(formula.length); // TODO Calculate start and end X
+        executeFormula(formula.length, graphInfo.centerX - (1 / graphInfo.zoom), graphInfo.centerX + (1/ graphInfo.zoom)); // TODO Calculate start and end X
     }
 
     const textArea = document.querySelector("textarea");
@@ -86,6 +91,27 @@ async function main() {
             formula = element?.value;
             submitFormulaToWasm();
         }
+    }
+
+    graph.onmousedown = (e) => {
+        interactionInfo.isDragging = true;
+        interactionInfo.lastDragXPos = e.x;
+        interactionInfo.lastDragYPos = e.y;
+    }
+
+    graph.onmouseup = (e) => {
+        interactionInfo.isDragging = false;
+    }
+
+    graph.onmousemove = (e) => {
+        if (!interactionInfo.isDragging) return;
+
+        graphInfo.centerX -= 3 * (e.x - interactionInfo.lastDragXPos) / (graph.width * graphInfo.zoom);
+        graphInfo.centerY += 3 * (e.y - interactionInfo.lastDragYPos) / (graph.height * graphInfo.zoom);
+        submitFormulaToWasm();
+
+        interactionInfo.lastDragXPos = e.x;
+        interactionInfo.lastDragYPos = e.y;
     }
 }
 
