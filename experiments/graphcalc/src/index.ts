@@ -1,4 +1,11 @@
 async function main() {
+    const graphInfo = {
+        centerX: 0,
+        centerY: 0,
+        zoom: 1
+    };
+    let formula = "";
+
     const graph = document.querySelector("#graph") as HTMLCanvasElement;
     const graphContext = graph.getContext("2d")!;
     graphContext.strokeStyle = '#e4a85c';
@@ -17,9 +24,10 @@ async function main() {
         const startIndex = resultsPtr >> 3;
         graphContext.clearRect(0, 0, graph.width, graph.height);
         graphContext.beginPath();
-        graphContext.moveTo(0, (graph.height / 2.0) - doubleView[startIndex]);
+        graphContext.moveTo(0, (graphInfo.centerY - doubleView[startIndex]) * graphInfo.zoom * (graph.height / 2.0) + (graph.height / 2.0));
         for (let i = startIndex + 1; i < 800 + startIndex; i++) {
-            graphContext.lineTo(i - startIndex, (graph.height / 2.0) - doubleView[i] * (graph.height / 2.0));
+            const yPos = (graphInfo.centerY - doubleView[i]) * graphInfo.zoom * (graph.height / 2.0) + (graph.height / 2.0)
+            graphContext.lineTo(i - startIndex, yPos);
         }
         graphContext.stroke();
         graphContext.closePath();
@@ -63,19 +71,20 @@ async function main() {
 
     init();
 
-    const submitFormulaToWasm = (value: string) => {
+    const submitFormulaToWasm = () => {
         const ptr = getInputPtr();
-        const offsetByteView = new Uint8Array(memory.buffer, ptr, value.length + 1);
-        const encodedText = new TextEncoder().encode(value);
+        const offsetByteView = new Uint8Array(memory.buffer, ptr, formula.length + 1);
+        const encodedText = new TextEncoder().encode(formula);
         offsetByteView.set([...encodedText, 0]);
-        executeFormula(value.length);
+        executeFormula(formula.length); // TODO Calculate start and end X
     }
 
     const textArea = document.querySelector("textarea");
     if (textArea) {
         textArea.oninput = (e) => {
             const element = e?.target as HTMLTextAreaElement;
-            submitFormulaToWasm(element?.value);
+            formula = element?.value;
+            submitFormulaToWasm();
         }
     }
 }

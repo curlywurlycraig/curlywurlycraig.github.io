@@ -10,6 +10,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
+        const graphInfo = {
+            centerX: 0,
+            centerY: 0,
+            zoom: 1
+        };
         const graph = document.querySelector("#graph");
         const graphContext = graph.getContext("2d");
         graphContext.strokeStyle = '#e4a85c';
@@ -25,12 +30,14 @@ function main() {
             const startIndex = resultsPtr >> 3;
             graphContext.clearRect(0, 0, graph.width, graph.height);
             graphContext.beginPath();
-            graphContext.moveTo(0, (graph.height / 2.0) - doubleView[startIndex]);
+            graphContext.moveTo(0, (graphInfo.centerY - doubleView[startIndex]) * graphInfo.zoom * (graph.height / 2.0) + (graph.height / 2.0));
             for (let i = startIndex + 1; i < 800 + startIndex; i++) {
-                graphContext.lineTo(i - startIndex, (graph.height / 2.0) - doubleView[i] * (graph.height / 2.0));
+                const yPos = (graphInfo.centerY - doubleView[i]) * graphInfo.zoom * (graph.height / 2.0) + (graph.height / 2.0);
+                graphContext.lineTo(i - startIndex, yPos);
             }
             graphContext.stroke();
             graphContext.closePath();
+            graphInfo.centerY += 0.1;
         }
         const imports = {
             env: {

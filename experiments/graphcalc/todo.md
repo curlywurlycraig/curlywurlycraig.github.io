@@ -8,3 +8,4 @@
   - [ ] Use mouse to rotate
 - [ ] Handle asymptotes
 - [ ] Search functions
+- [ ] Respond to window width
