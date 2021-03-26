@@ -13,9 +13,16 @@ async function main() {
 
     const graph = document.querySelector("#graph") as HTMLCanvasElement;
     const graphContext = graph.getContext("2d")!;
-    graphContext.strokeStyle = '#e4a85c';
-    graphContext.fillStyle = '#09152b';
-    graphContext.lineWidth = 1;
+
+    // TODO Execute this on resize, and also set the graph's width and height attributes based on the
+    // element width and height attributes (multiplied by 2)
+    const initGraphContext = () => {
+        graphContext.strokeStyle = '#e4a85c';
+        graphContext.fillStyle = '#09152b';
+        graphContext.lineWidth = 1;
+    }
+
+    initGraphContext();
 
     const memory = new WebAssembly.Memory({
         initial: 200,
@@ -81,7 +88,7 @@ async function main() {
         const offsetByteView = new Uint8Array(memory.buffer, ptr, formula.length + 1);
         const encodedText = new TextEncoder().encode(formula);
         offsetByteView.set([...encodedText, 0]);
-        executeFormula(formula.length, graphInfo.centerX - (1 / graphInfo.zoom), graphInfo.centerX + (1/ graphInfo.zoom)); // TODO Calculate start and end X
+        executeFormula(formula.length, graphInfo.centerX - (1 / graphInfo.zoom), graphInfo.centerX + (1/ graphInfo.zoom));
     }
 
     const textArea = document.querySelector("textarea");
@@ -112,6 +119,10 @@ async function main() {
 
         interactionInfo.lastDragXPos = e.x;
         interactionInfo.lastDragYPos = e.y;
+    }
+
+    graph.onpointerdown = (e) => {
+        console.log(e);
     }
 }
 

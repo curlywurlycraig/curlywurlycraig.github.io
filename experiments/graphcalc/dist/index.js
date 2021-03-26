@@ -104,6 +104,9 @@ function main() {
             interactionInfo.lastDragXPos = e.x;
             interactionInfo.lastDragYPos = e.y;
         };
+        graph.onscroll = (e) => {
+            console.log(e);
+        };
     });
 }
 window.onload = function () {

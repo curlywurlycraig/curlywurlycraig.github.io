@@ -1,6 +1,11 @@
-- [ ] Zooming/panning
-- [ ] Highlight when fail to parse
+- [ ] Use full screen space on desktop
+  - [ ] Adjust canvas resolution and recompute graph when resizing
+- [ ] Zooming
+- [ ] Fix panning speed
+  - [ ] It depends on the relative resolution, so this problem might just be because the canvas resolution isn't recomputed
 - [ ] ticks, axes
+- [ ] Highlight when fail to parse
+  - [ ] Also syntax highlighting
 - [ ] t param
 - [ ] parametric equations
 - [ ] 3d
