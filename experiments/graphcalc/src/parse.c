@@ -630,10 +630,10 @@ double function(ParseInfo *info) {
     return executeFunctionIdent(identToken.raw, result);
 }
 
-void interpret(double* results, TokenizeResult tokens, char* input, double startX, double endX) {
+void interpret(double* results, TokenizeResult tokens, char* input, double startX, double endX, unsigned int width) {
     ParseInfo *info = mmalloc(sizeof(ParseInfo));
 
-    for (int i = 0; i < 800; i++) {
+    for (int i = 0; i < width; i++) {
         info->tokenIndex = 0;
         info->didFail = 0;
         info->result = 0.0;
@@ -641,7 +641,7 @@ void interpret(double* results, TokenizeResult tokens, char* input, double start
         info->raw = input;
         info->x = 0.0;
         info->t = 0.0;
-        info->x = startX + i * (endX - startX) / 800.0;
+        info->x = startX + i * (endX - startX) / (double) width;
         double result = expression(info);
         results[i] = result;
     }

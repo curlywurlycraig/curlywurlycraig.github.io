@@ -1,9 +1,6 @@
 body {
-    flex: 1;
     width: 100%;
     max-width: 100%;
-    display: flex;
-    flex-direction: row;
     padding: 0;
     margin: 0;
 }
@@ -15,24 +12,29 @@ body {
 }
 
 #graph {
-    border: 1px solid #546190;
+    padding: 0;
+    margin: 0;
+    border: 0;
     flex: 4;
-    height: 100vh;
+    width: 100%;
     box-sizing: border-box;
 }
 
 textarea {
-    background-color: rgb(11, 23, 59);
-    border: none;
+    width: 300px;
+    height: 80px;
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    border: 1px solid #546190;
+    background-color: #09152b;
     border-radius: 0;
     color: white;
     padding: 10px;
-    flex: 1;
 }
 
 textarea:focus {
-    background-color: rgb(24, 38, 82);
-    border: none;
+    border: 1px solid #e4a85c;
     border-radius: 0;
     color: white;
     padding: 10px;

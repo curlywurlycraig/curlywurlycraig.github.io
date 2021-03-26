@@ -12,7 +12,6 @@ extern double tan(double x);
 #include "parse.c"
 
 #define MAX_FORMULA_CHARS 200
-#define WIDTH 800
 
 char* formulaInput;
 
@@ -25,11 +24,11 @@ char* getInputPointer() {
     return formulaInput;
 }
 
-void executeFormula(unsigned int formulaSize, double startX, double endX) {
+void executeFormula(unsigned int formulaSize, double startX, double endX, unsigned int width) {
     markmem();
     TokenizeResult tokens = tokenize(formulaInput);
-    double* results = mmalloc(sizeof(double) * WIDTH);
-    interpret(results, tokens, formulaInput, startX, endX);
+    double* results = mmalloc(sizeof(double) * width);
+    interpret(results, tokens, formulaInput, startX, endX, width);
 
     // Draw the results
     draw(results);

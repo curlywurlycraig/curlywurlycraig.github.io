@@ -23,9 +23,12 @@ function main() {
         let formula = "";
         const graph = document.querySelector("#graph");
         const graphContext = graph.getContext("2d");
-        graphContext.strokeStyle = '#e4a85c';
-        graphContext.fillStyle = '#09152b';
-        graphContext.lineWidth = 1;
+        const initGraphContext = () => {
+            graphContext.strokeStyle = '#e4a85c';
+            graphContext.fillStyle = '#09152b';
+            graphContext.lineWidth = 1;
+        };
+        initGraphContext();
         const memory = new WebAssembly.Memory({
             initial: 200,
             maximum: 200
@@ -37,7 +40,7 @@ function main() {
             graphContext.clearRect(0, 0, graph.width, graph.height);
             graphContext.beginPath();
             graphContext.moveTo(0, (graphInfo.centerY - doubleView[startIndex]) * graphInfo.zoom * (graph.height / 2.0) + (graph.height / 2.0));
-            for (let i = startIndex + 1; i < 800 + startIndex; i++) {
+            for (let i = startIndex + 1; i < graph.width + startIndex; i++) {
                 const yPos = (graphInfo.centerY - doubleView[i]) * graphInfo.zoom * (graph.height / 2.0) + (graph.height / 2.0);
                 graphContext.lineTo(i - startIndex, yPos);
             }
@@ -77,7 +80,7 @@ function main() {
             const offsetByteView = new Uint8Array(memory.buffer, ptr, formula.length + 1);
             const encodedText = new TextEncoder().encode(formula);
             offsetByteView.set([...encodedText, 0]);
-            executeFormula(formula.length, graphInfo.centerX - (1 / graphInfo.zoom), graphInfo.centerX + (1 / graphInfo.zoom));
+            executeFormula(formula.length, graphInfo.centerX - (1 / graphInfo.zoom), graphInfo.centerX + (1 / graphInfo.zoom), graph.width);
         };
         const textArea = document.querySelector("textarea");
         if (textArea) {
@@ -104,8 +107,14 @@ function main() {
             interactionInfo.lastDragXPos = e.x;
             interactionInfo.lastDragYPos = e.y;
         };
-        graph.onscroll = (e) => {
+        graph.onpointerdown = (e) => {
             console.log(e);
+        };
+        window.onresize = () => {
+            graph.width = window.innerWidth * 2;
+            graph.height = window.innerHeight * 2;
+            initGraphContext();
+            submitFormulaToWasm();
         };
     });
 }
