@@ -26,6 +26,8 @@ char* getInputPointer() {
 
 void executeFormula(unsigned int formulaSize, double startX, double endX, unsigned int width) {
     markmem();
+    printd(startX);
+    printd(endX);
     TokenizeResult tokens = tokenize(formulaInput);
     double* results = mmalloc(sizeof(double) * width);
     interpret(results, tokens, formulaInput, startX, endX, width);

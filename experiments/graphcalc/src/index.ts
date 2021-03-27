@@ -2,7 +2,7 @@ async function main() {
     const graphInfo = {
         centerX: 0,
         centerY: 0,
-        zoom: 0.5
+        pixelsPerUnit: 400 // Pixels per unit
     };
     const interactionInfo = {
         lastDragXPos: 0,
@@ -36,9 +36,10 @@ async function main() {
         const startIndex = resultsPtr >> 3;
         graphContext.clearRect(0, 0, graph.width, graph.height);
         graphContext.beginPath();
-        graphContext.moveTo(0, (graphInfo.centerY - doubleView[startIndex]) * graphInfo.zoom * (graph.height / 2.0) + (graph.height / 2.0));
+        const firstYPos = graph.height / 2.0 + (graphInfo.centerY - doubleView[startIndex]) * graphInfo.pixelsPerUnit;
+        graphContext.moveTo(0, firstYPos);
         for (let i = startIndex + 1; i < graph.width + startIndex; i++) {
-            const yPos = (graphInfo.centerY - doubleView[i]) * graphInfo.zoom * (graph.height / 2.0) + (graph.height / 2.0)
+            const yPos = graph.height / 2.0 + (graphInfo.centerY - doubleView[i]) * graphInfo.pixelsPerUnit;
             graphContext.lineTo(i - startIndex, yPos);
         }
         graphContext.stroke();
@@ -90,8 +91,8 @@ async function main() {
         offsetByteView.set([...encodedText, 0]);
         executeFormula(
             formula.length,
-            graphInfo.centerX - (1 / graphInfo.zoom),
-            graphInfo.centerX + (1/ graphInfo.zoom),
+            graphInfo.centerX - (graph.width / (2 * graphInfo.pixelsPerUnit)),
+            graphInfo.centerX + (graph.width / (2 * graphInfo.pixelsPerUnit)),
             graph.width
         );
     }
@@ -118,8 +119,8 @@ async function main() {
     graph.onmousemove = (e) => {
         if (!interactionInfo.isDragging) return;
 
-        graphInfo.centerX -= 4 * (e.x - interactionInfo.lastDragXPos) / (graph.width * graphInfo.zoom);
-        graphInfo.centerY += 4 * (e.y - interactionInfo.lastDragYPos) / (graph.height * graphInfo.zoom);
+        graphInfo.centerX -= 2 * (e.x - interactionInfo.lastDragXPos) / graphInfo.pixelsPerUnit;
+        graphInfo.centerY += 2 * (e.y - interactionInfo.lastDragYPos) / graphInfo.pixelsPerUnit;
         submitFormulaToWasm();
 
         interactionInfo.lastDragXPos = e.x;
@@ -130,12 +131,18 @@ async function main() {
         console.log(e);
     }
 
-    window.onresize = () => {
+    const resizeGraph = () => {
         graph.width = window.innerWidth * 2;
         graph.height = window.innerHeight * 2;
         initGraphContext();
         submitFormulaToWasm();
     }
+
+    window.onresize = () => {
+        resizeGraph();
+    }
+
+    resizeGraph();
 }
 
 window.onload = async function() {
