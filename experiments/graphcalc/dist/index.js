@@ -33,6 +33,11 @@ function main() {
             graphContext.fillStyle = '#09152b';
             graphContext.lineWidth = 1;
         };
+        const setGridLineBrush = () => {
+            graphContext.strokeStyle = '#8888aa';
+            graphContext.fillStyle = '#09152b';
+            graphContext.lineWidth = 1;
+        };
         const memory = new WebAssembly.Memory({
             initial: 200,
             maximum: 200
@@ -40,8 +45,20 @@ function main() {
         const byteView = new Uint8Array(memory.buffer);
         const doubleView = new Float64Array(memory.buffer);
         function renderYSamples(resultsPtr) {
-            setAxisBrush();
             graphContext.clearRect(0, 0, graph.width, graph.height);
+            setGridLineBrush();
+            const verticalGridLineCount = Math.ceil(10 * graph.width / graphInfo.pixelsPerUnit);
+            graphContext.beginPath();
+            const leftUnits = graphInfo.centerX - ((verticalGridLineCount * 0.1) / 2);
+            for (let i = 0; i < verticalGridLineCount; i++) {
+                const gridXPos = (leftUnits - 2 * graphInfo.centerX + i * 2 * 0.1) * graphInfo.pixelsPerUnit;
+                console.log(gridXPos);
+                graphContext.moveTo(gridXPos, 0);
+                graphContext.lineTo(gridXPos, graph.height);
+            }
+            graphContext.stroke();
+            graphContext.closePath();
+            setAxisBrush();
             graphContext.beginPath();
             const yAxisYPos = graphInfo.centerY * graphInfo.pixelsPerUnit + graph.height / 2.0;
             const xAxisXPos = graph.width / 2.0 - graphInfo.centerX * graphInfo.pixelsPerUnit;
