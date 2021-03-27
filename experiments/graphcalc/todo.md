@@ -1,9 +1,8 @@
-- [ ] Use full screen space on desktop
-  - [ ] Adjust canvas resolution and recompute graph when resizing
 - [ ] Zooming
-- [ ] Fix panning speed
-  - [ ] It depends on the relative resolution, so this problem might just be because the canvas resolution isn't recomputed
-- [ ] ticks, axes
+  - [ ] Update axis resolution accordingly
+- [ ] Axis enhancements
+  - [ ] Colour "major" grid lines
+  - [ ] Add text to major grid lines
 - [ ] Highlight when fail to parse
   - [ ] Also syntax highlighting
 - [ ] t param
@@ -14,3 +13,8 @@
 - [ ] Handle asymptotes
 - [ ] Search functions
 - [ ] Respond to window width
+- [ ] Keyboard shortcuts
+  - [ ] Help menu opened with "?"
+  - [ ] Press e.g. "0" to recenter
+  - [ ] Save views? as in where the center currently is
+- [ ] Hover information (value at cursor)
