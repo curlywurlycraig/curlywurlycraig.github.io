@@ -44,22 +44,44 @@ async function main() {
         return unit * graphInfo.pixelsPerUnit + graph.width / 2.0 - graphInfo.centerX * graphInfo.pixelsPerUnit;
     }
 
+    function getScreenYPosFromUnit(unit: number) {
+        return -1 * unit * graphInfo.pixelsPerUnit + graphInfo.centerY * graphInfo.pixelsPerUnit + graph.height / 2.0;
+    }
+
     function renderYSamples(resultsPtr: number) {
         graphContext.clearRect(0, 0, graph.width, graph.height);
 
         // render grid
         setGridLineBrush();
         const sep = 0.1;
-        const verticalGridLineCount = Math.ceil((1/sep) * graph.width / graphInfo.pixelsPerUnit) + 1;
+
+        const alignedXCenter = Math.ceil(graphInfo.centerX / sep) * sep;
+        const verticalGridLineCount = Math.floor((1/sep) * graph.width / graphInfo.pixelsPerUnit) + 1;
+        const leftmostGridLine = alignedXCenter - sep * Math.ceil(verticalGridLineCount / 2);
+
         graphContext.beginPath();
-        const unalignedLeftmostUnit = graphInfo.centerX - (verticalGridLineCount / 2) * sep;
-        const leftmostUnit = Math.ceil(unalignedLeftmostUnit);
         for (let i = 0; i < verticalGridLineCount; i++) {
-            const xPosUnit = leftmostUnit + i * sep;
+            const xPosUnit = leftmostGridLine + i * sep;
             const gridXPos = getScreenXPosFromUnit(xPosUnit);
 
             graphContext.moveTo(gridXPos, 0);
             graphContext.lineTo(gridXPos, graph.height);
+        }
+        graphContext.stroke();
+        graphContext.closePath();
+
+        // render horiz grid
+        const alignedYCenter = Math.ceil(graphInfo.centerY / sep) * sep;
+        const horizontalGridLineCount = Math.floor((1/sep) * graph.height / graphInfo.pixelsPerUnit) + 1;
+        const topMostGridLine = alignedYCenter + sep * Math.ceil(horizontalGridLineCount / 2);
+
+        graphContext.beginPath();
+        for (let i = horizontalGridLineCount; i > 0; i--) {
+            const yPosUnit = topMostGridLine - i * sep;
+            const gridYPos = getScreenYPosFromUnit(yPosUnit);
+
+            graphContext.moveTo(0, gridYPos);
+            graphContext.lineTo(graph.width, gridYPos);
         }
         graphContext.stroke();
         graphContext.closePath();
