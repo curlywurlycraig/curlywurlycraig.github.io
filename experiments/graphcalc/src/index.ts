@@ -40,17 +40,17 @@ async function main() {
     const byteView = new Uint8Array(memory.buffer);
     const doubleView = new Float64Array(memory.buffer);
 
+    function getScreenXPosFromUnit(unit: number) {
+        return unit * graphInfo.pixelsPerUnit + graph.width / 2.0 - graphInfo.centerX * graphInfo.pixelsPerUnit;
+    }
+
     function renderYSamples(resultsPtr: number) {
         graphContext.clearRect(0, 0, graph.width, graph.height);
 
-        function getScreenXPosFromUnit(unit: number) {
-            return unit * graphInfo.pixelsPerUnit + graph.width / 2.0 - graphInfo.centerX * graphInfo.pixelsPerUnit;
-        }
-
         // render grid
         setGridLineBrush();
-        const sep = 0.2;
-        const verticalGridLineCount = Math.ceil((1/sep) * graph.width / graphInfo.pixelsPerUnit);
+        const sep = 0.1;
+        const verticalGridLineCount = Math.ceil((1/sep) * graph.width / graphInfo.pixelsPerUnit) + 1;
         graphContext.beginPath();
         const unalignedLeftmostUnit = graphInfo.centerX - (verticalGridLineCount / 2) * sep;
         const leftmostUnit = Math.ceil(unalignedLeftmostUnit);
