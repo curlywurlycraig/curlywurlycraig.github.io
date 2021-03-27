@@ -46,13 +46,18 @@ function main() {
         const doubleView = new Float64Array(memory.buffer);
         function renderYSamples(resultsPtr) {
             graphContext.clearRect(0, 0, graph.width, graph.height);
+            function getScreenXPosFromUnit(unit) {
+                return unit * graphInfo.pixelsPerUnit + graph.width / 2.0 - graphInfo.centerX * graphInfo.pixelsPerUnit;
+            }
             setGridLineBrush();
-            const verticalGridLineCount = Math.ceil(10 * graph.width / graphInfo.pixelsPerUnit);
+            const sep = 0.2;
+            const verticalGridLineCount = Math.ceil((1 / sep) * graph.width / graphInfo.pixelsPerUnit);
             graphContext.beginPath();
-            const leftUnits = graphInfo.centerX - ((verticalGridLineCount * 0.1) / 2);
+            const unalignedLeftmostUnit = graphInfo.centerX - (verticalGridLineCount / 2) * sep;
+            const leftmostUnit = Math.ceil(unalignedLeftmostUnit);
             for (let i = 0; i < verticalGridLineCount; i++) {
-                const gridXPos = (leftUnits - 2 * graphInfo.centerX + i * 2 * 0.1) * graphInfo.pixelsPerUnit;
-                console.log(gridXPos);
+                const xPosUnit = leftmostUnit + i * sep;
+                const gridXPos = getScreenXPosFromUnit(xPosUnit);
                 graphContext.moveTo(gridXPos, 0);
                 graphContext.lineTo(gridXPos, graph.height);
             }
