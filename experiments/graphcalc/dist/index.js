@@ -34,7 +34,7 @@ function main() {
             graphContext.lineWidth = 1;
         };
         const setGridLineBrush = () => {
-            graphContext.strokeStyle = '#8888aa';
+            graphContext.strokeStyle = '#333366';
             graphContext.fillStyle = '#09152b';
             graphContext.lineWidth = 1;
         };

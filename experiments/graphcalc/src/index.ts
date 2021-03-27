@@ -27,7 +27,7 @@ async function main() {
     }
 
     const setGridLineBrush = () => {
-        graphContext.strokeStyle = '#8888aa';
+        graphContext.strokeStyle = '#333366';
         graphContext.fillStyle = '#09152b';
         graphContext.lineWidth = 1;
     }
