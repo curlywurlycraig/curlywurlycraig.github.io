@@ -14,15 +14,17 @@ async function main() {
     const graph = document.querySelector("#graph") as HTMLCanvasElement;
     const graphContext = graph.getContext("2d")!;
 
-    // TODO Execute this on resize, and also set the graph's width and height attributes based on the
-    // element width and height attributes (multiplied by 2)
-    const initGraphContext = () => {
+    const setSampleBrush = () => {
         graphContext.strokeStyle = '#e4a85c';
         graphContext.fillStyle = '#09152b';
         graphContext.lineWidth = 1;
     }
 
-    initGraphContext();
+    const setAxisBrush = () => {
+        graphContext.strokeStyle = '#aaaadd';
+        graphContext.fillStyle = '#09152b';
+        graphContext.lineWidth = 1;
+    }
 
     const memory = new WebAssembly.Memory({
         initial: 200,
@@ -33,14 +35,33 @@ async function main() {
     const doubleView = new Float64Array(memory.buffer);
 
     function renderYSamples(resultsPtr: number) {
-        const startIndex = resultsPtr >> 3;
+        setAxisBrush();
         graphContext.clearRect(0, 0, graph.width, graph.height);
+
+        // Render the axes
         graphContext.beginPath();
+        const yAxisYPos = graphInfo.centerY * graphInfo.pixelsPerUnit + graph.height / 2.0;
+        const xAxisXPos = graph.width / 2.0 - graphInfo.centerX * graphInfo.pixelsPerUnit;
+        graphContext.moveTo(0, yAxisYPos);
+        graphContext.lineTo(graph.width, yAxisYPos);
+        graphContext.moveTo(xAxisXPos, 0);
+        graphContext.lineTo(xAxisXPos, graph.height);
+        graphContext.stroke();
+        graphContext.closePath();
+
+        // render grid
+
+
+        // Render samples
+        setSampleBrush();
+        graphContext.beginPath();
+        const startIndex = resultsPtr >> 3;
         const firstYPos = graph.height / 2.0 + (graphInfo.centerY - doubleView[startIndex]) * graphInfo.pixelsPerUnit;
         graphContext.moveTo(0, firstYPos);
         for (let i = startIndex + 1; i < graph.width + startIndex; i++) {
             const yPos = graph.height / 2.0 + (graphInfo.centerY - doubleView[i]) * graphInfo.pixelsPerUnit;
-            graphContext.lineTo(i - startIndex, yPos);
+            const clampedYPos = Math.max(Math.min(yPos, Number.MAX_VALUE), -1);
+            graphContext.lineTo(i - startIndex, clampedYPos);
         }
         graphContext.stroke();
         graphContext.closePath();
@@ -127,14 +148,9 @@ async function main() {
         interactionInfo.lastDragYPos = e.y;
     }
 
-    graph.onpointerdown = (e) => {
-        console.log(e);
-    }
-
     const resizeGraph = () => {
         graph.width = window.innerWidth * 2;
         graph.height = window.innerHeight * 2;
-        initGraphContext();
         submitFormulaToWasm();
     }
 
