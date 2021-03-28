@@ -53,7 +53,13 @@ function main() {
         function renderYSamples(resultsPtr) {
             graphContext.clearRect(0, 0, graph.width, graph.height);
             setGridLineBrush();
-            const sep = 0.1;
+            let numeralCounter = graphInfo.pixelsPerUnit / 2;
+            let numeralCount = 0;
+            while (numeralCounter > 1) {
+                numeralCounter = numeralCounter / 10;
+                numeralCount++;
+            }
+            const sep = 1 / Math.pow(10, numeralCount - 2);
             const alignedXCenter = Math.ceil(graphInfo.centerX / sep) * sep;
             const verticalGridLineCount = Math.floor((1 / sep) * graph.width / graphInfo.pixelsPerUnit) + 1;
             const leftmostGridLine = alignedXCenter - sep * Math.ceil(verticalGridLineCount / 2);
@@ -163,7 +169,7 @@ function main() {
         };
         graph.onwheel = (e) => {
             console.log(e);
-            graphInfo.pixelsPerUnit -= e.deltaY;
+            graphInfo.pixelsPerUnit -= e.deltaY * graphInfo.pixelsPerUnit * 0.01;
             submitFormulaToWasm();
             e.preventDefault();
         };
