@@ -64,7 +64,7 @@ async function main() {
     }
 
     function isMultiple(big: number, small: number) {
-        if (Math.abs(Math.round(big / small) - (big / small)) < small / 100000) {
+        if (Math.abs(Math.round(big / small) - (big / small)) < 0.0001) {
             return true;
         }
 

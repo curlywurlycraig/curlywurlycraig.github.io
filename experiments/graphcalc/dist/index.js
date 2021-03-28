@@ -49,15 +49,14 @@ function main() {
             return -1 * unit * graphInfo.pixelsPerUnit + graphInfo.centerY * graphInfo.pixelsPerUnit + graph.height / 2.0;
         }
         function isMultiple(big, small) {
-            if (Math.abs(Math.round(big / small) - (big / small)) < small / 100000) {
+            if (Math.abs(Math.round(big / small) - (big / small)) < 0.0001) {
+                console.log(big, small);
                 return true;
             }
             return false;
         }
-        function renderYSamples(resultsPtr) {
-            graphContext.clearRect(0, 0, graph.width, graph.height);
-            setGridLineBrush();
-            let numeralCounter = graphInfo.pixelsPerUnit / 2;
+        function findZeros(a) {
+            let numeralCounter = a;
             let numeralCount = 0;
             if (numeralCounter > 1) {
                 while (numeralCounter > 1) {
@@ -72,8 +71,13 @@ function main() {
                     numeralCount--;
                 }
             }
+            return numeralCount;
+        }
+        function renderYSamples(resultsPtr) {
+            graphContext.clearRect(0, 0, graph.width, graph.height);
+            setGridLineBrush();
+            const numeralCount = findZeros(graphInfo.pixelsPerUnit / 2);
             const sep = 1 / Math.pow(10, numeralCount - 2);
-            console.log(sep);
             const alignedXCenter = Math.ceil(graphInfo.centerX / sep) * sep;
             const verticalGridLineCount = Math.floor((1 / sep) * graph.width / graphInfo.pixelsPerUnit) + 1;
             const leftmostGridLine = alignedXCenter - sep * Math.ceil(verticalGridLineCount / 2);
