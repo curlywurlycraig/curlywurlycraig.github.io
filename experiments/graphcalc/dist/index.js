@@ -23,20 +23,18 @@ function main() {
         let formula = "";
         const graph = document.querySelector("#graph");
         const graphContext = graph.getContext("2d");
+        graphContext.lineWidth = 1;
         const setSampleBrush = () => {
             graphContext.strokeStyle = '#e4a85c';
-            graphContext.fillStyle = '#09152b';
-            graphContext.lineWidth = 1;
         };
         const setAxisBrush = () => {
             graphContext.strokeStyle = '#aaaadd';
-            graphContext.fillStyle = '#09152b';
-            graphContext.lineWidth = 1;
         };
         const setGridLineBrush = () => {
             graphContext.strokeStyle = '#333366';
-            graphContext.fillStyle = '#09152b';
-            graphContext.lineWidth = 1;
+        };
+        const setMajorGridLineBrush = () => {
+            graphContext.strokeStyle = '#7777aa';
         };
         const memory = new WebAssembly.Memory({
             initial: 200,
@@ -50,40 +48,69 @@ function main() {
         function getScreenYPosFromUnit(unit) {
             return -1 * unit * graphInfo.pixelsPerUnit + graphInfo.centerY * graphInfo.pixelsPerUnit + graph.height / 2.0;
         }
+        function isMultiple(big, small) {
+            if (Math.abs(Math.round(big / small) - (big / small)) < small / 100000) {
+                return true;
+            }
+            return false;
+        }
         function renderYSamples(resultsPtr) {
             graphContext.clearRect(0, 0, graph.width, graph.height);
             setGridLineBrush();
             let numeralCounter = graphInfo.pixelsPerUnit / 2;
             let numeralCount = 0;
-            while (numeralCounter > 1) {
-                numeralCounter = numeralCounter / 10;
-                numeralCount++;
+            if (numeralCounter > 1) {
+                while (numeralCounter > 1) {
+                    numeralCounter = numeralCounter / 10;
+                    numeralCount++;
+                }
+            }
+            else {
+                numeralCount += 1;
+                while (numeralCounter < 1) {
+                    numeralCounter = numeralCounter * 10;
+                    numeralCount--;
+                }
             }
             const sep = 1 / Math.pow(10, numeralCount - 2);
+            console.log(sep);
             const alignedXCenter = Math.ceil(graphInfo.centerX / sep) * sep;
             const verticalGridLineCount = Math.floor((1 / sep) * graph.width / graphInfo.pixelsPerUnit) + 1;
             const leftmostGridLine = alignedXCenter - sep * Math.ceil(verticalGridLineCount / 2);
-            graphContext.beginPath();
             for (let i = 0; i < verticalGridLineCount; i++) {
+                graphContext.beginPath();
                 const xPosUnit = leftmostGridLine + i * sep;
                 const gridXPos = getScreenXPosFromUnit(xPosUnit);
+                if (isMultiple(xPosUnit, sep * 10)) {
+                    setMajorGridLineBrush();
+                }
+                else {
+                    setGridLineBrush();
+                }
                 graphContext.moveTo(gridXPos, 0);
                 graphContext.lineTo(gridXPos, graph.height);
+                graphContext.stroke();
+                graphContext.closePath();
             }
-            graphContext.stroke();
-            graphContext.closePath();
+            setGridLineBrush();
             const alignedYCenter = Math.ceil(graphInfo.centerY / sep) * sep;
             const horizontalGridLineCount = Math.floor((1 / sep) * graph.height / graphInfo.pixelsPerUnit) + 1;
             const topMostGridLine = alignedYCenter + sep * Math.ceil(horizontalGridLineCount / 2);
-            graphContext.beginPath();
             for (let i = horizontalGridLineCount; i > 0; i--) {
+                graphContext.beginPath();
                 const yPosUnit = topMostGridLine - i * sep;
                 const gridYPos = getScreenYPosFromUnit(yPosUnit);
+                if (isMultiple(yPosUnit, sep * 10)) {
+                    setMajorGridLineBrush();
+                }
+                else {
+                    setGridLineBrush();
+                }
                 graphContext.moveTo(0, gridYPos);
                 graphContext.lineTo(graph.width, gridYPos);
+                graphContext.stroke();
+                graphContext.closePath();
             }
-            graphContext.stroke();
-            graphContext.closePath();
             setAxisBrush();
             graphContext.beginPath();
             const yAxisYPos = graphInfo.centerY * graphInfo.pixelsPerUnit + graph.height / 2.0;
@@ -168,7 +195,6 @@ function main() {
             interactionInfo.lastDragYPos = e.y;
         };
         graph.onwheel = (e) => {
-            console.log(e);
             graphInfo.pixelsPerUnit -= e.deltaY * graphInfo.pixelsPerUnit * 0.01;
             submitFormulaToWasm();
             e.preventDefault();

@@ -1,5 +1,3 @@
-- [x] Zooming
-  - [ ] Update axis resolution accordingly
 - [ ] Axis enhancements
   - [ ] Colour "major" grid lines
   - [ ] Add text to major grid lines
