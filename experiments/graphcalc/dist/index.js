@@ -220,7 +220,6 @@ function main() {
                 firstPointer = interactionInfo.pointers[Number(allKeys[0])];
                 secondPointer = interactionInfo.pointers[Number(allKeys[1])];
                 const newDistance = Math.sqrt(Math.pow((secondPointer.x - firstPointer.x), 2) + Math.pow((secondPointer.y - firstPointer.y), 2));
-                console.log('it actually is haha');
             }
             else if (allKeys.length === 1) {
                 graphInfo.centerX -= 2 * (e.x - interactionInfo.lastDragXPos) / graphInfo.pixelsPerUnit;
