@@ -258,6 +258,11 @@ async function main() {
 
     graph.onpointerdown = (e) => {
         interactionInfo.pointers[e.pointerId] = e;
+        if (Object.keys(interactionInfo.pointers).length === 1) {
+            interactionInfo.isDragging = true;
+            interactionInfo.lastDragXPos = e.x;
+            interactionInfo.lastDragYPos = e.y;
+        }
     }
 
     graph.onpointermove = (e) => {
@@ -273,12 +278,25 @@ async function main() {
             firstPointer = interactionInfo.pointers[Number(allKeys[0])];
             secondPointer = interactionInfo.pointers[Number(allKeys[1])];
             const newDistance = Math.sqrt(Math.pow((secondPointer.x - firstPointer.x), 2) + Math.pow((secondPointer.y - firstPointer.y), 2));
+            // TODO Zoom on mobile
+        } else if (allKeys.length === 1) {
+            graphInfo.centerX -= 2 * (e.x - interactionInfo.lastDragXPos) / graphInfo.pixelsPerUnit;
+            graphInfo.centerY += 2 * (e.y - interactionInfo.lastDragYPos) / graphInfo.pixelsPerUnit;
+            submitFormulaToWasm();
+
+            interactionInfo.lastDragXPos = e.x;
+            interactionInfo.lastDragYPos = e.y;
         }
     }
 
     graph.onpointerup = (e) => {
         delete interactionInfo.pointers[e.pointerId];
+
+        if (Object.keys(interactionInfo.pointers).length === 0) {
+            interactionInfo.isDragging = false;
+        }
     }
+
     graph.onpointercancel = graph.onpointerup;
     graph.onpointerout = graph.onpointerup;
     graph.onpointerleave = graph.onpointerup;

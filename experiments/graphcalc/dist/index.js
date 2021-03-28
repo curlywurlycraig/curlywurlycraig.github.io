@@ -50,7 +50,6 @@ function main() {
         }
         function isMultiple(big, small) {
             if (Math.abs(Math.round(big / small) - (big / small)) < 0.0001) {
-                console.log(big, small);
                 return true;
             }
             return false;
@@ -205,6 +204,11 @@ function main() {
         };
         graph.onpointerdown = (e) => {
             interactionInfo.pointers[e.pointerId] = e;
+            if (Object.keys(interactionInfo.pointers).length === 1) {
+                interactionInfo.isDragging = true;
+                interactionInfo.lastDragXPos = e.x;
+                interactionInfo.lastDragYPos = e.y;
+            }
         };
         graph.onpointermove = (e) => {
             const allKeys = Object.keys(interactionInfo.pointers);
@@ -216,10 +220,21 @@ function main() {
                 firstPointer = interactionInfo.pointers[Number(allKeys[0])];
                 secondPointer = interactionInfo.pointers[Number(allKeys[1])];
                 const newDistance = Math.sqrt(Math.pow((secondPointer.x - firstPointer.x), 2) + Math.pow((secondPointer.y - firstPointer.y), 2));
+                console.log('it actually is haha');
+            }
+            else if (allKeys.length === 1) {
+                graphInfo.centerX -= 2 * (e.x - interactionInfo.lastDragXPos) / graphInfo.pixelsPerUnit;
+                graphInfo.centerY += 2 * (e.y - interactionInfo.lastDragYPos) / graphInfo.pixelsPerUnit;
+                submitFormulaToWasm();
+                interactionInfo.lastDragXPos = e.x;
+                interactionInfo.lastDragYPos = e.y;
             }
         };
         graph.onpointerup = (e) => {
             delete interactionInfo.pointers[e.pointerId];
+            if (Object.keys(interactionInfo.pointers).length === 0) {
+                interactionInfo.isDragging = false;
+            }
         };
         graph.onpointercancel = graph.onpointerup;
         graph.onpointerout = graph.onpointerup;
