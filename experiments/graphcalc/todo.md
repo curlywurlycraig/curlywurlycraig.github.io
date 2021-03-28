@@ -1,18 +1,17 @@
-- [ ] Zooming
+- [x] Zooming
   - [ ] Update axis resolution accordingly
 - [ ] Axis enhancements
   - [ ] Colour "major" grid lines
   - [ ] Add text to major grid lines
-- [ ] Highlight when fail to parse
-  - [ ] Also syntax highlighting
 - [ ] t param
 - [ ] parametric equations
 - [ ] 3d
   - [ ] Make this instant, as soon as a z ident is involved. Can have another canvas prepared with 3d context initialised already and just "flip"
   - [ ] Use mouse to rotate
 - [ ] Handle asymptotes
+- [ ] Highlight when fail to parse
+  - [ ] Also syntax highlighting
 - [ ] Search functions
-- [ ] Respond to window width
 - [ ] Keyboard shortcuts
   - [ ] Help menu opened with "?"
   - [ ] Press e.g. "0" to recenter

@@ -1,4 +1,3 @@
-"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -18,7 +17,8 @@ function main() {
         const interactionInfo = {
             lastDragXPos: 0,
             lastDragYPos: 0,
-            isDragging: false
+            isDragging: false,
+            pointers: {}
         };
         let formula = "";
         const graph = document.querySelector("#graph");
@@ -161,6 +161,33 @@ function main() {
             interactionInfo.lastDragXPos = e.x;
             interactionInfo.lastDragYPos = e.y;
         };
+        graph.onwheel = (e) => {
+            console.log(e);
+            graphInfo.pixelsPerUnit -= e.deltaY;
+            submitFormulaToWasm();
+            e.preventDefault();
+        };
+        graph.onpointerdown = (e) => {
+            interactionInfo.pointers[e.pointerId] = e;
+        };
+        graph.onpointermove = (e) => {
+            const allKeys = Object.keys(interactionInfo.pointers);
+            if (allKeys.length === 2) {
+                let firstPointer = interactionInfo.pointers[Number(allKeys[0])];
+                let secondPointer = interactionInfo.pointers[Number(allKeys[1])];
+                const oldDistance = Math.sqrt(Math.pow((secondPointer.x - firstPointer.x), 2) + Math.pow((secondPointer.y - firstPointer.y), 2));
+                interactionInfo.pointers[e.pointerId] = e;
+                firstPointer = interactionInfo.pointers[Number(allKeys[0])];
+                secondPointer = interactionInfo.pointers[Number(allKeys[1])];
+                const newDistance = Math.sqrt(Math.pow((secondPointer.x - firstPointer.x), 2) + Math.pow((secondPointer.y - firstPointer.y), 2));
+            }
+        };
+        graph.onpointerup = (e) => {
+            delete interactionInfo.pointers[e.pointerId];
+        };
+        graph.onpointercancel = graph.onpointerup;
+        graph.onpointerout = graph.onpointerup;
+        graph.onpointerleave = graph.onpointerup;
         const resizeGraph = () => {
             graph.width = window.innerWidth * 2;
             graph.height = window.innerHeight * 2;
