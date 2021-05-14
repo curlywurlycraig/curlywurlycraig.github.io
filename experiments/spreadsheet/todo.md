@@ -1,0 +1,3 @@
+- [ ] Add an editable table
+- [ ] Create a simple lisp parser
+- [ ] Allow cells to contain lisp
