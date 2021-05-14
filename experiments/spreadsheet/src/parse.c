@@ -438,40 +438,29 @@ TokenInfo lookAhead(ParseInfo *info, int ahead) {
 
 // left recursive grammar
 // ----
-// expression : expression + expression
-// expression : expression * expression
-// expression : expression / expression
-// expression : number
-// expression : ( expression )
+// expression : list
 
-// with left recursion removed
-// ----
-// Expression : Term ExpressionA
+// list : ( elem... )
 
-// ExpressionA : + Term ExpressionA
-// ExpressionA : - Term ExpressionA
-// ExpressionA : <nothing>
+// elem : ident
+// elem : list
 
-// Term : Factor TermM
-// TermM : * Factor TermM
-// TermM : / Factor TermM
-// TermM : <nothing>
+// ident : func
+// ident : number
+// ident : string
+// ident : cellrange
 
-// Factor : ( Expression )
-// Factor : -number
-// Factor : -( Expression )
-// Factor : number
-// Factor : Function
-// Factor : identifier
-
-// Function : identifier(Expression)
+// func : macro
+// func : +
+// func : -
+// func : *
+// func : /
+// func : [a-z\-]
 
 double expression(ParseInfo *info);
-double expressionA(ParseInfo *info);
-double term(ParseInfo *info);
-double termM(ParseInfo *info);
-double factor(ParseInfo *info);
-double function(ParseInfo *info);
+double list(ParseInfo *info);
+double elem(ParseInfo *info);
+double ident(ParseInfo *info);
 
 void error(ParseInfo *info) {
     info->didFail = 1;
@@ -507,13 +496,19 @@ TokenInfo last(ParseInfo *info) {
 }
 
 double expression(ParseInfo *info) {
-    double a = term(info);
+    double a = list(info);
     if (info->didFail) return 0;
-
-    return a + expressionA(info);
+    return a;
 }
 
-double expressionA(ParseInfo *info) {
+double list(ParseInfo *info) {
+    consume(info, T_OPEN_PAREN);
+    if (info->didFail) return 0;
+
+    while (!expect(info, T_CLOSE_PAREN)) {
+        double a = elem
+
+    })
     if (expect(info, T_PLUS)) {
         consume(info, T_PLUS);
         if (info->didFail) return 0;
