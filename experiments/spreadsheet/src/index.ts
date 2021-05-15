@@ -1,6 +1,7 @@
 async function main() {
     let selectedRow = 0;
     let selectedCol = 0;
+    let selectedElement: Element = null;
 
     const cellSource: string[][] = [
         [null, null],
@@ -90,10 +91,10 @@ async function main() {
     const renderCellContents = () => {
         if (allEditCells.length) {
             allEditCells.forEach((editCell, index) => {
-                selectedCol = index % 2;
-                selectedRow = Math.floor(index / 2);
+                const col = index % 2;
+                const row = Math.floor(index / 2);
 
-                editCell.innerHTML = cellComputed[selectedRow][selectedCol];
+                editCell.innerHTML = cellComputed[row][col];
             });
         }
     }
@@ -106,6 +107,12 @@ async function main() {
 
                 functionInput.value = cellSource[selectedRow][selectedCol];
                 functionInput.focus();
+                if (selectedElement) {
+                    selectedElement.classList.remove("selected");
+                }
+
+                editCell.classList.add("selected");
+                selectedElement = editCell;
             });
 
             // when enter is clicked, or on blur, and so on

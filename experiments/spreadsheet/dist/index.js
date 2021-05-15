@@ -11,6 +11,7 @@ function main() {
     return __awaiter(this, void 0, void 0, function* () {
         let selectedRow = 0;
         let selectedCol = 0;
+        let selectedElement = null;
         const cellSource = [
             [null, null],
             [null, null]
@@ -77,9 +78,9 @@ function main() {
         const renderCellContents = () => {
             if (allEditCells.length) {
                 allEditCells.forEach((editCell, index) => {
-                    selectedCol = index % 2;
-                    selectedRow = Math.floor(index / 2);
-                    editCell.innerHTML = cellComputed[selectedRow][selectedCol];
+                    const col = index % 2;
+                    const row = Math.floor(index / 2);
+                    editCell.innerHTML = cellComputed[row][col];
                 });
             }
         };
@@ -90,6 +91,11 @@ function main() {
                     selectedRow = Math.floor(index / 2);
                     functionInput.value = cellSource[selectedRow][selectedCol];
                     functionInput.focus();
+                    if (selectedElement) {
+                        selectedElement.classList.remove("selected");
+                    }
+                    editCell.classList.add("selected");
+                    selectedElement = editCell;
                 });
                 const onApplyChanges = (e) => {
                     const element = e === null || e === void 0 ? void 0 : e.target;
