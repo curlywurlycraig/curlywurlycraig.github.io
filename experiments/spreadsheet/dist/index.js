@@ -20,7 +20,8 @@ function main() {
                 memory,
                 prints: (strPtr) => console.log(fromAscii(strPtr)),
                 printf: console.log,
-                printd: console.log
+                printd: console.log,
+                sin: Math.sin
             },
         };
         function fromAscii(strPtr) {

@@ -1,7 +1,5 @@
-- [ ] Create a simple lisp parser
 - [ ] Allow cells to contain lisp
 - [ ] Execute lisp in cells containing lisp
-- [ ] Allow cells to be specified in lisp
 - [ ] Only execute cells when they are outdated
   I.e. their dependencies have updated.
   Prevent infinite loops!

@@ -12,7 +12,8 @@ async function main() {
             memory,
             prints: (strPtr: number) => console.log(fromAscii(strPtr)),
             printf: console.log,
-            printd: console.log
+            printd: console.log,
+            sin: Math.sin
         },
     };
 

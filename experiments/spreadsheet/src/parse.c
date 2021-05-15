@@ -401,7 +401,11 @@ double _mult(double* args, unsigned int argc) {
     return result;
 }
 
-static int functionIdentCount = 3;
+double _sin(double *args, unsigned int argc) {
+    return sin(args[0]);
+}
+
+static int functionIdentCount = 4;
 static struct FunctionIdent functionIdents[] = {
     {
         .func = &_add,
@@ -414,6 +418,10 @@ static struct FunctionIdent functionIdents[] = {
     {
         .func = &_mult,
         .name = "*"
+    },
+    {
+        .func = &_sin,
+        .name = "sin"
     }
 };
 
