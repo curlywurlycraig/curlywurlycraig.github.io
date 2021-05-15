@@ -1,10 +1,6 @@
 extern void prints(char* str);
 extern void printf(float f);
 extern void printd(double d);
-extern void draw(double* results);
-extern double sin(double x);
-extern double cos(double x);
-extern double tan(double x);
 
 #include "mem.c"
 #include "string.c"
@@ -24,14 +20,13 @@ char* getInputPointer() {
     return formulaInput;
 }
 
-void executeFormula(unsigned int formulaSize, double startX, double endX, unsigned int width) {
+double executeFormula(unsigned int formulaSize) {
     markmem();
-    TokenizeResult tokens = tokenize(formulaInput);
-    double* results = mmalloc(sizeof(double) * width);
-    interpret(results, tokens, formulaInput, startX, endX, width);
 
-    // Draw the results
-    draw(results);
+    TokenizeResult tokens = tokenize(formulaInput);
+    double result = interpret(tokens, formulaInput);
 
     resetmem();
+
+    return result;
 }

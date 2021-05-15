@@ -67,28 +67,36 @@ CharType getCharType(char input) {
         return LETTER;
     }
 
-    if (input == '.') {
-        return PERIOD;
-    }
-
     if (input == ' ') {
         return SPACE;
     }
 
-    if (input == '+') {
-        return PLUS;
+    if (input == '.') {
+        return PERIOD;
     }
 
+    // Function names like find-in.
+    // There's nothing special about
     if (input == '-') {
-        return HYPHEN;
+        return LETTER;
     }
 
+    // Operators
     if (input == '*') {
-        return ASTERISK;
+        return LETTER;
+    }
+
+    if (input == '+') {
+        return LETTER;
     }
 
     if (input == '/') {
-        return SLASH;
+        return LETTER;
+    }
+
+    // Boolean functions like empty?
+    if (input == '?') {
+        return LETTER;
     }
 
     if (input == '(') {
@@ -242,10 +250,6 @@ TokenFinder makeIdentifierFinder() {
     return makeRepeatingCharacterFinder(LETTER, T_IDENT);
 }
 
-TokenFinder makeAsteriskFinder() {
-    return makeSingleCharacterFinder(ASTERISK, T_MULT);
-}
-
 TokenFinder makeOpenParenFinder() {
     return makeSingleCharacterFinder(OPEN_PAREN, T_OPEN_PAREN);
 }
@@ -254,20 +258,8 @@ TokenFinder makeCloseParenFinder() {
     return makeSingleCharacterFinder(CLOSE_PAREN, T_CLOSE_PAREN);
 }
 
-TokenFinder makePlusFinder() {
-    return makeSingleCharacterFinder(PLUS, T_PLUS);
-}
-
-TokenFinder makeMinusFinder() {
-    return makeSingleCharacterFinder(HYPHEN, T_NEG);
-}
-
 TokenFinder makeWhitespaceFinder() {
     return makeRepeatingCharacterFinder(SPACE, T_WHITESPACE);
-}
-
-TokenFinder makeDivisionFinder() {
-    return makeSingleCharacterFinder(SLASH, T_DIV);
 }
 
 void initTokenFinders() {
@@ -282,21 +274,13 @@ void initTokenFinders() {
 
     tokenFinders[0] = makeNumberFinder();
     numTokenFinders++;
-    tokenFinders[1] = makeAsteriskFinder();
+    tokenFinders[1] = makeWhitespaceFinder();
     numTokenFinders++;
-    tokenFinders[2] = makePlusFinder();
+    tokenFinders[2] = makeOpenParenFinder();
     numTokenFinders++;
-    tokenFinders[3] = makeWhitespaceFinder();
+    tokenFinders[3] = makeCloseParenFinder();
     numTokenFinders++;
-    tokenFinders[4] = makeOpenParenFinder();
-    numTokenFinders++;
-    tokenFinders[5] = makeCloseParenFinder();
-    numTokenFinders++;
-    tokenFinders[6] = makeMinusFinder();
-    numTokenFinders++;
-    tokenFinders[7] = makeIdentifierFinder();
-    numTokenFinders++;
-    tokenFinders[8] = makeDivisionFinder();
+    tokenFinders[4] = makeIdentifierFinder();
     numTokenFinders++;
 }
 
@@ -384,35 +368,59 @@ TokenizeResult tokenize(char* formula) {
     return result;
 }
 
-// Interpreter
+// Parse/interpret
 
-typedef double (*doubleFunc)(double);
+typedef double (*doubleFunc)(double*, unsigned int);
 
 struct FunctionIdent {
     doubleFunc func;
     char* name;
 };
 
+double _add(double* args, unsigned int argc) {
+    double result = 0;
+    for (int i = 0; i < argc; i++) {
+        result += args[i];
+    }
+    return result;
+}
+
+double _sub(double* args, unsigned int argc) {
+    double result = args[0];
+    for (int i = 1; i < argc; i++) {
+        result -= args[i];
+    }
+    return result;
+}
+
+double _mult(double* args, unsigned int argc) {
+    double result = args[0];
+    for (int i = 1; i < argc; i++) {
+        result = result * args[i];
+    }
+    return result;
+}
+
 static int functionIdentCount = 3;
 static struct FunctionIdent functionIdents[] = {
     {
-        .func = &sin,
-        .name = "sin"
+        .func = &_add,
+        .name = "+"
     },
     {
-        .func = &cos,
-        .name = "cos"
+        .func = &_sub,
+        .name = "-"
     },
     {
-        .func = &tan,
-        .name = "tan"
+        .func = &_mult,
+        .name = "*"
     }
 };
 
-double executeFunctionIdent(char* identName, double input) {
+double executeFunctionIdent(char* identName, double* args, unsigned int argc) {
     for (int i = 0; i < functionIdentCount; i++) {
         if (streq(identName, functionIdents[i].name)) {
-            return functionIdents[i].func(input);
+            return functionIdents[i].func(args, argc);
         }
     }
 
@@ -435,32 +443,6 @@ typedef struct ParseInfo {
 TokenInfo lookAhead(ParseInfo *info, int ahead) {
     return info->tokenizeResult->tokens[info->tokenIndex + ahead];
 }
-
-// left recursive grammar
-// ----
-// expression : list
-
-// list : ( elem... )
-
-// elem : ident
-// elem : list
-
-// ident : func
-// ident : number
-// ident : string
-// ident : cellrange
-
-// func : macro
-// func : +
-// func : -
-// func : *
-// func : /
-// func : [a-z\-]
-
-double expression(ParseInfo *info);
-double list(ParseInfo *info);
-double elem(ParseInfo *info);
-double ident(ParseInfo *info);
 
 void error(ParseInfo *info) {
     info->didFail = 1;
@@ -495,6 +477,32 @@ TokenInfo last(ParseInfo *info) {
     return lookAhead(info, -1);
 }
 
+// left recursive grammar
+// ----
+// expression : list
+
+// list : ( elem... )
+
+// elem : list
+// elem : ident
+
+// ident : func
+// ident : number
+// ident : string
+// ident : cellrange
+
+// func : macro
+// func : +
+// func : -
+// func : *
+// func : /
+// func : [a-z\-]
+
+double expression(ParseInfo *info);
+double list(ParseInfo *info);
+double elem(ParseInfo *info);
+double ident(ParseInfo *info);
+
 double expression(ParseInfo *info) {
     double a = list(info);
     if (info->didFail) return 0;
@@ -505,139 +513,88 @@ double list(ParseInfo *info) {
     consume(info, T_OPEN_PAREN);
     if (info->didFail) return 0;
 
-    while (!expect(info, T_CLOSE_PAREN)) {
-        double a = elem
-
-    })
-    if (expect(info, T_PLUS)) {
-        consume(info, T_PLUS);
-        if (info->didFail) return 0;
-
-        double a = term(info);
-        if (info->didFail) return 0;
-
-        return a + expressionA(info);
-    } else if (expect(info, T_NEG)) {
-        consume(info, T_NEG);
-        if (info->didFail) return 0;
-
-        double a = term(info);
-        if (info->didFail) return 0;
-
-        return -1 * a + expressionA(info);
-    } else {
+    // Grab the first ident, which must be a func
+    if (!expect(info, T_IDENT)) {
+        info->didFail = 1;
         return 0;
     }
-}
+    TokenInfo functionToken = lookAhead(info, 0);
+    next(info);
 
-double term(ParseInfo *info) {
-    double a = factor(info);
-    if (info->didFail) return 0;
-
-    if (expect(info, T_MULT)) {
-        return a * termM(info);
-    } else if (expect(info, T_DIV)) {
-        return a / termM(info);
-    } else {
-        return a * termM(info);
-    }
-}
-
-double termM(ParseInfo *info) {
-    if (expect(info, T_MULT)) {
-        consume(info, T_MULT);
-    } else if (expect(info, T_DIV)) {
-        consume(info, T_DIV);
-    } else {
-        return 1.0;
+    if (expect(info, T_WHITESPACE)) {
+        consume(info, T_WHITESPACE);
     }
 
-    if (info->didFail) return 1.0;
-    double a = factor(info);
-    if (info->didFail) return 1.0;
+    // TODO Lazy evaluation. Parse first, execute second.
+    // This will help with defining things like if statements
+    // in a cleaner way.
+    // continually eval a list of elems until the next token is close paren
+    double args[128];
+    unsigned int argc = 0;
+    while (!expect(info, T_CLOSE_PAREN) && !info->didFail) {
+        // Obviously a bad way to do this
+        if (argc > 20) {
+            info->didFail = 1;
+            return 0;
+        }
 
-    if (expect(info, T_MULT)) {
-        return a * termM(info);
-    } else if (expect(info, T_DIV)) {
-        return a / termM(info);
-    } else {
-        return a * termM(info);
+        double a = elem(info);
+        args[argc] = a;
+        argc++;
     }
+
+    consume(info, T_CLOSE_PAREN);
+
+    prints(functionToken.raw);
+    for (int i = 0; i < argc; i++) {
+        printd(args[i]);
+    }
+    prints("\n");
+
+    // execute the func with the args
+    double result = executeFunctionIdent(functionToken.raw, args, argc);
+    return result;
 }
 
-double factor(ParseInfo *info) {
+double elem(ParseInfo *info) {
     if (expect(info, T_OPEN_PAREN)) {
-        consume(info, T_OPEN_PAREN);
-        double a = expression(info);
-        consume(info, T_CLOSE_PAREN);
-        return a;
+        double result = list(info);
+        return result;
     }
 
+    if (expect(info, T_WHITESPACE)) {
+        consume(info, T_WHITESPACE);
+    }
+
+    // TODO Handle negative numbers.
+    // Will have to remove hyphen from the text token
+    // and make a more complex tokenizer for function names
     if (expect(info, T_NUMBER)) {
         TokenInfo currToken = lookAhead(info, 0);
         double a = ctod(currToken.raw);
         consume(info, T_NUMBER);
-        return a;
-    }
 
-    if (expect(info, T_NEG)) {
-        consume(info, T_NEG);
-        if (expect(info, T_OPEN_PAREN)) {
-            consume(info, T_OPEN_PAREN);
-            double a = expression(info);
-            consume(info, T_CLOSE_PAREN);
-            return a * -1;
-        } else {
-            TokenInfo currToken = lookAhead(info, 0);
-            double a = ctod(currToken.raw);
-            consume(info, T_NUMBER);
-            return -1 * a;
+        if (expect(info, T_WHITESPACE)) {
+            consume(info, T_WHITESPACE);
         }
-    }
-
-    if (expect(info, T_IDENT) && expectk(info, T_OPEN_PAREN, 2)) {
-        double a = function(info);
         return a;
     }
 
-    if (expect(info, T_IDENT)) {
-        consume(info, T_IDENT);
-        return info->x;
-    }
-
-    info->didFail = 1;
+    // TODO Handle identifiers, cells, and so on
     return 0;
 }
 
-double function(ParseInfo *info) {
-    consume(info, T_IDENT);
-    if (info->didFail) return 0;
-    TokenInfo identToken = last(info);
-
-    consume(info, T_OPEN_PAREN);
-    if (info->didFail) return 0;
-
-    double result = expression(info);
-
-    consume(info, T_CLOSE_PAREN);
-    if (info->didFail) return 0;
-
-    return executeFunctionIdent(identToken.raw, result);
-}
-
-void interpret(double* results, TokenizeResult tokens, char* input, double startX, double endX, unsigned int width) {
+double interpret(TokenizeResult tokens, char* input) {
     ParseInfo *info = mmalloc(sizeof(ParseInfo));
 
-    for (int i = 0; i < width; i++) {
-        info->tokenIndex = 0;
-        info->didFail = 0;
-        info->result = 0.0;
-        info->tokenizeResult = &tokens;
-        info->raw = input;
-        info->x = 0.0;
-        info->t = 0.0;
-        info->x = startX + i * (endX - startX) / (double) width;
-        double result = expression(info);
-        results[i] = result;
-    }
+    info->tokenIndex = 0;
+    info->didFail = 0;
+    info->result = 0.0;
+    info->tokenizeResult = &tokens;
+    info->raw = input;
+
+    prints("did fail?");
+    printf(info->didFail);
+
+    return expression(info);
 }
