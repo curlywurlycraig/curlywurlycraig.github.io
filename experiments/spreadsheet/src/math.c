@@ -17,6 +17,11 @@ int findPeriod(char* str) {
 
 // characters to double
 double ctod(char* str) {
+    int isNeg = str[0] == '-';
+    if (isNeg) {
+        return -1.0 * ctod(str+1);
+    }
+
     double result = 0;
     int periodPos = findPeriod(str);
     int endIndex = strlen(str);

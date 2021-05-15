@@ -71,14 +71,16 @@ CharType getCharType(char input) {
         return SPACE;
     }
 
+    if (input == '\n') {
+        return SPACE;
+    }
+
     if (input == '.') {
         return PERIOD;
     }
 
-    // Function names like find-in.
-    // There's nothing special about
     if (input == '-') {
-        return LETTER;
+        return HYPHEN;
     }
 
     // Operators
@@ -155,15 +157,20 @@ TokenFinder makeNumberFinder() {
     fractionState.id = 2;
     fractionState.type = DIGIT;
 
+    CharState hyphenState;
+    hyphenState.id = 3;
+    hyphenState.type = HYPHEN;
+
     // number is
     // 1
     // 1018585
     // 12383.1583
+    // -12383.1583
     // NOT 123415. (don't allow trailing period)
     // <some digits><maybe period & more digits>
     TokenFinder numberFinder;
     numberFinder.token = T_NUMBER;
-    numberFinder.transitionCount = 7;
+    numberFinder.transitionCount = 9;
     numberFinder.transitions = mmalloc(sizeof(StateTransition) * numberFinder.transitionCount);
 
     numberFinder.transitions[0] = (StateTransition) {
@@ -193,6 +200,16 @@ TokenFinder makeNumberFinder() {
     numberFinder.transitions[6] = (StateTransition) {
         .fromState = fractionState,
         .toState = fractionState
+    };
+
+    // Neg numbers
+    numberFinder.transitions[7] = (StateTransition) {
+        .fromState = startState,
+        .toState = hyphenState
+    };
+    numberFinder.transitions[8] = (StateTransition) {
+        .fromState = hyphenState,
+        .toState = numberState
     };
 
     return numberFinder;
@@ -247,7 +264,45 @@ TokenFinder makeRepeatingCharacterFinder(CharType type, Token token) {
 }
 
 TokenFinder makeIdentifierFinder() {
-    return makeRepeatingCharacterFinder(LETTER, T_IDENT);
+    CharState charState;
+    charState.id = 0;
+    charState.type = LETTER;
+
+    CharState hyphenState;
+    hyphenState.id = 1;
+    hyphenState.type = HYPHEN;
+
+    TokenFinder identFinder;
+    identFinder.token = T_IDENT;
+    identFinder.transitionCount = 4;
+    identFinder.transitions = mmalloc(sizeof(StateTransition) * identFinder.transitionCount);
+
+    identFinder.transitions[0] = (StateTransition) {
+        .fromState = startState,
+        .toState = charState
+    };
+    identFinder.transitions[1] = (StateTransition) {
+        .fromState = startState,
+        .toState = hyphenState
+    };
+    identFinder.transitions[2] = (StateTransition) {
+        .fromState = charState,
+        .toState = charState
+    };
+    identFinder.transitions[3] = (StateTransition) {
+        .fromState = charState,
+        .toState = endState
+    };
+    identFinder.transitions[4] = (StateTransition) {
+        .fromState = hyphenState,
+        .toState = charState
+    };
+    identFinder.transitions[5] = (StateTransition) {
+        .fromState = hyphenState,
+        .toState = endState
+    };
+
+    return identFinder;
 }
 
 TokenFinder makeOpenParenFinder() {
@@ -567,9 +622,7 @@ double elem(ParseInfo *info) {
         consume(info, T_WHITESPACE);
     }
 
-    // TODO Handle negative numbers.
-    // Will have to remove hyphen from the text token
-    // and make a more complex tokenizer for function names
+
     if (expect(info, T_NUMBER)) {
         TokenInfo currToken = lookAhead(info, 0);
         double a = ctod(currToken.raw);

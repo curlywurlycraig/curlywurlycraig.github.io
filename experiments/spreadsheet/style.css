@@ -51,6 +51,7 @@ div.selected {
 
 textarea {
     width: 100%;
+    height: auto;
     border: 0;
     border-bottom: 1px solid #546190;
     background-color: #09152b;
