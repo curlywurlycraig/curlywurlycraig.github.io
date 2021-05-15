@@ -553,15 +553,8 @@ double list(ParseInfo *info) {
 
     consume(info, T_CLOSE_PAREN);
 
-    prints(functionToken.raw);
-    for (int i = 0; i < argc; i++) {
-        printd(args[i]);
-    }
-    prints("\n");
-
     // execute the func with the args
-    double result = executeFunctionIdent(functionToken.raw, args, argc);
-    return result;
+    return executeFunctionIdent(functionToken.raw, args, argc);
 }
 
 double elem(ParseInfo *info) {
@@ -600,9 +593,6 @@ double interpret(TokenizeResult tokens, char* input) {
     info->result = 0.0;
     info->tokenizeResult = &tokens;
     info->raw = input;
-
-    prints("did fail?");
-    printf(info->didFail);
 
     return expression(info);
 }

@@ -8,16 +8,30 @@ body {
 
 div {
     padding: 5px;
-    border: 1px solid #667;
-    border-radius: 0;
+    outline: 1px solid #667;
+    margin-top: 1px;
+    margin-left: 1px;
     color: white;
 }
 
-div:focus {
-    border: 1px solid #e4a85c;
-    border-radius: 0;
+tr {
+    margin: 0;
+    padding: 0;
+}
+
+td {
+    margin: 0;
+    padding: 0;
+}
+
+.editcell {
+    min-width: 80px;
+    height: 1em;
+}
+
+div.selected {
+    outline: 1px solid #e4a85c;
     color: white;
-    outline: none;
 }
 
 @media (max-width: 600px) {
@@ -36,23 +50,16 @@ div:focus {
 }
 
 textarea {
-    width: 300px;
-    height: 80px;
-    position: absolute;
-    right: 10px;
-    top: 10px;
-    border: 1px solid #546190;
+    width: 100%;
+    border: 0;
+    border-bottom: 1px solid #546190;
     background-color: #09152b;
-    border-radius: 0;
     color: white;
-    padding: 10px;
 }
 
 textarea:focus {
-    border: 1px solid #e4a85c;
-    border-radius: 0;
+    border-bottom: 1px solid #e4a85c;
     color: white;
-    padding: 10px;
     outline: none;
 }
 

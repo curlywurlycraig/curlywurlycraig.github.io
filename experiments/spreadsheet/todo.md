@@ -11,6 +11,8 @@
 - [ ] Add ability to upload CSV
 - [ ] Research and think about proper lispy things like cons cells,
   and metaprogramming features.
+- [ ] Document available build in functions
+- [ ] Make it possible to define your own functions
 
 ## Parser improvements
 
