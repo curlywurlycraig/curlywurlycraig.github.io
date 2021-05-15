@@ -274,7 +274,7 @@ TokenFinder makeIdentifierFinder() {
 
     TokenFinder identFinder;
     identFinder.token = T_IDENT;
-    identFinder.transitionCount = 4;
+    identFinder.transitionCount = 6;
     identFinder.transitions = mmalloc(sizeof(StateTransition) * identFinder.transitionCount);
 
     identFinder.transitions[0] = (StateTransition) {

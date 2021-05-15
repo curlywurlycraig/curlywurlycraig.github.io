@@ -1,5 +1,4 @@
 - [ ] Refer to cells in functions
-- [ ] Add negative numbers
 - [ ] Add more cells
 - [ ] Fix styling
 - [ ] Only execute cells when they are outdated
