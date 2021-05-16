@@ -106,21 +106,24 @@ async function main() {
 
     const functionInput: HTMLTextAreaElement = document.querySelector("#functionarea");
 
+    const computeCell = (row: number, col: number) => {
+        const source = cellSource[row][col];
+        if (source && source.startsWith("(")) {
+            const result = evalLisp(source);
+            cellComputed[row][col] = result;
+            envSetCell(row, col, result);
+        } else {
+            cellComputed[row][col] = source;
+            envSetCell(row, col, source);
+        }
+    }
+
     functionInput.addEventListener('change', (e) => {
         const element = e?.target as HTMLTextAreaElement;
         const formula = element?.value;
-        console.log(cellComputed, 'yes')
 
         cellSource[selectedRow][selectedCol] = formula;
-        if (formula && formula.startsWith("(")) {
-            const result = evalLisp(formula);
-            cellComputed[selectedRow][selectedCol] = result;
-            envSetCell(selectedRow, selectedCol, result);
-        } else {
-            cellComputed[selectedRow][selectedCol] = formula;
-            envSetCell(selectedRow, selectedCol, formula);
-        }
-
+        computeCells();
         renderCellContents();
     });
 
@@ -128,13 +131,25 @@ async function main() {
 
     // Iterate through cells and calculate what should be displayed in them
     const renderCellContents = () => {
-        console.log('computed ', cellComputed);
         if (allEditCells.length) {
             allEditCells.forEach((editCell, index) => {
                 const col = index % MAX_COLS;
                 const row = Math.floor(index / MAX_COLS);
 
                 editCell.innerHTML = cellComputed[row][col];
+            });
+        }
+    }
+
+    // TODO Encode dependencies. Right now, cells which depend on ones "after" them
+    // (as read from left to right and top to bottom) will see the old computed value
+    const computeCells = () => {
+        if (allEditCells.length) {
+            allEditCells.forEach((editCell, index) => {
+                const col = index % MAX_COLS;
+                const row = Math.floor(index / MAX_COLS);
+
+                computeCell(row, col);
             });
         }
     }

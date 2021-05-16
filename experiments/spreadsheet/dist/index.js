@@ -87,30 +87,41 @@ function main() {
         };
         window.doLisp = evalLisp;
         const functionInput = document.querySelector("#functionarea");
+        const computeCell = (row, col) => {
+            const source = cellSource[row][col];
+            if (source && source.startsWith("(")) {
+                const result = evalLisp(source);
+                cellComputed[row][col] = result;
+                envSetCell(row, col, result);
+            }
+            else {
+                cellComputed[row][col] = source;
+                envSetCell(row, col, source);
+            }
+        };
         functionInput.addEventListener('change', (e) => {
             const element = e === null || e === void 0 ? void 0 : e.target;
             const formula = element === null || element === void 0 ? void 0 : element.value;
-            console.log(cellComputed, 'yes');
             cellSource[selectedRow][selectedCol] = formula;
-            if (formula && formula.startsWith("(")) {
-                const result = evalLisp(formula);
-                cellComputed[selectedRow][selectedCol] = result;
-                envSetCell(selectedRow, selectedCol, result);
-            }
-            else {
-                cellComputed[selectedRow][selectedCol] = formula;
-                envSetCell(selectedRow, selectedCol, formula);
-            }
+            computeCells();
             renderCellContents();
         });
         const allEditCells = document.querySelectorAll(".editcell");
         const renderCellContents = () => {
-            console.log('computed ', cellComputed);
             if (allEditCells.length) {
                 allEditCells.forEach((editCell, index) => {
                     const col = index % MAX_COLS;
                     const row = Math.floor(index / MAX_COLS);
                     editCell.innerHTML = cellComputed[row][col];
+                });
+            }
+        };
+        const computeCells = () => {
+            if (allEditCells.length) {
+                allEditCells.forEach((editCell, index) => {
+                    const col = index % MAX_COLS;
+                    const row = Math.floor(index / MAX_COLS);
+                    computeCell(row, col);
                 });
             }
         };
