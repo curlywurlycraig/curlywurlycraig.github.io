@@ -7,19 +7,42 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+const MAX_ROWS = 20;
+const MAX_COLS = 20;
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         let selectedRow = 0;
         let selectedCol = 0;
         let selectedElement = null;
-        const cellSource = [
-            [null, null],
-            [null, null]
-        ];
-        const cellComputed = [
-            [null, null],
-            [null, null]
-        ];
+        const cellSource = [...Array(MAX_ROWS)].map(() => Array(MAX_COLS).fill(null));
+        const cellComputed = [...Array(MAX_ROWS)].map(() => Array(MAX_COLS).fill(null));
+        const createTableElement = () => {
+            const tableElement = document.querySelector('table');
+            const headRowEl = document.createElement('tr');
+            cellSource[0].forEach((_, i) => {
+                const headCellEl = document.createElement('th');
+                headCellEl.className = "celllabel";
+                headCellEl.innerHTML = i > 0 ? String.fromCharCode('A'.charCodeAt(0) + i - 1) : '';
+                headRowEl.appendChild(headCellEl);
+            });
+            tableElement.appendChild(headRowEl);
+            cellSource.forEach(((row, rowIndex) => {
+                const rowEl = document.createElement('tr');
+                const rowLabelEl = document.createElement('td');
+                rowLabelEl.className = "celllabel";
+                rowLabelEl.innerHTML = String(rowIndex);
+                rowEl.appendChild(rowLabelEl);
+                row.forEach((column) => {
+                    const divEl = document.createElement('div');
+                    const cellEl = document.createElement('td');
+                    cellEl.appendChild(divEl);
+                    divEl.className = "editcell";
+                    rowEl.appendChild(cellEl);
+                });
+                tableElement.appendChild(rowEl);
+            }));
+        };
+        createTableElement();
         const memory = new WebAssembly.Memory({
             initial: 200,
             maximum: 200
@@ -63,30 +86,28 @@ function main() {
         window.doLisp = evalLisp;
         const functionInput = document.querySelector("#functionarea");
         functionInput.addEventListener('change', (e) => {
-            console.log(cellSource, cellComputed);
-            console.log(e);
             const element = e === null || e === void 0 ? void 0 : e.target;
             const formula = element === null || element === void 0 ? void 0 : element.value;
+            console.log(cellComputed, 'yes');
             cellSource[selectedRow][selectedCol] = formula;
             if (formula && formula.startsWith("(")) {
                 const result = evalLisp(formula);
                 cellComputed[selectedRow][selectedCol] = result;
-                console.log("setting ", selectedRow, selectedCol, result);
                 envSetCell(selectedRow, selectedCol, result);
             }
             else {
                 cellComputed[selectedRow][selectedCol] = formula;
-                console.log("setting ", selectedRow, selectedCol, formula);
                 envSetCell(selectedRow, selectedCol, formula);
             }
             renderCellContents();
         });
         const allEditCells = document.querySelectorAll(".editcell");
         const renderCellContents = () => {
+            console.log('computed ', cellComputed);
             if (allEditCells.length) {
                 allEditCells.forEach((editCell, index) => {
-                    const col = index % 2;
-                    const row = Math.floor(index / 2);
+                    const col = index % MAX_COLS;
+                    const row = Math.floor(index / MAX_COLS);
                     editCell.innerHTML = cellComputed[row][col];
                 });
             }
@@ -94,8 +115,8 @@ function main() {
         if (allEditCells.length) {
             allEditCells.forEach((editCell, index) => {
                 editCell.addEventListener('click', (e) => {
-                    selectedCol = index % 2;
-                    selectedRow = Math.floor(index / 2);
+                    selectedCol = index % MAX_COLS;
+                    selectedRow = Math.floor(index / MAX_COLS);
                     functionInput.value = cellSource[selectedRow][selectedCol];
                     functionInput.focus();
                     if (selectedElement) {

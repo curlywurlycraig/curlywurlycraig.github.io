@@ -473,8 +473,8 @@ TokenizeResult tokenize(char* formula) {
 
 // Environment
 
-static unsigned int ROW_COUNT = 2;
-static unsigned int COL_COUNT = 2;
+static unsigned int ROW_COUNT = 20;
+static unsigned int COL_COUNT = 20;
 
 typedef struct Env {
     double** cellValues;

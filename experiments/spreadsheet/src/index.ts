@@ -1,19 +1,49 @@
 declare var doLisp: Function;
 
+const MAX_ROWS = 20;
+const MAX_COLS = 20;
+
 async function main() {
     let selectedRow = 0;
     let selectedCol = 0;
     let selectedElement: Element = null;
 
-    const cellSource: string[][] = [
-        [null, null],
-        [null, null]
-    ]
+    const cellSource: string[][] = [...Array(MAX_ROWS)].map(() => Array(MAX_COLS).fill(null));
+    const cellComputed: string[][] = [...Array(MAX_ROWS)].map(() => Array(MAX_COLS).fill(null));
 
-    const cellComputed: string[][] = [
-        [null, null],
-        [null, null]
-    ]
+    const createTableElement = () => {
+        const tableElement: HTMLTableElement = document.querySelector('table');
+
+        const headRowEl = document.createElement('tr');
+        cellSource[0].forEach((_, i) => {
+            const headCellEl = document.createElement('th');
+            headCellEl.className = "celllabel";
+
+            headCellEl.innerHTML = i > 0 ? String.fromCharCode('A'.charCodeAt(0) + i - 1) : '';
+            headRowEl.appendChild(headCellEl);
+        })
+        tableElement.appendChild(headRowEl);
+
+        cellSource.forEach(((row, rowIndex) => {
+            const rowEl = document.createElement('tr');
+
+            const rowLabelEl = document.createElement('td');
+            rowLabelEl.className = "celllabel";
+            rowLabelEl.innerHTML = String(rowIndex);
+            rowEl.appendChild(rowLabelEl);
+
+            row.forEach((column) => {
+                const divEl = document.createElement('div');
+                const cellEl = document.createElement('td');
+                cellEl.appendChild(divEl);
+                divEl.className = "editcell";
+                rowEl.appendChild(cellEl);
+            });
+            tableElement.appendChild(rowEl)
+        }));
+    }
+
+    createTableElement();
 
     const memory = new WebAssembly.Memory({
         initial: 200,
@@ -75,10 +105,9 @@ async function main() {
     const functionInput: HTMLTextAreaElement = document.querySelector("#functionarea");
 
     functionInput.addEventListener('change', (e) => {
-        console.log(cellSource, cellComputed);
-        console.log(e);
         const element = e?.target as HTMLTextAreaElement;
         const formula = element?.value;
+        console.log(cellComputed, 'yes')
 
         cellSource[selectedRow][selectedCol] = formula;
         if (formula && formula.startsWith("(")) {
@@ -97,10 +126,11 @@ async function main() {
 
     // Iterate through cells and calculate what should be displayed in them
     const renderCellContents = () => {
+        console.log('computed ', cellComputed);
         if (allEditCells.length) {
             allEditCells.forEach((editCell, index) => {
-                const col = index % 2;
-                const row = Math.floor(index / 2);
+                const col = index % MAX_COLS;
+                const row = Math.floor(index / MAX_COLS);
 
                 editCell.innerHTML = cellComputed[row][col];
             });
@@ -110,8 +140,8 @@ async function main() {
     if (allEditCells.length) {
         allEditCells.forEach((editCell, index) => {
             editCell.addEventListener('click', (e) => {
-                selectedCol = index % 2;
-                selectedRow = Math.floor(index / 2);
+                selectedCol = index % MAX_COLS;
+                selectedRow = Math.floor(index / MAX_COLS);
 
                 functionInput.value = cellSource[selectedRow][selectedCol];
                 functionInput.focus();

@@ -1,10 +1,10 @@
-- [ ] Refer to cells in functions
 - [ ] Add more cells
 - [ ] Fix styling
 - [ ] Only execute cells when they are outdated
   I.e. their dependencies have updated.
   Prevent infinite loops!
   Or, allow them, but they must proceed incrementally... that could be good for non-linear functions... chaos!
+- [ ] Add cell ranges
 - [ ] Highlight cells which are lisp
 - [ ] Add ability to make column and row functions
   I.e. functions which populate rows/columns
@@ -14,7 +14,13 @@
   Also lambdas, map, reduce, and so on
 - [ ] Document available built in functions
 - [ ] Make it possible to define your own functions
-- [ ] Learn how to use headers
+- [ ] Learn how to use C header files
+- [ ] Visualisation (3d would be very cool)
+- [ ] Select multiple cells
+- [ ] Fill down, fill right
+- [ ] Click to select cell in formula
+- [ ] Virtualised table
+- [ ] Syntax highlighting on formulas
 
 ## Parser improvements
 
