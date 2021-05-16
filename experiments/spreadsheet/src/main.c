@@ -2,6 +2,8 @@ extern void prints(char* str);
 extern void printf(float f);
 extern void printd(double d);
 extern double sin(double x);
+extern double cos(double x);
+extern double tan(double x);
 
 #include "mem.c"
 #include "string.c"

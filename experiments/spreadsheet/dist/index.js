@@ -55,7 +55,9 @@ function main() {
                 prints: (strPtr) => console.log(fromAscii(strPtr)),
                 printf: console.log,
                 printd: console.log,
-                sin: Math.sin
+                sin: Math.sin,
+                cos: Math.cos,
+                tan: Math.tan
             },
         };
         function fromAscii(strPtr) {

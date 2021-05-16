@@ -1,5 +1,3 @@
-- [ ] Add more cells
-- [ ] Fix styling
 - [ ] Only execute cells when they are outdated
   I.e. their dependencies have updated.
   Prevent infinite loops!
@@ -21,6 +19,8 @@
 - [ ] Click to select cell in formula
 - [ ] Virtualised table
 - [ ] Syntax highlighting on formulas
+- [ ] Add even more cells
+- [ ] Improve styling
 
 ## Parser improvements
 

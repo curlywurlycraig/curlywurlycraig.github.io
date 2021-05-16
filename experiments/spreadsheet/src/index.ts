@@ -59,7 +59,9 @@ async function main() {
             prints: (strPtr: number) => console.log(fromAscii(strPtr)),
             printf: console.log,
             printd: console.log,
-            sin: Math.sin
+            sin: Math.sin,
+            cos: Math.cos,
+            tan: Math.tan
         },
     };
 

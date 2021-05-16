@@ -562,7 +562,15 @@ double _sin(double *args, unsigned int argc) {
     return sin(args[0]);
 }
 
-static int builtinCount = 4;
+double _cos(double *args, unsigned int argc) {
+    return cos(args[0]);
+}
+
+double _tan(double *args, unsigned int argc) {
+    return tan(args[0]);
+}
+
+static int builtinCount = 6;
 static struct FunctionIdent builtinFunctionIdents[] = {
     {
         .func = &_add,
@@ -579,6 +587,14 @@ static struct FunctionIdent builtinFunctionIdents[] = {
     {
         .func = &_sin,
         .name = "sin"
+    },
+    {
+        .func = &_cos,
+        .name = "cos"
+    },
+    {
+        .func = &_tan,
+        .name = "tan"
     }
 };
 
