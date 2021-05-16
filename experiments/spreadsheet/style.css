@@ -1,4 +1,6 @@
 body {
+    font-family: 'Monaco', 'Courier New', Courier, monospace;
+    font-size: 12px;
     width: 100%;
     max-width: 100%;
     padding: 0;
@@ -36,6 +38,8 @@ th {
     position: relative;
     height: 1em;
     max-height: 1em;
+    padding: 4px;
+    text-align: left;
     background-color: #112;
 }
 
@@ -72,6 +76,7 @@ div.selected {
 }
 
 textarea {
+    font-family: 'Monaco', 'Courier New', Courier, monospace;
     width: 100%;
     height: auto;
     border: 0;
