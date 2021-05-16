@@ -11,6 +11,7 @@ typedef enum CharType {
     SLASH,
     END,
     LETTER,
+    COLON,
     UNKNOWN
 } CharType;
 
@@ -30,7 +31,8 @@ typedef enum Token {
     T_CLOSE_PAREN,
     T_WHITESPACE,
     T_IDENT,
-    T_DIV
+    T_DIV,
+    T_CELLREF
 } Token;
 
 typedef struct CharState {
@@ -109,6 +111,10 @@ CharType getCharType(char input) {
         return CLOSE_PAREN;
     }
 
+    if (input == ':') {
+        return COLON;
+    }
+
     return UNKNOWN;
 }
 
@@ -142,6 +148,44 @@ Validity validateRange(char* range, int startIndex, int endIndex, TokenFinder fi
     }
 
     return PARTIAL;
+}
+
+TokenFinder makeCellrefFinder() {
+    CharState colonState;
+    colonState.id = 0;
+    colonState.type = COLON;
+
+    CharState letterState;
+    letterState.id = 1;
+    letterState.type = LETTER;
+
+    CharState numberState;
+    numberState.id = 2;
+    numberState.type = DIGIT;
+
+    TokenFinder cellrefFinder;
+    cellrefFinder.token = T_CELLREF;
+    cellrefFinder.transitionCount = 4;
+    cellrefFinder.transitions = mmalloc(sizeof(StateTransition) * cellrefFinder.transitionCount);
+
+    cellrefFinder.transitions[0] = (StateTransition) {
+        .fromState = startState,
+        .toState = colonState
+    };
+    cellrefFinder.transitions[1] = (StateTransition) {
+        .fromState = colonState,
+        .toState = letterState
+    };
+    cellrefFinder.transitions[2] = (StateTransition) {
+        .fromState = letterState,
+        .toState = numberState
+    };
+    cellrefFinder.transitions[3] = (StateTransition) {
+        .fromState = numberState,
+        .toState = endState
+    };
+
+    return cellrefFinder;
 }
 
 TokenFinder makeNumberFinder() {
@@ -337,6 +381,8 @@ void initTokenFinders() {
     numTokenFinders++;
     tokenFinders[4] = makeIdentifierFinder();
     numTokenFinders++;
+    tokenFinders[5] = makeCellrefFinder();
+    numTokenFinders++;
 }
 
 typedef struct TokenInfo {
@@ -425,6 +471,62 @@ TokenizeResult tokenize(char* formula) {
 
 // Parse/interpret
 
+// Environment
+
+static unsigned int ROW_COUNT = 2;
+static unsigned int COL_COUNT = 2;
+
+typedef struct Env {
+    double** cellValues;
+} Env;
+
+Env env;
+
+void initEnv() {
+    env.cellValues = mmalloc(sizeof(double*) * ROW_COUNT);
+    for (int i = 0; i < ROW_COUNT; i++) {
+        double* row = mmalloc(sizeof(double) * COL_COUNT);
+        env.cellValues[i] = row;
+
+        for (int j = 0; j < COL_COUNT; j++) {
+            row[j] = 0;
+        }
+    }
+}
+
+void envSetCell(int row, int col, double value) {
+    env.cellValues[row][col] = value;
+}
+
+void envSetCellByName(char* cellName, double value) {
+    // TODO This will need to be a bit more elaborate to support more than 10/9 rows.
+    int col = cellName[1] - 'A';
+    int row = cellName[2] - '0';
+
+    env.cellValues[row][col] = value;
+}
+
+double envGetCell(char* cellName) {
+    // TODO This will need to be a bit more elaborate to support more than 10/9 rows.
+    int col = cellName[1] - 'A';
+    int row = cellName[2] - '0';
+    // prints("good ok");
+    // printf(col);
+    // printf(row);
+
+    for (int i = 0; i < ROW_COUNT; i++) {
+        for (int j = 0; j < COL_COUNT; j++) {
+            // printf(env.cellValues[i][j]);
+        }
+    }
+
+    double result = env.cellValues[row][col];
+    printf(result);
+    return result;
+}
+
+// Parsing and execution
+
 typedef double (*doubleFunc)(double*, unsigned int);
 
 struct FunctionIdent {
@@ -460,8 +562,8 @@ double _sin(double *args, unsigned int argc) {
     return sin(args[0]);
 }
 
-static int functionIdentCount = 4;
-static struct FunctionIdent functionIdents[] = {
+static int builtinCount = 4;
+static struct FunctionIdent builtinFunctionIdents[] = {
     {
         .func = &_add,
         .name = "+"
@@ -481,11 +583,13 @@ static struct FunctionIdent functionIdents[] = {
 };
 
 double executeFunctionIdent(char* identName, double* args, unsigned int argc) {
-    for (int i = 0; i < functionIdentCount; i++) {
-        if (streq(identName, functionIdents[i].name)) {
-            return functionIdents[i].func(args, argc);
+    for (int i = 0; i < builtinCount; i++) {
+        if (streq(identName, builtinFunctionIdents[i].name)) {
+            return builtinFunctionIdents[i].func(args, argc);
         }
     }
+
+    // TODO Look for the function in the env
 
     // Error case
     return 0.0;
@@ -622,7 +726,6 @@ double elem(ParseInfo *info) {
         consume(info, T_WHITESPACE);
     }
 
-
     if (expect(info, T_NUMBER)) {
         TokenInfo currToken = lookAhead(info, 0);
         double a = ctod(currToken.raw);
@@ -634,7 +737,20 @@ double elem(ParseInfo *info) {
         return a;
     }
 
-    // TODO Handle identifiers, cells, and so on
+    if (expect(info, T_CELLREF)) {
+        TokenInfo currToken = lookAhead(info, 0);
+        double a = envGetCell(currToken.raw);
+        consume(info, T_CELLREF);
+
+        if (expect(info, T_WHITESPACE)) {
+            consume(info, T_WHITESPACE);
+        }
+
+        return a;
+    }
+
+    // TODO Handle env identifiers
+
     return 0;
 }
 

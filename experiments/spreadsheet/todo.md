@@ -14,6 +14,7 @@
   Also lambdas, map, reduce, and so on
 - [ ] Document available built in functions
 - [ ] Make it possible to define your own functions
+- [ ] Learn how to use headers
 
 ## Parser improvements
 

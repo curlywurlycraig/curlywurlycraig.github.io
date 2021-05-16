@@ -1,3 +1,5 @@
+declare var doLisp: Function;
+
 async function main() {
     let selectedRow = 0;
     let selectedCol = 0;
@@ -53,6 +55,7 @@ async function main() {
     const init = result.instance.exports.init as CallableFunction;
     const getInputPtr = result.instance.exports.getInputPointer as CallableFunction;
     const executeFormula = result.instance.exports.executeFormula as CallableFunction;
+    const envSetCell = result.instance.exports.envSetCell as CallableFunction;
 
     init();
 
@@ -67,6 +70,8 @@ async function main() {
         return res;
     }
 
+    window.doLisp = evalLisp;
+
     const functionInput: HTMLTextAreaElement = document.querySelector("#functionarea");
 
     functionInput.addEventListener('change', (e) => {
@@ -77,9 +82,12 @@ async function main() {
 
         cellSource[selectedRow][selectedCol] = formula;
         if (formula && formula.startsWith("(")) {
-            cellComputed[selectedRow][selectedCol] = evalLisp(formula);
+            const result = evalLisp(formula);
+            cellComputed[selectedRow][selectedCol] = result;
+            envSetCell(selectedRow, selectedCol, result);
         } else {
             cellComputed[selectedRow][selectedCol] = formula;
+            envSetCell(selectedRow, selectedCol, formula);
         }
 
         renderCellContents();

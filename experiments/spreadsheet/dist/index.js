@@ -50,6 +50,7 @@ function main() {
         const init = result.instance.exports.init;
         const getInputPtr = result.instance.exports.getInputPointer;
         const executeFormula = result.instance.exports.executeFormula;
+        const envSetCell = result.instance.exports.envSetCell;
         init();
         const evalLisp = (formula) => {
             const ptr = getInputPtr();
@@ -59,6 +60,7 @@ function main() {
             const res = executeFormula(formula.length);
             return res;
         };
+        window.doLisp = evalLisp;
         const functionInput = document.querySelector("#functionarea");
         functionInput.addEventListener('change', (e) => {
             console.log(cellSource, cellComputed);
@@ -67,10 +69,15 @@ function main() {
             const formula = element === null || element === void 0 ? void 0 : element.value;
             cellSource[selectedRow][selectedCol] = formula;
             if (formula && formula.startsWith("(")) {
-                cellComputed[selectedRow][selectedCol] = evalLisp(formula);
+                const result = evalLisp(formula);
+                cellComputed[selectedRow][selectedCol] = result;
+                console.log("setting ", selectedRow, selectedCol, result);
+                envSetCell(selectedRow, selectedCol, result);
             }
             else {
                 cellComputed[selectedRow][selectedCol] = formula;
+                console.log("setting ", selectedRow, selectedCol, formula);
+                envSetCell(selectedRow, selectedCol, formula);
             }
             renderCellContents();
         });

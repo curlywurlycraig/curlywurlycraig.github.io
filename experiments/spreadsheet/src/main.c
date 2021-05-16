@@ -15,6 +15,7 @@ char* formulaInput;
 void init() {
     formulaInput = mmalloc(sizeof(char) * MAX_FORMULA_CHARS);
     initTokenFinders();
+    initEnv();
 }
 
 char* getInputPointer() {
@@ -28,6 +29,8 @@ double executeFormula(unsigned int formulaSize) {
     double result = interpret(tokens, formulaInput);
 
     resetmem();
+
+    printf(result);
 
     return result;
 }
