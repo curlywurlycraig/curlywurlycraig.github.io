@@ -8,7 +8,8 @@ async function main() {
     let selectedCol = 0;
     let selectedElement: Element = null;
 
-    const cellSource: string[][] = [...Array(MAX_ROWS)].map(() => Array(MAX_COLS).fill(null));
+    // Extra row and col for row and column sources
+    const cellSource: string[][] = [...Array(MAX_ROWS+1)].map(() => Array(MAX_COLS+1).fill(null));
     const cellComputed: string[][] = [...Array(MAX_ROWS)].map(() => Array(MAX_COLS).fill(null));
 
     const createTableElement = () => {
