@@ -21,6 +21,8 @@
 - [ ] Syntax highlighting on formulas
 - [ ] Add even more cells
 - [ ] Improve styling
+- [ ] Lazy evaluation of cells.
+  - [ ] Define (take n) etc as well.
 
 ## Parser improvements
 
