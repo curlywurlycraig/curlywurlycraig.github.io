@@ -16,8 +16,7 @@ Parse result also will need to be a data type, instead of just a float.
 
 So here's the tasks:
 
-- [ ] Eval parsed lisp
-- [ ] Create an `evalColumn(columnIndex, lisp)` or something that evals the lisp and stores the result in the column at `columnIndex`.
+- [ ] Allow selection of column names, and entering of formulas
 - [ ] Call `evalColumn(...)` for cell sources in the columns
 
 # Lambdas, function references, etc
@@ -29,6 +28,9 @@ One of the Parse types should be function. Those can be executed with arguments.
 Eventually these should be able to be stored in the env:
 (i.e. with `(fun some-func [arg1 arg2] ...)`)
 
+- [ ] Add lambdas
+- [ ] Add `map` and `filter`
+- [ ] Add `reduce`
 - [ ] Add ability to store parsed lisp in an env
       (Basically some `fun` builtin)
 - [ ] Add ability to execute parsed lisp in the env
@@ -42,6 +44,10 @@ Eventually these should be able to be stored in the env:
 
 Add another lazy list elem that has an unknown number of elements and
 uses an iterator instead. E.g. `(repeat 10)`
+
+- [ ] Add `(repeat x)` function
+- [ ] Add `(take x)` function
+- [ ] Add `(drop x)` function
 
 # Backlog
 
@@ -62,7 +68,6 @@ uses an iterator instead. E.g. `(repeat 10)`
 
 - [ ] Research and think about proper lispy things like cons cells,
   and metaprogramming features.
-  Also lambdas, map, reduce, and so on
 - [ ] Document available built in functions
 - [ ] Make it possible to define your own functions
 - [ ] Learn how to use C header files
@@ -74,11 +79,3 @@ uses an iterator instead. E.g. `(repeat 10)`
 - [ ] Syntax highlighting on formulas
 - [ ] Add even more cells
 - [ ] Improve styling
-- [ ] Lazy evaluation of cells.
-  - [ ] Define (take n) etc as well.
-
-## Parser improvements
-
-Should evaluate lists more cleanly. Eval the first entry to get a function pointer.
-
-Add quote, or linked lists. This will be necessary for row/column functions
