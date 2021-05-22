@@ -656,8 +656,6 @@ TokenInfo last(ParseInfo *info) {
 
 // left recursive grammar
 // ----
-// expression : list
-
 // list : ( elem... )
 
 // elem : list
@@ -668,45 +666,57 @@ TokenInfo last(ParseInfo *info) {
 // ident : string
 // ident : cellrange
 
-// func : macro
-// func : +
-// func : -
-// func : *
-// func : /
-// func : [a-z\-]
+enum IdentType {
+    I_FUNC,
+    I_NUM,
+    I_STR,
+    I_CELLRANGE
+};
 
-double expression(ParseInfo *info);
-double list(ParseInfo *info);
-double elem(ParseInfo *info);
-double ident(ParseInfo *info);
+typedef struct Ident {
+    enum IdentType type;
+    int didFail;
+    union {
+        char* name;
+        double num;
+    } val;
+} Ident;
 
-double expression(ParseInfo *info) {
-    double a = list(info);
-    if (info->didFail) return 0;
-    return a;
-}
+enum ElemType {
+    E_LIST,
+    E_IDENT
+};
 
-double list(ParseInfo *info) {
+typedef struct List List;
+struct List;
+
+typedef struct Elem {
+    enum ElemType type;
+    int didFail;
+    union {
+        List* list;
+        Ident ident;
+    } val;
+} Elem;
+
+typedef struct List {
+    int didFail;
+    Elem** elems;
+    int elemCount;
+} List;
+
+List* list(ParseInfo *info);
+Elem* elem(ParseInfo *info);
+
+List* list(ParseInfo *info) {
+    List* result = mmalloc(sizeof(List));
+
     consume(info, T_OPEN_PAREN);
     if (info->didFail) return 0;
 
-    // Grab the first ident, which must be a func
-    if (!expect(info, T_IDENT)) {
-        info->didFail = 1;
-        return 0;
-    }
-    TokenInfo functionToken = lookAhead(info, 0);
-    next(info);
+    // Function token is just for evalling
 
-    if (expect(info, T_WHITESPACE)) {
-        consume(info, T_WHITESPACE);
-    }
-
-    // TODO Lazy evaluation. Parse first, execute second.
-    // This will help with defining things like if statements
-    // in a cleaner way.
-    // continually eval a list of elems until the next token is close paren
-    double args[128];
+    Elem** elems = mmalloc(sizeof(Elem*) * 128);
     unsigned int argc = 0;
     while (!expect(info, T_CLOSE_PAREN) && !info->didFail) {
         // Obviously a bad way to do this
@@ -715,20 +725,26 @@ double list(ParseInfo *info) {
             return 0;
         }
 
-        double a = elem(info);
-        args[argc] = a;
+        Elem* currElem = elem(info);
+        elems[argc] = currElem;
         argc++;
     }
 
     consume(info, T_CLOSE_PAREN);
 
-    // execute the func with the args
-    return executeFunctionIdent(functionToken.raw, args, argc);
+    result->elems = elems;
+    result->elemCount = argc;
+
+    return result;
 }
 
-double elem(ParseInfo *info) {
+Elem* elem(ParseInfo *info) {
+    Elem* result = mmalloc(sizeof(Elem));
+
     if (expect(info, T_OPEN_PAREN)) {
-        double result = list(info);
+        List* listResult = list(info);
+        result->type = E_LIST;
+        result->val.list = listResult;
         return result;
     }
 
@@ -744,27 +760,41 @@ double elem(ParseInfo *info) {
         if (expect(info, T_WHITESPACE)) {
             consume(info, T_WHITESPACE);
         }
-        return a;
+
+        result->type = E_IDENT;
+        result->val.ident = (Ident) {
+            .type = I_NUM,
+            .val = { .num = a }
+        };
+        return result;
     }
 
     if (expect(info, T_CELLREF)) {
         TokenInfo currToken = lookAhead(info, 0);
-        double a = envGetCellByName(currToken.raw);
         consume(info, T_CELLREF);
 
         if (expect(info, T_WHITESPACE)) {
             consume(info, T_WHITESPACE);
         }
 
-        return a;
+        result->type = E_IDENT;
+        result->val.ident = (Ident) {
+            .type = I_CELLRANGE,
+            .val = { .name = currToken.raw }
+        };
+        return result;
     }
-
-    // TODO Handle env identifiers
 
     return 0;
 }
 
-double interpret(TokenizeResult tokens, char* input) {
+void evalList(List* list) {
+    // TODO Handle custom defined functions in env
+    prints("ok");
+    printf(list->didFail);
+}
+
+void interpret(TokenizeResult tokens, char* input) {
     ParseInfo *info = mmalloc(sizeof(ParseInfo));
 
     info->tokenIndex = 0;
@@ -773,5 +803,5 @@ double interpret(TokenizeResult tokens, char* input) {
     info->tokenizeResult = &tokens;
     info->raw = input;
 
-    return expression(info);
+    evalList(list(info));
 }

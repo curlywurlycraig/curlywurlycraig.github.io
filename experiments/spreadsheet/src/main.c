@@ -32,13 +32,11 @@ char* getInputPointer() {
     return formulaInput;
 }
 
-double executeFormula(unsigned int formulaSize) {
+void executeFormula(unsigned int formulaSize) {
     markmem();
 
     TokenizeResult tokens = tokenize(formulaInput);
-    double result = interpret(tokens, formulaInput);
+    interpret(tokens, formulaInput);
 
     resetmem();
-
-    return result;
 }
