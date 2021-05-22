@@ -469,141 +469,7 @@ TokenizeResult tokenize(char* formula) {
     return result;
 }
 
-// Parse/interpret
-
-// Environment
-
-static unsigned int ROW_COUNT = 20;
-static unsigned int COL_COUNT = 20;
-
-typedef struct Env {
-    double** cellValues;
-} Env;
-
-Env env;
-
-void initEnv() {
-    env.cellValues = mmalloc(sizeof(double*) * ROW_COUNT);
-    for (int i = 0; i < ROW_COUNT; i++) {
-        double* row = mmalloc(sizeof(double) * COL_COUNT);
-        env.cellValues[i] = row;
-
-        for (int j = 0; j < COL_COUNT; j++) {
-            row[j] = 0;
-        }
-    }
-}
-
-void envSetCell(int row, int col, double value) {
-    env.cellValues[row][col] = value;
-}
-
-void envSetCellByName(char* cellName, double value) {
-    // TODO This will need to be a bit more elaborate to support more than 10/9 rows.
-    int col = cellName[1] - 'A';
-    int row = cellName[2] - '0';
-
-    env.cellValues[row][col] = value;
-}
-
-double envGetCellByName(char* cellName) {
-    // TODO This will need to be a bit more elaborate to support more than 10/9 rows.
-    int col = cellName[1] - 'A';
-    int row = cellName[2] - '0';
-
-    double result = env.cellValues[row][col];
-    return result;
-}
-
-double envGetCell(int row, int col) {
-    return env.cellValues[row][col];
-}
-
-// Parsing and execution
-
-typedef double (*doubleFunc)(double*, unsigned int);
-
-struct FunctionIdent {
-    doubleFunc func;
-    char* name;
-};
-
-double _add(double* args, unsigned int argc) {
-    double result = 0;
-    for (int i = 0; i < argc; i++) {
-        result += args[i];
-    }
-    return result;
-}
-
-double _sub(double* args, unsigned int argc) {
-    double result = args[0];
-    for (int i = 1; i < argc; i++) {
-        result -= args[i];
-    }
-    return result;
-}
-
-double _mult(double* args, unsigned int argc) {
-    double result = args[0];
-    for (int i = 1; i < argc; i++) {
-        result = result * args[i];
-    }
-    return result;
-}
-
-double _sin(double *args, unsigned int argc) {
-    return sin(args[0]);
-}
-
-double _cos(double *args, unsigned int argc) {
-    return cos(args[0]);
-}
-
-double _tan(double *args, unsigned int argc) {
-    return tan(args[0]);
-}
-
-static int builtinCount = 6;
-static struct FunctionIdent builtinFunctionIdents[] = {
-    {
-        .func = &_add,
-        .name = "+"
-    },
-    {
-        .func = &_sub,
-        .name = "-"
-    },
-    {
-        .func = &_mult,
-        .name = "*"
-    },
-    {
-        .func = &_sin,
-        .name = "sin"
-    },
-    {
-        .func = &_cos,
-        .name = "cos"
-    },
-    {
-        .func = &_tan,
-        .name = "tan"
-    }
-};
-
-double executeFunctionIdent(char* identName, double* args, unsigned int argc) {
-    for (int i = 0; i < builtinCount; i++) {
-        if (streq(identName, builtinFunctionIdents[i].name)) {
-            return builtinFunctionIdents[i].func(args, argc);
-        }
-    }
-
-    // TODO Look for the function in the env
-
-    // Error case
-    return 0.0;
-}
+// Parse
 
 typedef struct ParseInfo {
     int tokenIndex;
@@ -785,13 +651,203 @@ Elem* elem(ParseInfo *info) {
         return result;
     }
 
+    if (expect(info, T_IDENT)) {
+        TokenInfo currToken = lookAhead(info, 0);
+        consume(info, T_IDENT);
+
+        if (expect(info, T_WHITESPACE)) {
+            consume(info, T_WHITESPACE);
+        }
+
+        result->type = E_IDENT;
+        result->val.ident = (Ident) {
+            .type = I_FUNC,
+            .val = { .name = currToken.raw }
+        };
+        return result;
+    }
+
+
     return 0;
 }
 
-void evalList(List* list) {
-    // TODO Handle custom defined functions in env
-    prints("ok");
-    printf(list->didFail);
+// Environment
+
+static unsigned int ROW_COUNT = 20;
+static unsigned int COL_COUNT = 20;
+
+typedef struct Env {
+    double** cellValues;
+} Env;
+
+Env env;
+
+void initEnv() {
+    env.cellValues = mmalloc(sizeof(double*) * ROW_COUNT);
+    for (int i = 0; i < ROW_COUNT; i++) {
+        double* row = mmalloc(sizeof(double) * COL_COUNT);
+        env.cellValues[i] = row;
+
+        for (int j = 0; j < COL_COUNT; j++) {
+            row[j] = 0;
+        }
+    }
+}
+
+void envSetCell(int row, int col, double value) {
+    env.cellValues[row][col] = value;
+}
+
+void envSetCellByName(char* cellName, double value) {
+    // TODO This will need to be a bit more elaborate to support more than 10/9 rows.
+    int col = cellName[1] - 'A';
+    int row = cellName[2] - '0';
+
+    env.cellValues[row][col] = value;
+}
+
+double envGetCellByName(char* cellName) {
+    // TODO This will need to be a bit more elaborate to support more than 10/9 rows.
+    int col = cellName[1] - 'A';
+    int row = cellName[2] - '0';
+
+    double result = env.cellValues[row][col];
+    return result;
+}
+
+double envGetCell(int row, int col) {
+    return env.cellValues[row][col];
+}
+
+// Interpretation
+
+typedef Elem* (*evalFunc)(Elem**, unsigned int);
+
+Elem* elemNewDouble(double val) {
+    Elem* result = mmalloc(sizeof(Elem));
+    result->type = E_IDENT;
+    result->didFail = 0; // Hmm. This shouldn't be here actually.
+    result->val.ident = (Ident) {
+        .type = I_NUM,
+        .didFail = 0,
+        .val.num = val
+    };
+    return result;
+}
+
+double elemEvalNumber(Elem* elem) {
+    return elem->val.ident.val.num;
+}
+
+struct FunctionIdent {
+    evalFunc func;
+    char* name;
+};
+
+Elem* _add(Elem** args, unsigned int argc) {
+    double result = 0;
+    for (int i = 0; i < argc; i++) {
+        result += elemEvalNumber(args[i]);
+    }
+    return elemNewDouble(result);
+}
+
+Elem* _sub(Elem** args, unsigned int argc) {
+    double result = elemEvalNumber(args[0]);
+    for (int i = 1; i < argc; i++) {
+        result -= elemEvalNumber(args[i]);
+    }
+    return elemNewDouble(result);
+}
+
+Elem* _mult(Elem** args, unsigned int argc) {
+    double result = elemEvalNumber(args[0]);
+    for (int i = 1; i < argc; i++) {
+        result = result * elemEvalNumber(args[i]);
+    }
+    return elemNewDouble(result);
+}
+
+Elem* _sin(Elem **args, unsigned int argc) {
+    return elemNewDouble(sin(elemEvalNumber(args[0])));
+}
+
+Elem* _cos(Elem** args, unsigned int argc) {
+    return elemNewDouble(cos(elemEvalNumber(args[0])));
+}
+
+Elem* _tan(Elem** args, unsigned int argc) {
+    return elemNewDouble(tan(elemEvalNumber(args[0])));
+}
+
+static int builtinCount = 6;
+static struct FunctionIdent builtinFunctionIdents[] = {
+    {
+        .func = &_add,
+        .name = "+"
+    },
+    {
+        .func = &_sub,
+        .name = "-"
+    },
+    {
+        .func = &_mult,
+        .name = "*"
+    },
+    {
+        .func = &_sin,
+        .name = "sin"
+    },
+    {
+        .func = &_cos,
+        .name = "cos"
+    },
+    {
+        .func = &_tan,
+        .name = "tan"
+    }
+};
+
+Elem* listEval(List* list);
+
+Elem* elemEval(Elem* input) {
+    if (input->type == E_LIST) {
+        return listEval(input->val.list);
+    } else if (input->type == E_IDENT && input->val.ident.type == I_CELLRANGE) {
+        return elemNewDouble(envGetCellByName(input->val.ident.val.name));
+    } else {
+        return input;
+    }
+}
+
+Elem* executeFunctionIdent(Ident firstIdent, Elem** args, unsigned int argc) {
+    char* name = firstIdent.val.name;
+
+    // TODO Execute macros that don't necessarily eval
+    // recursively (e.g. `if`)
+
+    for (int i = 0; i < builtinCount; i++) {
+        if (streq(name, builtinFunctionIdents[i].name)) {
+            // Recursively eval args
+            Elem** primitiveArgs = mmalloc(sizeof(Elem) * argc);
+            for (int i = 0; i < argc; i++) {
+                primitiveArgs[i] = elemEval(args[i]);
+            }
+
+            return builtinFunctionIdents[i].func(primitiveArgs, argc);
+        }
+    }
+
+    // TODO Look for the function in the env
+
+    // Error case (null pointer)
+    return 0;
+}
+
+Elem* listEval(List* list) {
+    Ident firstIdent = list->elems[0]->val.ident;
+    Elem** rest = list->elems + 1;
+    return executeFunctionIdent(firstIdent, rest, list->elemCount - 1);
 }
 
 void interpret(TokenizeResult tokens, char* input) {
@@ -803,5 +859,6 @@ void interpret(TokenizeResult tokens, char* input) {
     info->tokenizeResult = &tokens;
     info->raw = input;
 
-    evalList(list(info));
+    Elem* result = listEval(list(info));
+    printf(result->val.ident.val.num);
 }

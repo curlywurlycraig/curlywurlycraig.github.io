@@ -16,7 +16,7 @@ Parse result also will need to be a data type, instead of just a float.
 
 So here's the tasks:
 
-- [ ] Update the lisp interpreter to pass around parse result data types (that can be either lists of floats, or floats, for now).
+- [ ] Eval parsed lisp
 - [ ] Create an `evalColumn(columnIndex, lisp)` or something that evals the lisp and stores the result in the column at `columnIndex`.
 - [ ] Call `evalColumn(...)` for cell sources in the columns
 
@@ -29,6 +29,14 @@ One of the Parse types should be function. Those can be executed with arguments.
 Eventually these should be able to be stored in the env:
 (i.e. with `(fun some-func [arg1 arg2] ...)`)
 
+- [ ] Add ability to store parsed lisp in an env
+      (Basically some `fun` builtin)
+- [ ] Add ability to execute parsed lisp in the env
+
+# Write a proper allocator
+
+- [ ] Rewrite mmalloc so that it can be deallocated.
+- [ ] When de-allocating, only de-allocate the tokenizer result and the parse result. Search through calls to `mmalloc` and ensure they're all removed.
 
 # Backlog
 
