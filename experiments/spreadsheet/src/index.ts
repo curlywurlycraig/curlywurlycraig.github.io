@@ -59,6 +59,7 @@ async function main() {
             prints: (strPtr: number) => console.log(fromAscii(strPtr)),
             printf: console.log,
             printd: console.log,
+            printi: console.log,
             sin: Math.sin,
             cos: Math.cos,
             tan: Math.tan
@@ -92,13 +93,14 @@ async function main() {
 
     init();
 
-    const evalLisp = (formula: string) => {
+    const evalLisp = (formula: string, row: number, col: number) => {
         const ptr = getInputPtr();
         const offsetByteView = new Uint8Array(memory.buffer, ptr, formula.length + 1);
         const encodedText = new TextEncoder().encode(formula);
         offsetByteView.set([...encodedText, 0]);
         const res = executeFormula(
-            formula.length
+            row,
+            col
         );
         return res;
     }
@@ -112,10 +114,7 @@ async function main() {
     const computeCell = (row: number, col: number) => {
         const source = cellSource[row][col];
         if (source && source.startsWith("(")) {
-            // TODO: Probably just handle this inside C
-            // The C could just know which cell is being eval'd
-            const result = evalLisp(source);
-            envSetCell(row, col, result);
+            evalLisp(source, row, col);
         } else {
             envSetCell(row, col, source);
         }
@@ -181,7 +180,7 @@ async function main() {
                 const formula = element?.innerText;
 
                 if (!formula || !formula.startsWith("(")) return;
-                evalLisp(formula);
+                evalLisp(formula, selectedRow, selectedCol);
             }
 
             editCell.addEventListener('onblur', onApplyChanges);

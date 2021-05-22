@@ -723,6 +723,11 @@ double envGetCell(int row, int col) {
 
 typedef Elem* (*evalFunc)(Elem**, unsigned int);
 
+Elem* executeFunctionIdent(Ident firstIdent, Elem** args, unsigned int argc);
+
+Elem* listEval(List* list);
+Elem* elemEval(Elem* elem);
+
 Elem* elemNewDouble(double val) {
     Elem* result = mmalloc(sizeof(Elem));
     result->type = E_IDENT;
@@ -808,7 +813,11 @@ static struct FunctionIdent builtinFunctionIdents[] = {
     }
 };
 
-Elem* listEval(List* list);
+Elem* listEval(List* list) {
+    Ident firstIdent = list->elems[0]->val.ident;
+    Elem** rest = list->elems + 1;
+    return executeFunctionIdent(firstIdent, rest, list->elemCount - 1);
+}
 
 Elem* elemEval(Elem* input) {
     if (input->type == E_LIST) {
@@ -844,13 +853,8 @@ Elem* executeFunctionIdent(Ident firstIdent, Elem** args, unsigned int argc) {
     return 0;
 }
 
-Elem* listEval(List* list) {
-    Ident firstIdent = list->elems[0]->val.ident;
-    Elem** rest = list->elems + 1;
-    return executeFunctionIdent(firstIdent, rest, list->elemCount - 1);
-}
-
-void interpret(TokenizeResult tokens, char* input) {
+// Evaluate lisp and set the result to the given cell
+void evalAndSetResultToCell(TokenizeResult tokens, char* input, int row, int col) {
     ParseInfo *info = mmalloc(sizeof(ParseInfo));
 
     info->tokenIndex = 0;
@@ -860,5 +864,5 @@ void interpret(TokenizeResult tokens, char* input) {
     info->raw = input;
 
     Elem* result = listEval(list(info));
-    printf(result->val.ident.val.num);
+    envSetCell(row, col, result->val.ident.val.num);
 }

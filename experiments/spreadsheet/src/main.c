@@ -1,4 +1,5 @@
 extern void prints(char* str);
+extern void printi(int i);
 extern void printf(float f);
 extern void printd(double d);
 extern double sin(double x);
@@ -32,11 +33,11 @@ char* getInputPointer() {
     return formulaInput;
 }
 
-void executeFormula(unsigned int formulaSize) {
+void executeFormula(int row, int col) {
     markmem();
 
     TokenizeResult tokens = tokenize(formulaInput);
-    interpret(tokens, formulaInput);
+    evalAndSetResultToCell(tokens, formulaInput, row, col);
 
     resetmem();
 }

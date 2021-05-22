@@ -54,6 +54,7 @@ function main() {
                 prints: (strPtr) => console.log(fromAscii(strPtr)),
                 printf: console.log,
                 printd: console.log,
+                printi: console.log,
                 sin: Math.sin,
                 cos: Math.cos,
                 tan: Math.tan
@@ -77,12 +78,13 @@ function main() {
         const envSetCell = result.instance.exports.envSetCell;
         const envGetCell = result.instance.exports.envGetCell;
         init();
-        const evalLisp = (formula) => {
+        const evalLisp = (formula, row, col) => {
             const ptr = getInputPtr();
             const offsetByteView = new Uint8Array(memory.buffer, ptr, formula.length + 1);
             const encodedText = new TextEncoder().encode(formula);
             offsetByteView.set([...encodedText, 0]);
-            const res = executeFormula(formula.length);
+            console.log('js executeFormula', row, col);
+            const res = executeFormula(row, col);
             return res;
         };
         const getComputedCell = (row, col) => envGetCell(row, col);
@@ -91,8 +93,7 @@ function main() {
         const computeCell = (row, col) => {
             const source = cellSource[row][col];
             if (source && source.startsWith("(")) {
-                const result = evalLisp(source);
-                envSetCell(row, col, result);
+                evalLisp(source, row, col);
             }
             else {
                 envSetCell(row, col, source);
@@ -144,7 +145,7 @@ function main() {
                     const formula = element === null || element === void 0 ? void 0 : element.innerText;
                     if (!formula || !formula.startsWith("("))
                         return;
-                    evalLisp(formula);
+                    evalLisp(formula, selectedRow, selectedCol);
                 };
                 editCell.addEventListener('onblur', onApplyChanges);
             });
