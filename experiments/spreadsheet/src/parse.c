@@ -796,18 +796,17 @@ Elem* _range(Elem** args, unsigned int argc) {
 
     List* resultList = mmalloc(sizeof(List));
     resultList->didFail = 0;
-    resultList->elemCount = end - start;
     resultList->elems = mmalloc(sizeof(Elem*) * resultList->elemCount);
 
     double value = start;
     int index = 0;
     while (value < end) {
-        printf(value);
         Elem* newElem = elemNewDouble(value);
         resultList->elems[index] = newElem;
         index++;
         value += step;
     }
+    resultList->elemCount = index;
 
     Elem* result = mmalloc(sizeof(Elem));
     result->type = E_LIST;
@@ -916,6 +915,7 @@ void evalAndSetResultsToCol(TokenizeResult tokens, char* input, int col) {
     Elem* result = listEval(list(info));
     List* resultList = result->val.list;
     for (int i = 0; i < resultList->elemCount; i++) {
+        printd(resultList->elems[i]->val.ident.val.num);
         envSetCell(i, col, resultList->elems[i]->val.ident.val.num);
     }
 }
