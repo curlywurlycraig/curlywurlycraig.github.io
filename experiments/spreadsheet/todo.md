@@ -12,14 +12,22 @@ Process is:
 3. Display the results of all the cells.
 
 The column formulas need to return some kind of list data type.
-Evaluation result also will need to be a data type, instead of just a float.
+Parse result also will need to be a data type, instead of just a float.
 
 So here's the tasks:
 
-- [ ] Move the computed cells into a buffer in C.
-- [ ] Update the lisp interpreter to pass around evaluation result data types (that can be either lists of floats, or floats, for now).
+- [ ] Update the lisp interpreter to pass around parse result data types (that can be either lists of floats, or floats, for now).
 - [ ] Create an `evalColumn(columnIndex, lisp)` or something that evals the lisp and stores the result in the column at `columnIndex`.
 - [ ] Call `evalColumn(...)` for cell sources in the columns
+
+# Lambdas, function references, etc
+
+Column formulas are not so useful without being able to specify
+e.g. `(map (lambda...) some-list)`.
+
+One of the Parse types should be function. Those can be executed with arguments.
+Eventually these should be able to be stored in the env:
+(i.e. with `(fun some-func [arg1 arg2] ...)`)
 
 
 # Backlog

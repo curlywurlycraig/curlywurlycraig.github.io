@@ -11,11 +11,19 @@ extern double tan(double x);
 #include "parse.c"
 
 #define MAX_FORMULA_CHARS 200
+#define COL_COUNT 20
+#define ROW_COUNT 20
 
 char* formulaInput;
+double** computedCells;
 
 void init() {
     formulaInput = mmalloc(sizeof(char) * MAX_FORMULA_CHARS);
+    computedCells = mmalloc(sizeof(double*) * ROW_COUNT);
+    for (int i = 0; i < ROW_COUNT; i++) {
+        computedCells[i] = mmalloc(sizeof(double) * COL_COUNT);
+    }
+
     initTokenFinders();
     initEnv();
 }
@@ -31,8 +39,6 @@ double executeFormula(unsigned int formulaSize) {
     double result = interpret(tokens, formulaInput);
 
     resetmem();
-
-    printf(result);
 
     return result;
 }

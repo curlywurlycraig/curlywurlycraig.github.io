@@ -506,23 +506,17 @@ void envSetCellByName(char* cellName, double value) {
     env.cellValues[row][col] = value;
 }
 
-double envGetCell(char* cellName) {
+double envGetCellByName(char* cellName) {
     // TODO This will need to be a bit more elaborate to support more than 10/9 rows.
     int col = cellName[1] - 'A';
     int row = cellName[2] - '0';
-    // prints("good ok");
-    // printf(col);
-    // printf(row);
-
-    for (int i = 0; i < ROW_COUNT; i++) {
-        for (int j = 0; j < COL_COUNT; j++) {
-            // printf(env.cellValues[i][j]);
-        }
-    }
 
     double result = env.cellValues[row][col];
-    printf(result);
     return result;
+}
+
+double envGetCell(int row, int col) {
+    return env.cellValues[row][col];
 }
 
 // Parsing and execution
@@ -755,7 +749,7 @@ double elem(ParseInfo *info) {
 
     if (expect(info, T_CELLREF)) {
         TokenInfo currToken = lookAhead(info, 0);
-        double a = envGetCell(currToken.raw);
+        double a = envGetCellByName(currToken.raw);
         consume(info, T_CELLREF);
 
         if (expect(info, T_WHITESPACE)) {

@@ -9,8 +9,7 @@ async function main() {
     let selectedElement: Element = null;
 
     // Extra row and col for row and column sources
-    const cellSource: string[][] = [...Array(MAX_ROWS+1)].map(() => Array(MAX_COLS+1).fill(null));
-    const cellComputed: string[][] = [...Array(MAX_ROWS)].map(() => Array(MAX_COLS).fill(null));
+    const cellSource: string[][] = [...Array(MAX_ROWS)].map(() => Array(MAX_COLS).fill(null));
 
     const createTableElement = () => {
         const tableElement: HTMLTableElement = document.querySelector('table');
@@ -89,6 +88,7 @@ async function main() {
     const getInputPtr = result.instance.exports.getInputPointer as CallableFunction;
     const executeFormula = result.instance.exports.executeFormula as CallableFunction;
     const envSetCell = result.instance.exports.envSetCell as CallableFunction;
+    const envGetCell = result.instance.exports.envGetCell as CallableFunction;
 
     init();
 
@@ -103,6 +103,8 @@ async function main() {
         return res;
     }
 
+    const getComputedCell = (row: number, col: number) => envGetCell(row, col);
+
     window.doLisp = evalLisp;
 
     const functionInput: HTMLTextAreaElement = document.querySelector("#functionarea");
@@ -110,11 +112,11 @@ async function main() {
     const computeCell = (row: number, col: number) => {
         const source = cellSource[row][col];
         if (source && source.startsWith("(")) {
+            // TODO: Probably just handle this inside C
+            // The C could just know which cell is being eval'd
             const result = evalLisp(source);
-            cellComputed[row][col] = result;
             envSetCell(row, col, result);
         } else {
-            cellComputed[row][col] = source;
             envSetCell(row, col, source);
         }
     }
@@ -137,7 +139,9 @@ async function main() {
                 const col = index % MAX_COLS;
                 const row = Math.floor(index / MAX_COLS);
 
-                editCell.innerHTML = cellComputed[row][col];
+                if (cellSource[row][col] !== null) {
+                    editCell.innerHTML = getComputedCell(row, col);
+                }
             });
         }
     }

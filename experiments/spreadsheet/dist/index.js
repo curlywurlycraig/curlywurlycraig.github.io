@@ -15,7 +15,6 @@ function main() {
         let selectedCol = 0;
         let selectedElement = null;
         const cellSource = [...Array(MAX_ROWS)].map(() => Array(MAX_COLS).fill(null));
-        const cellComputed = [...Array(MAX_ROWS)].map(() => Array(MAX_COLS).fill(null));
         const createTableElement = () => {
             const tableElement = document.querySelector('table');
             const headRowEl = document.createElement('tr');
@@ -76,6 +75,7 @@ function main() {
         const getInputPtr = result.instance.exports.getInputPointer;
         const executeFormula = result.instance.exports.executeFormula;
         const envSetCell = result.instance.exports.envSetCell;
+        const envGetCell = result.instance.exports.envGetCell;
         init();
         const evalLisp = (formula) => {
             const ptr = getInputPtr();
@@ -85,17 +85,16 @@ function main() {
             const res = executeFormula(formula.length);
             return res;
         };
+        const getComputedCell = (row, col) => envGetCell(row, col);
         window.doLisp = evalLisp;
         const functionInput = document.querySelector("#functionarea");
         const computeCell = (row, col) => {
             const source = cellSource[row][col];
             if (source && source.startsWith("(")) {
                 const result = evalLisp(source);
-                cellComputed[row][col] = result;
                 envSetCell(row, col, result);
             }
             else {
-                cellComputed[row][col] = source;
                 envSetCell(row, col, source);
             }
         };
@@ -112,7 +111,9 @@ function main() {
                 allEditCells.forEach((editCell, index) => {
                     const col = index % MAX_COLS;
                     const row = Math.floor(index / MAX_COLS);
-                    editCell.innerHTML = cellComputed[row][col];
+                    if (cellSource[row][col] !== null) {
+                        editCell.innerHTML = getComputedCell(row, col);
+                    }
                 });
             }
         };
