@@ -38,6 +38,11 @@ Eventually these should be able to be stored in the env:
 - [ ] Rewrite mmalloc so that it can be deallocated.
 - [ ] When de-allocating, only de-allocate the tokenizer result and the parse result. Search through calls to `mmalloc` and ensure they're all removed.
 
+# Lazy lists
+
+Add another lazy list elem that has an unknown number of elements and
+uses an iterator instead. E.g. `(repeat 10)`
+
 # Backlog
 
 - [ ] Only execute cells when they are outdated

@@ -33,11 +33,20 @@ char* getInputPointer() {
     return formulaInput;
 }
 
-void executeFormula(int row, int col) {
+void executeFormulaForCell(int row, int col) {
     markmem();
 
     TokenizeResult tokens = tokenize(formulaInput);
     evalAndSetResultToCell(tokens, formulaInput, row, col);
+
+    resetmem();
+}
+
+void executeFormulaForCol(int col) {
+    markmem();
+
+    TokenizeResult tokens = tokenize(formulaInput);
+    evalAndSetResultsToCol(tokens, formulaInput, col);
 
     resetmem();
 }

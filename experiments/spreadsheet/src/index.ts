@@ -1,4 +1,5 @@
 declare var doLisp: Function;
+declare var doColLisp: Function;
 
 const MAX_ROWS = 20;
 const MAX_COLS = 20;
@@ -87,7 +88,8 @@ async function main() {
 
     const init = result.instance.exports.init as CallableFunction;
     const getInputPtr = result.instance.exports.getInputPointer as CallableFunction;
-    const executeFormula = result.instance.exports.executeFormula as CallableFunction;
+    const executeFormulaForCell = result.instance.exports.executeFormulaForCell as CallableFunction;
+    const executeFormulaForCol = result.instance.exports.executeFormulaForCol as CallableFunction;
     const envSetCell = result.instance.exports.envSetCell as CallableFunction;
     const envGetCell = result.instance.exports.envGetCell as CallableFunction;
 
@@ -98,16 +100,27 @@ async function main() {
         const offsetByteView = new Uint8Array(memory.buffer, ptr, formula.length + 1);
         const encodedText = new TextEncoder().encode(formula);
         offsetByteView.set([...encodedText, 0]);
-        const res = executeFormula(
+        executeFormulaForCell(
             row,
             col
         );
-        return res;
+    }
+
+    const evalLispForCol = (formula: string, col: number) => {
+        const ptr = getInputPtr();
+        const offsetByteView = new Uint8Array(memory.buffer, ptr, formula.length + 1);
+        const encodedText = new TextEncoder().encode(formula);
+        offsetByteView.set([...encodedText, 0]);
+        executeFormulaForCol(
+            col
+        );
+        renderCellContents();
     }
 
     const getComputedCell = (row: number, col: number) => envGetCell(row, col);
 
     window.doLisp = evalLisp;
+    window.doColLisp = evalLispForCol;
 
     const functionInput: HTMLTextAreaElement = document.querySelector("#functionarea");
 
@@ -138,9 +151,7 @@ async function main() {
                 const col = index % MAX_COLS;
                 const row = Math.floor(index / MAX_COLS);
 
-                if (cellSource[row][col] !== null) {
-                    editCell.innerHTML = getComputedCell(row, col);
-                }
+                editCell.innerHTML = getComputedCell(row, col);
             });
         }
     }

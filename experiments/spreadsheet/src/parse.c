@@ -598,6 +598,10 @@ List* list(ParseInfo *info) {
 
     consume(info, T_CLOSE_PAREN);
 
+    if (expect(info, T_WHITESPACE)) {
+        consume(info, T_WHITESPACE);
+    }
+
     result->elems = elems;
     result->elemCount = argc;
 
@@ -785,7 +789,28 @@ Elem* _tan(Elem** args, unsigned int argc) {
     return elemNewDouble(tan(elemEvalNumber(args[0])));
 }
 
-static int builtinCount = 6;
+Elem* _range(Elem** args, unsigned int argc) {
+    int start = elemEvalNumber(args[0]);
+    int end = elemEvalNumber(args[1]);
+
+    List* resultList = mmalloc(sizeof(List));
+    resultList->didFail = 0;
+    resultList->elemCount = end - start;
+    resultList->elems = mmalloc(sizeof(Elem*) * resultList->elemCount);
+
+    for (int i = 0; i < end - start; i++) {
+        Elem* newElem = elemNewDouble(start + i);
+        resultList->elems[i] = newElem;
+    }
+
+    Elem* result = mmalloc(sizeof(Elem));
+    result->type = E_LIST;
+    result->didFail = 0;
+    result->val.list = resultList;
+    return result;
+}
+
+static int builtinCount = 7;
 static struct FunctionIdent builtinFunctionIdents[] = {
     {
         .func = &_add,
@@ -810,6 +835,10 @@ static struct FunctionIdent builtinFunctionIdents[] = {
     {
         .func = &_tan,
         .name = "tan"
+    },
+    {
+        .func = &_range,
+        .name = "range"
     }
 };
 
@@ -863,6 +892,24 @@ void evalAndSetResultToCell(TokenizeResult tokens, char* input, int row, int col
     info->tokenizeResult = &tokens;
     info->raw = input;
 
+    // TODO Error handling when result is not a type
+    // with a num. Also handle string types
     Elem* result = listEval(list(info));
     envSetCell(row, col, result->val.ident.val.num);
+}
+
+void evalAndSetResultsToCol(TokenizeResult tokens, char* input, int col) {
+    ParseInfo *info = mmalloc(sizeof(ParseInfo));
+
+    info->tokenIndex = 0;
+    info->didFail = 0;
+    info->result = 0.0;
+    info->tokenizeResult = &tokens;
+    info->raw = input;
+
+    Elem* result = listEval(list(info));
+    List* resultList = result->val.list;
+    for (int i = 0; i < resultList->elemCount; i++) {
+        envSetCell(i, col, resultList->elems[i]->val.ident.val.num);
+    }
 }
