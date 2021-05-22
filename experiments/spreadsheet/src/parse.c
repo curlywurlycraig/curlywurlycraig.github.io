@@ -790,17 +790,23 @@ Elem* _tan(Elem** args, unsigned int argc) {
 }
 
 Elem* _range(Elem** args, unsigned int argc) {
-    int start = elemEvalNumber(args[0]);
-    int end = elemEvalNumber(args[1]);
+    double start = elemEvalNumber(args[0]);
+    double end = elemEvalNumber(args[1]);
+    double step = argc > 2 ? elemEvalNumber(args[2]) : 1.0;
 
     List* resultList = mmalloc(sizeof(List));
     resultList->didFail = 0;
     resultList->elemCount = end - start;
     resultList->elems = mmalloc(sizeof(Elem*) * resultList->elemCount);
 
-    for (int i = 0; i < end - start; i++) {
-        Elem* newElem = elemNewDouble(start + i);
-        resultList->elems[i] = newElem;
+    double value = start;
+    int index = 0;
+    while (value < end) {
+        printf(value);
+        Elem* newElem = elemNewDouble(value);
+        resultList->elems[index] = newElem;
+        index++;
+        value += step;
     }
 
     Elem* result = mmalloc(sizeof(Elem));
