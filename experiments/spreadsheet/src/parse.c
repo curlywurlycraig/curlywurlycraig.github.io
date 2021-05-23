@@ -766,12 +766,18 @@ typedef struct ValueList {
 
 typedef struct ValueFunc {
     List* body;
-    Ident** bindings;
+    Ident* bindings;
 } ValueFunc;
 
 // TODO Eval a value func. Pass some values for the bindings.
 // When evalling the body list, evalling an identifier with I_VAR type
 // will involve looking up the binding value.
+Value* funcEval(ValueFunc* vf, Value** bindingValues) {
+    // Store binding values in env (in a stack?)
+
+    // execute vf body
+    return 0;
+}
 
 typedef struct Value {
     enum ValueType type;
@@ -785,7 +791,7 @@ typedef struct Value {
 
 typedef Value* (*evalFunc)(Value**, unsigned int);
 
-Value* executeBuiltinFunction(Ident firstIdent, Elem** args, unsigned int argc);
+Value* executeFromIdent(Ident firstIdent, Elem** args, unsigned int argc);
 
 Value* listEval(List* list);
 Value* elemEval(Elem* elem);
@@ -867,7 +873,53 @@ Value* _range(Value** args, unsigned int argc) {
     return result;
 }
 
-static int builtinCount = 7;
+Value* _map(Value** args, unsigned int argc) {
+    Value* func = args[0];
+    Value* list = args[1];
+
+    ValueList* resultList = mmalloc(sizeof(ValueList));
+    int numValues = list->val.list->length;
+    resultList->values = mmalloc(sizeof(Value*) * numValues);
+
+    for (int i = 0; i < numValues; i++) {
+        Value** bindings = mmalloc(sizeof(Value*));
+        bindings[0] = list->val.list->values[i];
+        Value* newValue = funcEval(func->val.func, bindings);
+        resultList->values[i] = newValue;
+    }
+
+    resultList->length = numValues;
+
+    Value* result = mmalloc(sizeof(Value));
+    result->type = V_LIST;
+    result->val.list = resultList;
+    return result;
+}
+
+// Macros (just don't eval their args)
+
+Value* _f(Elem** args, unsigned int argc) {
+    List* bindingArgs = args[0]->val.list;
+    Ident* bindings = mmalloc(sizeof(Ident*) * bindingArgs->elemCount);
+
+    for (int i = 0; i < bindingArgs->elemCount; i++) {
+        bindings[i] = bindingArgs->elems[i]->val.ident;
+    }
+
+    ValueFunc* vf = mmalloc(sizeof(ValueFunc));
+    vf->body = args[1]->val.list;
+    vf->bindings = bindings;
+
+    Value* result = mmalloc(sizeof(Value));
+    result->type = V_FUNC;
+    result->val.func = vf;
+
+    return result;
+}
+
+// Builtins (their args are eval'd recursively)
+
+static int builtinCount = 8;
 static struct BuiltinFunction builtinFunctions[] = {
     {
         .func = &_add,
@@ -896,13 +948,17 @@ static struct BuiltinFunction builtinFunctions[] = {
     {
         .func = &_range,
         .name = "range"
+    },
+    {
+        .func = &_map,
+        .name = "map"
     }
 };
 
 Value* listEval(List* list) {
     Ident firstIdent = list->elems[0]->val.ident;
     Elem** rest = list->elems + 1;
-    return executeBuiltinFunction(firstIdent, rest, list->elemCount - 1);
+    return executeFromIdent(firstIdent, rest, list->elemCount - 1);
 }
 
 Value* elemEval(Elem* input) {
@@ -917,11 +973,13 @@ Value* elemEval(Elem* input) {
     }
 }
 
-Value* executeBuiltinFunction(Ident firstIdent, Elem** args, unsigned int argc) {
+Value* executeFromIdent(Ident firstIdent, Elem** args, unsigned int argc) {
     char* name = firstIdent.val.name;
 
-    // TODO Execute macros that don't necessarily eval
-    // recursively (e.g. `if`)
+    // "Macros" (functions that don't necessarily eval their args)
+    if (streq(name, "f")) {
+        return _f(args, argc);
+    }
 
     for (int i = 0; i < builtinCount; i++) {
         if (streq(name, builtinFunctions[i].name)) {
