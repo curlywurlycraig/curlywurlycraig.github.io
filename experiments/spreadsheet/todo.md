@@ -1,5 +1,7 @@
 # Lambdas, function references, etc
 
+`(map (f (a) (+ a 1)) (range 1 10))`
+
 Column formulas are not so useful without being able to specify
 e.g. `(map (lambda...) some-list)`.
 
@@ -34,6 +36,12 @@ uses an iterator instead. E.g. `(repeat 10)`
 - [ ] Add `(repeat x)` function
 - [ ] Add `(take x)` function
 - [ ] Add `(drop x)` function
+
+# Improvements
+
+Make bindings a map instead of an array.
+
+Don't do string comparison of idents all the time. Instead, replace string names with a numerical ID.
 
 # Backlog
 

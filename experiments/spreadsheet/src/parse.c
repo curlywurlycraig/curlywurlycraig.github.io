@@ -480,7 +480,6 @@ typedef struct ParseInfo {
     char* raw;
 
     double x;
-    double t;
 } ParseInfo;
 
 TokenInfo lookAhead(ParseInfo *info, int ahead) {
@@ -536,8 +535,7 @@ enum IdentType {
     I_VAR,
     I_NUM,
     I_STR,
-    I_CELLRANGE,
-    I_VARIABLE
+    I_CELLRANGE
 };
 
 typedef struct Ident {
@@ -678,6 +676,16 @@ Elem* elem(ParseInfo *info) {
 
 // Environment
 
+struct Value;
+typedef struct Value Value;
+
+typedef Value* (*evalFunc)(Value**, unsigned int);
+
+Value* executeFromIdent(Ident firstIdent, Elem** args, unsigned int argc);
+
+Value* listEval(List* list);
+Value* elemEval(Elem* elem);
+
 static unsigned int ROW_COUNT = 20;
 static unsigned int COL_COUNT = 20;
 
@@ -695,13 +703,25 @@ typedef struct CellValue {
     } val;
 } CellValue;
 
+typedef struct Binding {
+    char* name;
+    Value* val;
+} Binding;
+
 typedef struct Env {
     CellValue** cellValues;
+    Binding* bindings;
+    int bindingCount;
 } Env;
 
 Env env;
 
+#define MAX_BINDINGS 20
+
 void initEnv() {
+    // TODO Don't hard code bindings
+    env.bindingCount = 0;
+    env.bindings = mmalloc(sizeof(Binding) * MAX_BINDINGS);
     env.cellValues = mmalloc(sizeof(CellValue*) * ROW_COUNT);
     for (int i = 0; i < ROW_COUNT; i++) {
         CellValue* row = mmalloc(sizeof(CellValue) * COL_COUNT);
@@ -713,6 +733,26 @@ void initEnv() {
             };
         }
     }
+}
+
+// TODO Make this a map instead of an array
+Value* envLookupBinding(char* name) {
+    for (int i = 0; i < env.bindingCount; i++) {
+        if (streq(name, env.bindings[i].name)) {
+            return env.bindings[i].val;
+        }
+    }
+
+    return 0;
+}
+
+void envSetBinding(char* name, Value* value) {
+    Binding newBinding = (Binding) {
+        .name = name,
+        .val = value
+    };
+    env.bindings[env.bindingCount] = newBinding;
+    env.bindingCount++;
 }
 
 CellValue cellValueDouble(double value) {
@@ -757,8 +797,6 @@ enum ValueType {
     V_FUNC
 };
 
-struct Value;
-typedef struct Value Value;
 typedef struct ValueList {
     Value** values;
     int length;
@@ -767,16 +805,16 @@ typedef struct ValueList {
 typedef struct ValueFunc {
     List* body;
     Ident* bindings;
+    int argc;
 } ValueFunc;
 
-// TODO Eval a value func. Pass some values for the bindings.
-// When evalling the body list, evalling an identifier with I_VAR type
-// will involve looking up the binding value.
 Value* funcEval(ValueFunc* vf, Value** bindingValues) {
-    // Store binding values in env (in a stack?)
+    for (int i = 0; i < vf->argc; i++) {
+        envSetBinding(vf->bindings[i].val.name, bindingValues[i]);
+    }
 
-    // execute vf body
-    return 0;
+    // TODO Unbind these
+    return listEval(vf->body);
 }
 
 typedef struct Value {
@@ -788,13 +826,6 @@ typedef struct Value {
         ValueFunc* func;
     } val;
 } Value;
-
-typedef Value* (*evalFunc)(Value**, unsigned int);
-
-Value* executeFromIdent(Ident firstIdent, Elem** args, unsigned int argc);
-
-Value* listEval(List* list);
-Value* elemEval(Elem* elem);
 
 Value* valueNewDouble(double val) {
     Value* result = mmalloc(sizeof(Value));
@@ -903,12 +934,14 @@ Value* _f(Elem** args, unsigned int argc) {
     Ident* bindings = mmalloc(sizeof(Ident*) * bindingArgs->elemCount);
 
     for (int i = 0; i < bindingArgs->elemCount; i++) {
+        prints(bindingArgs->elems[i]->val.ident.val.name);
         bindings[i] = bindingArgs->elems[i]->val.ident;
     }
 
     ValueFunc* vf = mmalloc(sizeof(ValueFunc));
     vf->body = args[1]->val.list;
     vf->bindings = bindings;
+    vf->argc = bindingArgs->elemCount;
 
     Value* result = mmalloc(sizeof(Value));
     result->type = V_FUNC;
@@ -968,6 +1001,8 @@ Value* elemEval(Elem* input) {
         return valueNewDouble(envGetCellByName(input->val.ident.val.name)->val.num);
     } else if (input->type == E_IDENT && input->val.ident.type == I_NUM) {
         return valueNewDouble(input->val.ident.val.num);
+    } else if (input->type == E_IDENT && input->val.ident.type == I_VAR) {
+        return envLookupBinding(input->val.ident.val.name);
     } else {
         return 0;
     }
@@ -976,7 +1011,7 @@ Value* elemEval(Elem* input) {
 Value* executeFromIdent(Ident firstIdent, Elem** args, unsigned int argc) {
     char* name = firstIdent.val.name;
 
-    // "Macros" (functions that don't necessarily eval their args)
+    // Special forms (functions that don't necessarily eval their args)
     if (streq(name, "f")) {
         return _f(args, argc);
     }
