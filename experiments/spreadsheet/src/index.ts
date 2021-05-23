@@ -55,6 +55,7 @@ async function main() {
 
     const byteView = new Uint8Array(memory.buffer);
     const doubleView = new Float64Array(memory.buffer);
+    const intView = new Uint32Array(memory.buffer);
 
     const imports = {
         env: {
@@ -92,7 +93,7 @@ async function main() {
     const getInputPtr = result.instance.exports.getInputPointer as CallableFunction;
     const executeFormulaForCell = result.instance.exports.executeFormulaForCell as CallableFunction;
     const executeFormulaForCol = result.instance.exports.executeFormulaForCol as CallableFunction;
-    const envSetCell = result.instance.exports.envSetCell as CallableFunction;
+    const envSetDoubleCell = result.instance.exports.envSetDoubleCell as CallableFunction;
     const envGetCell = result.instance.exports.envGetCell as CallableFunction;
 
     init();
@@ -119,7 +120,17 @@ async function main() {
         renderCellContents();
     }
 
-    const getComputedCell = (row: number, col: number) => envGetCell(row, col);
+    const getComputedCell = (row: number, col: number) => {
+        const cellPtr = envGetCell(row, col);
+        const type = intView[cellPtr >> 2];
+
+        if (type === 1) { // num
+            const valPtr = (cellPtr >> 3) + 1;
+            return String(doubleView[valPtr]);
+        }
+
+        return "";
+    }
 
     window.doLisp = evalLisp;
     window.doColLisp = evalLispForCol;
@@ -131,7 +142,7 @@ async function main() {
         if (source?.startsWith("(")) {
             evalLisp(source, row, col);
         } else if (source !== null) {
-            envSetCell(row, col, source);
+            envSetDoubleCell(row, col, source);
         }
     }
 

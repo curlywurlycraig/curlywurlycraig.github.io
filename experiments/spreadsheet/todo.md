@@ -1,10 +1,3 @@
-# Column formula
-
-Populate a column from a formula.
-
-- [ ] Allow selection of column names, and entering of formulas
-- [ ] Call `evalColumn(...)` for cell sources in the columns
-
 # Other primitive types
 
 - [ ] Store computed cells as a struct that encodes type information

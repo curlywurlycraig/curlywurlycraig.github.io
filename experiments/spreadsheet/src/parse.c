@@ -680,26 +680,51 @@ Elem* elem(ParseInfo *info) {
 static unsigned int ROW_COUNT = 20;
 static unsigned int COL_COUNT = 20;
 
+enum CellValueType {
+    CELL_UNSET,
+    CELL_NUM,
+    CELL_STR
+};
+
+typedef struct CellValue {
+    enum CellValueType type;
+    union {
+        double num;
+        char* str;
+    } val;
+} CellValue;
+
 typedef struct Env {
-    double** cellValues;
+    CellValue** cellValues;
 } Env;
 
 Env env;
 
 void initEnv() {
-    env.cellValues = mmalloc(sizeof(double*) * ROW_COUNT);
+    env.cellValues = mmalloc(sizeof(CellValue*) * ROW_COUNT);
     for (int i = 0; i < ROW_COUNT; i++) {
-        double* row = mmalloc(sizeof(double) * COL_COUNT);
+        CellValue* row = mmalloc(sizeof(CellValue) * COL_COUNT);
         env.cellValues[i] = row;
 
         for (int j = 0; j < COL_COUNT; j++) {
-            row[j] = 0;
+            row[j] = (CellValue) {
+                .type = CELL_UNSET
+            };
         }
     }
 }
 
-void envSetCell(int row, int col, double value) {
-    env.cellValues[row][col] = value;
+CellValue cellValueDouble(double value) {
+    return (CellValue) {
+        .type = CELL_NUM,
+        .val = {
+            .num = value
+        }
+    };
+}
+
+void envSetDoubleCell(int row, int col, double value) {
+    env.cellValues[row][col] = cellValueDouble(value);
 }
 
 void envSetCellByName(char* cellName, double value) {
@@ -707,20 +732,20 @@ void envSetCellByName(char* cellName, double value) {
     int col = cellName[1] - 'A';
     int row = cellName[2] - '0';
 
-    env.cellValues[row][col] = value;
+    env.cellValues[row][col] = cellValueDouble(value);
 }
 
-double envGetCellByName(char* cellName) {
+CellValue envGetCellByName(char* cellName) {
     // TODO This will need to be a bit more elaborate to support more than 10/9 rows.
     int col = cellName[1] - 'A';
     int row = cellName[2] - '0';
 
-    double result = env.cellValues[row][col];
+    CellValue result = env.cellValues[row][col];
     return result;
 }
 
-double envGetCell(int row, int col) {
-    return env.cellValues[row][col];
+CellValue* envGetCell(int row, int col) {
+    return &env.cellValues[row][col];
 }
 
 // Interpretation
@@ -858,7 +883,7 @@ Elem* elemEval(Elem* input) {
     if (input->type == E_LIST) {
         return listEval(input->val.list);
     } else if (input->type == E_IDENT && input->val.ident.type == I_CELLRANGE) {
-        return elemNewDouble(envGetCellByName(input->val.ident.val.name));
+        return elemNewDouble(envGetCellByName(input->val.ident.val.name).val.num);
     } else {
         return input;
     }
@@ -901,7 +926,7 @@ void evalAndSetResultToCell(TokenizeResult tokens, char* input, int row, int col
     // TODO Error handling when result is not a type
     // with a num. Also handle string types
     Elem* result = listEval(list(info));
-    envSetCell(row, col, result->val.ident.val.num);
+    envSetDoubleCell(row, col, result->val.ident.val.num);
 }
 
 void evalAndSetResultsToCol(TokenizeResult tokens, char* input, int col) {
@@ -916,6 +941,6 @@ void evalAndSetResultsToCol(TokenizeResult tokens, char* input, int col) {
     Elem* result = listEval(list(info));
     List* resultList = result->val.list;
     for (int i = 0; i < resultList->elemCount; i++) {
-        envSetCell(i, col, resultList->elems[i]->val.ident.val.num);
+        envSetDoubleCell(i, col, resultList->elems[i]->val.ident.val.num);
     }
 }

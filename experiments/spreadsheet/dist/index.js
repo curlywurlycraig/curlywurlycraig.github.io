@@ -50,6 +50,7 @@ function main() {
         });
         const byteView = new Uint8Array(memory.buffer);
         const doubleView = new Float64Array(memory.buffer);
+        const intView = new Uint32Array(memory.buffer);
         const imports = {
             env: {
                 memory,
@@ -78,7 +79,7 @@ function main() {
         const getInputPtr = result.instance.exports.getInputPointer;
         const executeFormulaForCell = result.instance.exports.executeFormulaForCell;
         const executeFormulaForCol = result.instance.exports.executeFormulaForCol;
-        const envSetCell = result.instance.exports.envSetCell;
+        const envSetDoubleCell = result.instance.exports.envSetDoubleCell;
         const envGetCell = result.instance.exports.envGetCell;
         init();
         const evalLisp = (formula, row, col) => {
@@ -96,7 +97,16 @@ function main() {
             executeFormulaForCol(col);
             renderCellContents();
         };
-        const getComputedCell = (row, col) => envGetCell(row, col);
+        const getComputedCell = (row, col) => {
+            const cellPtr = envGetCell(row, col);
+            const type = intView[cellPtr >> 2];
+            if (type === 1) {
+                console.log('good');
+                const valPtr = (cellPtr >> 3) + 1;
+                return String(doubleView[valPtr]);
+            }
+            return "";
+        };
         window.doLisp = evalLisp;
         window.doColLisp = evalLispForCol;
         const functionInput = document.querySelector("#functionarea");
@@ -106,7 +116,7 @@ function main() {
                 evalLisp(source, row, col);
             }
             else if (source !== null) {
-                envSetCell(row, col, source);
+                envSetDoubleCell(row, col, source);
             }
         };
         functionInput.addEventListener('change', (e) => {
