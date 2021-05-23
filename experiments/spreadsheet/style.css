@@ -63,6 +63,15 @@ div.selected {
     box-shadow:4px 4px rgb(154, 179, 143)
 }
 
+th.selected {
+    /* margin-top: -1px; */
+    /* margin-left: -1px; */
+    z-index: 2;
+    position: relative;
+    outline: 2px solid #e4a85c;
+    box-shadow:4px 4px rgb(154, 179, 143)
+}
+
 @media (max-width: 600px) {
     body {
         flex-direction: column;

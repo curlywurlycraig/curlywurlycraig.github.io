@@ -45,6 +45,8 @@ void executeFormulaForCell(int row, int col) {
 void executeFormulaForCol(int col) {
     markmem();
 
+printi(col);
+prints(formulaInput);
     TokenizeResult tokens = tokenize(formulaInput);
     evalAndSetResultsToCol(tokens, formulaInput, col);
 

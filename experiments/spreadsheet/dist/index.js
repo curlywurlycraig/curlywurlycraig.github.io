@@ -11,10 +11,12 @@ const MAX_ROWS = 20;
 const MAX_COLS = 20;
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
-        let selectedRow = 0;
-        let selectedCol = 0;
+        let selectedRow = null;
+        let selectedCol = null;
+        let selectedColHead = null;
         let selectedElement = null;
         const cellSource = [...Array(MAX_ROWS)].map(() => Array(MAX_COLS).fill(null));
+        const colHeadSource = Array(MAX_COLS).fill(null);
         const createTableElement = () => {
             const tableElement = document.querySelector('table');
             const headRowEl = document.createElement('tr');
@@ -100,21 +102,27 @@ function main() {
         const functionInput = document.querySelector("#functionarea");
         const computeCell = (row, col) => {
             const source = cellSource[row][col];
-            if (source && source.startsWith("(")) {
+            if (source === null || source === void 0 ? void 0 : source.startsWith("(")) {
                 evalLisp(source, row, col);
             }
-            else {
+            else if (source !== null) {
                 envSetCell(row, col, source);
             }
         };
         functionInput.addEventListener('change', (e) => {
             const element = e === null || e === void 0 ? void 0 : e.target;
             const formula = element === null || element === void 0 ? void 0 : element.value;
-            cellSource[selectedRow][selectedCol] = formula;
+            if (selectedColHead !== null) {
+                colHeadSource[selectedColHead] = formula;
+            }
+            else {
+                cellSource[selectedRow][selectedCol] = formula;
+            }
             computeCells();
             renderCellContents();
         });
         const allEditCells = document.querySelectorAll(".editcell");
+        const allColumnLabelCells = document.querySelectorAll("th");
         const renderCellContents = () => {
             if (allEditCells.length) {
                 allEditCells.forEach((editCell, index) => {
@@ -125,8 +133,17 @@ function main() {
             }
         };
         const computeCells = () => {
+            if (allColumnLabelCells.length) {
+                allColumnLabelCells.forEach((_, index) => {
+                    let indexNotIncludingTopLeft = index - 1;
+                    const source = colHeadSource[indexNotIncludingTopLeft];
+                    if (source === null || source === void 0 ? void 0 : source.startsWith("(")) {
+                        evalLispForCol(source, indexNotIncludingTopLeft);
+                    }
+                });
+            }
             if (allEditCells.length) {
-                allEditCells.forEach((editCell, index) => {
+                allEditCells.forEach((_, index) => {
                     const col = index % MAX_COLS;
                     const row = Math.floor(index / MAX_COLS);
                     computeCell(row, col);
@@ -138,6 +155,7 @@ function main() {
                 editCell.addEventListener('click', (e) => {
                     selectedCol = index % MAX_COLS;
                     selectedRow = Math.floor(index / MAX_COLS);
+                    selectedColHead = null;
                     functionInput.value = cellSource[selectedRow][selectedCol];
                     functionInput.focus();
                     if (selectedElement) {
@@ -146,14 +164,24 @@ function main() {
                     editCell.classList.add("selected");
                     selectedElement = editCell;
                 });
-                const onApplyChanges = (e) => {
-                    const element = e === null || e === void 0 ? void 0 : e.target;
-                    const formula = element === null || element === void 0 ? void 0 : element.innerText;
-                    if (!formula || !formula.startsWith("("))
-                        return;
-                    evalLisp(formula, selectedRow, selectedCol);
-                };
-                editCell.addEventListener('onblur', onApplyChanges);
+            });
+        }
+        if (allColumnLabelCells.length) {
+            allColumnLabelCells.forEach((labelCell, index) => {
+                if (index === 0)
+                    return;
+                labelCell.addEventListener('click', (e) => {
+                    selectedColHead = index - 1;
+                    selectedCol = null;
+                    selectedRow = null;
+                    functionInput.value = colHeadSource[selectedColHead];
+                    functionInput.focus();
+                    if (selectedElement) {
+                        selectedElement.classList.remove("selected");
+                    }
+                    labelCell.classList.add("selected");
+                    selectedElement = labelCell;
+                });
             });
         }
     });

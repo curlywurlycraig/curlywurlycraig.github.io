@@ -5,12 +5,14 @@ const MAX_ROWS = 20;
 const MAX_COLS = 20;
 
 async function main() {
-    let selectedRow = 0;
-    let selectedCol = 0;
+    let selectedRow: number = null;
+    let selectedCol: number = null;
+    let selectedColHead: number = null;
+
     let selectedElement: Element = null;
 
-    // Extra row and col for row and column sources
     const cellSource: string[][] = [...Array(MAX_ROWS)].map(() => Array(MAX_COLS).fill(null));
+    const colHeadSource: string[] = Array(MAX_COLS).fill(null);
 
     const createTableElement = () => {
         const tableElement: HTMLTableElement = document.querySelector('table');
@@ -126,9 +128,9 @@ async function main() {
 
     const computeCell = (row: number, col: number) => {
         const source = cellSource[row][col];
-        if (source && source.startsWith("(")) {
+        if (source?.startsWith("(")) {
             evalLisp(source, row, col);
-        } else {
+        } else if (source !== null) {
             envSetCell(row, col, source);
         }
     }
@@ -137,12 +139,18 @@ async function main() {
         const element = e?.target as HTMLTextAreaElement;
         const formula = element?.value;
 
-        cellSource[selectedRow][selectedCol] = formula;
+        if (selectedColHead !== null) {
+            colHeadSource[selectedColHead] = formula;
+        } else {
+            cellSource[selectedRow][selectedCol] = formula;
+        }
+
         computeCells();
         renderCellContents();
     });
 
     const allEditCells: NodeListOf<Element> = document.querySelectorAll(".editcell");
+    const allColumnLabelCells: NodeListOf<Element> = document.querySelectorAll("th");
 
     // Iterate through cells and calculate what should be displayed in them
     const renderCellContents = () => {
@@ -159,8 +167,19 @@ async function main() {
     // TODO Encode dependencies. Right now, cells which depend on ones "after" them
     // (as read from left to right and top to bottom) will see the old computed value
     const computeCells = () => {
+        if (allColumnLabelCells.length) {
+            allColumnLabelCells.forEach((_, index) => {
+                let indexNotIncludingTopLeft = index - 1;
+                const source = colHeadSource[indexNotIncludingTopLeft];
+
+                if (source?.startsWith("(")) {
+                    evalLispForCol(source, indexNotIncludingTopLeft);
+                }
+            });
+        }
+
         if (allEditCells.length) {
-            allEditCells.forEach((editCell, index) => {
+            allEditCells.forEach((_, index) => {
                 const col = index % MAX_COLS;
                 const row = Math.floor(index / MAX_COLS);
 
@@ -174,6 +193,7 @@ async function main() {
             editCell.addEventListener('click', (e) => {
                 selectedCol = index % MAX_COLS;
                 selectedRow = Math.floor(index / MAX_COLS);
+                selectedColHead = null;
 
                 functionInput.value = cellSource[selectedRow][selectedCol];
                 functionInput.focus();
@@ -184,17 +204,30 @@ async function main() {
                 editCell.classList.add("selected");
                 selectedElement = editCell;
             });
+        });
+    }
 
-            // when enter is clicked, or on blur, and so on
-            const onApplyChanges = (e: Event) => {
-                const element = e?.target as HTMLTextAreaElement;
-                const formula = element?.innerText;
 
-                if (!formula || !formula.startsWith("(")) return;
-                evalLisp(formula, selectedRow, selectedCol);
-            }
+    if (allColumnLabelCells.length) {
+        allColumnLabelCells.forEach((labelCell, index) => {
+            // this is that top left one. In the future, could
+            // do formulas that return matrices
+            if (index === 0) return;
 
-            editCell.addEventListener('onblur', onApplyChanges);
+            labelCell.addEventListener('click', (e) => {
+                selectedColHead = index - 1;
+                selectedCol = null;
+                selectedRow = null;
+
+                functionInput.value = colHeadSource[selectedColHead];
+                functionInput.focus();
+                if (selectedElement) {
+                    selectedElement.classList.remove("selected");
+                }
+
+                labelCell.classList.add("selected");
+                selectedElement = labelCell;
+            });
         });
     }
 }

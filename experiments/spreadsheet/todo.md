@@ -2,22 +2,16 @@
 
 Populate a column from a formula.
 
-What needs to happen? Want to `evalLisp(...)` and have results be in the computed sources.
-So `evalLisp` needs to put its results in its own buffer, instead of just returning a single value result.
-Process is:
-
-1. Execute all the lisp that needs to be executed (this can be done in a lazy efficient way later). All of the cells for now.
-2. Results are stored in a buffer. This can just be floats for now, but eventually will need to be strings too.
-   1. E.g. I'd want to store lots of country codes from a column formula.
-3. Display the results of all the cells.
-
-The column formulas need to return some kind of list data type.
-Parse result also will need to be a data type, instead of just a float.
-
-So here's the tasks:
-
 - [ ] Allow selection of column names, and entering of formulas
 - [ ] Call `evalColumn(...)` for cell sources in the columns
+
+# Other primitive types
+
+- [ ] Store computed cells as a struct that encodes type information
+- [ ] And something like `Maybe`, since a cell can be unset
+- [ ] Check the type from JS before getting the value out
+- [ ] Consider finding a way to get JS to parse the whole struct
+- [ ] This should fix the problem with rendering all zeros
 
 # Lambdas, function references, etc
 

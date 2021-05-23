@@ -915,7 +915,6 @@ void evalAndSetResultsToCol(TokenizeResult tokens, char* input, int col) {
     Elem* result = listEval(list(info));
     List* resultList = result->val.list;
     for (int i = 0; i < resultList->elemCount; i++) {
-        printd(resultList->elems[i]->val.ident.val.num);
         envSetCell(i, col, resultList->elems[i]->val.ident.val.num);
     }
 }
