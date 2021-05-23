@@ -796,7 +796,8 @@ Elem* _range(Elem** args, unsigned int argc) {
 
     List* resultList = mmalloc(sizeof(List));
     resultList->didFail = 0;
-    resultList->elems = mmalloc(sizeof(Elem*) * resultList->elemCount);
+    int numValues = (end - start) / step;
+    resultList->elems = mmalloc(sizeof(Elem*) * numValues);
 
     double value = start;
     int index = 0;
@@ -806,7 +807,7 @@ Elem* _range(Elem** args, unsigned int argc) {
         index++;
         value += step;
     }
-    resultList->elemCount = index;
+    resultList->elemCount = numValues;
 
     Elem* result = mmalloc(sizeof(Elem));
     result->type = E_LIST;
