@@ -1,11 +1,3 @@
-# Other primitive types
-
-- [ ] Store computed cells as a struct that encodes type information
-- [ ] And something like `Maybe`, since a cell can be unset
-- [ ] Check the type from JS before getting the value out
-- [ ] Consider finding a way to get JS to parse the whole struct
-- [ ] This should fix the problem with rendering all zeros
-
 # Lambdas, function references, etc
 
 Column formulas are not so useful without being able to specify
@@ -13,9 +5,16 @@ e.g. `(map (lambda...) some-list)`.
 
 One of the Parse types should be function. Those can be executed with arguments.
 Eventually these should be able to be stored in the env:
-(i.e. with `(fun some-func [arg1 arg2] ...)`)
+(i.e. with `(defn some-func (arg1 arg2) ...)`)
 
-- [ ] Add lambdas
+Lambda syntax thoughts.
+
+`(f (x y) (+ x y))` Probably my favourite.
+`((x y) (+ x y))` Interesting, but would prevent e.g. `((if cond + -) 1 2)`
+`(\ (x y) (+ x y))` Nice, but very similar to `(/ 1 2)` i.e. division
+`(. (x y) (+ x y))`
+
+- [ ] Add lambdas. `(fn (x y) (+ x y))`
 - [ ] Add `map` and `filter`
 - [ ] Add `reduce`
 - [ ] Add ability to store parsed lisp in an env

@@ -1,6 +1,18 @@
 declare var doLisp: Function;
 declare var doColLisp: Function;
 
+// Must match the same enum from C
+enum CellValueType {
+    CELL_UNSET,
+    CELL_NUM,
+    CELL_STR
+}
+
+type CellValue = {
+    type: CellValueType,
+    val: (number | string)
+}
+
 const MAX_ROWS = 20;
 const MAX_COLS = 20;
 
@@ -120,13 +132,29 @@ async function main() {
         renderCellContents();
     }
 
-    const getComputedCell = (row: number, col: number) => {
-        const cellPtr = envGetCell(row, col);
+    function readCell(cellPtr: number): CellValue {
         const type = intView[cellPtr >> 2];
 
-        if (type === 1) { // num
+        if (type === CellValueType.CELL_NUM) {
             const valPtr = (cellPtr >> 3) + 1;
-            return String(doubleView[valPtr]);
+            return {
+                type,
+                val: doubleView[valPtr]
+            };
+        }
+
+        return null;
+    }
+
+    // Read the computed cell from WASM.
+    // This involves understanding the memory layout of the
+    // struct and unmarshalling it.
+    const getComputedCell = (row: number, col: number) => {
+        const cellPtr = envGetCell(row, col);
+        const cellValue = readCell(cellPtr);
+
+        if (cellValue) {
+            return String(cellValue.val);
         }
 
         return "";
@@ -141,7 +169,7 @@ async function main() {
         const source = cellSource[row][col];
         if (source?.startsWith("(")) {
             evalLisp(source, row, col);
-        } else if (source !== null) {
+        } else if (source !== null && source !== "") {
             envSetDoubleCell(row, col, source);
         }
     }

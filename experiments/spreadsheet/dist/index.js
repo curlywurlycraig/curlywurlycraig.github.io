@@ -7,6 +7,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var CellValueType;
+(function (CellValueType) {
+    CellValueType[CellValueType["CELL_UNSET"] = 0] = "CELL_UNSET";
+    CellValueType[CellValueType["CELL_NUM"] = 1] = "CELL_NUM";
+    CellValueType[CellValueType["CELL_STR"] = 2] = "CELL_STR";
+})(CellValueType || (CellValueType = {}));
 const MAX_ROWS = 20;
 const MAX_COLS = 20;
 function main() {
@@ -97,13 +103,22 @@ function main() {
             executeFormulaForCol(col);
             renderCellContents();
         };
+        function readCell(cellPtr) {
+            const type = intView[cellPtr >> 2];
+            if (type === CellValueType.CELL_NUM) {
+                const valPtr = (cellPtr >> 3) + 1;
+                return {
+                    type,
+                    val: doubleView[valPtr]
+                };
+            }
+            return null;
+        }
         const getComputedCell = (row, col) => {
             const cellPtr = envGetCell(row, col);
-            const type = intView[cellPtr >> 2];
-            if (type === 1) {
-                console.log('good');
-                const valPtr = (cellPtr >> 3) + 1;
-                return String(doubleView[valPtr]);
+            const cellValue = readCell(cellPtr);
+            if (cellValue) {
+                return String(cellValue.val);
             }
             return "";
         };
@@ -115,7 +130,7 @@ function main() {
             if (source === null || source === void 0 ? void 0 : source.startsWith("(")) {
                 evalLisp(source, row, col);
             }
-            else if (source !== null) {
+            else if (source !== null && source !== "") {
                 envSetDoubleCell(row, col, source);
             }
         };

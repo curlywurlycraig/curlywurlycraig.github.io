@@ -735,114 +735,130 @@ void envSetCellByName(char* cellName, double value) {
     env.cellValues[row][col] = cellValueDouble(value);
 }
 
-CellValue envGetCellByName(char* cellName) {
-    // TODO This will need to be a bit more elaborate to support more than 10/9 rows.
-    int col = cellName[1] - 'A';
-    int row = cellName[2] - '0';
-
-    CellValue result = env.cellValues[row][col];
-    return result;
-}
-
 CellValue* envGetCell(int row, int col) {
     return &env.cellValues[row][col];
 }
 
+CellValue* envGetCellByName(char* cellName) {
+    // TODO This will need to be a bit more elaborate to support more than 10/9 rows.
+    int col = cellName[1] - 'A';
+    int row = cellName[2] - '0';
+
+    return envGetCell(row, col);
+}
+
 // Interpretation
 
-typedef Elem* (*evalFunc)(Elem**, unsigned int);
+enum ValueType {
+    V_LIST,
+    V_NUM,
+    V_STR,
+    V_FUNC
+};
 
-Elem* executeFunctionIdent(Ident firstIdent, Elem** args, unsigned int argc);
+struct Value;
+typedef struct Value Value;
+typedef struct ValueList {
+    Value** values;
+    int length;
+} ValueList;
 
-Elem* listEval(List* list);
-Elem* elemEval(Elem* elem);
+typedef struct Value {
+    enum ValueType type;
+    union {
+        double num;
+        char* str;
+        ValueList* list;
+        // TODO Func
+    } val;
+} Value;
 
-Elem* elemNewDouble(double val) {
-    Elem* result = mmalloc(sizeof(Elem));
-    result->type = E_IDENT;
-    result->didFail = 0; // Hmm. This shouldn't be here actually.
-    result->val.ident = (Ident) {
-        .type = I_NUM,
-        .didFail = 0,
-        .val.num = val
-    };
+typedef Value* (*evalFunc)(Value**, unsigned int);
+
+Value* executeBuiltinFunction(Ident firstIdent, Elem** args, unsigned int argc);
+
+Value* listEval(List* list);
+Value* elemEval(Elem* elem);
+
+Value* valueNewDouble(double val) {
+    Value* result = mmalloc(sizeof(Value));
+    result->type = V_NUM;
+    result->val.num = val;
     return result;
 }
 
-double elemEvalNumber(Elem* elem) {
-    return elem->val.ident.val.num;
+double valueGetNum(Value* value) {
+    return value->val.num;
 }
 
-struct FunctionIdent {
+struct BuiltinFunction {
     evalFunc func;
     char* name;
 };
 
-Elem* _add(Elem** args, unsigned int argc) {
+Value* _add(Value** args, unsigned int argc) {
     double result = 0;
     for (int i = 0; i < argc; i++) {
-        result += elemEvalNumber(args[i]);
+        result += valueGetNum(args[i]);
     }
-    return elemNewDouble(result);
+    return valueNewDouble(result);
 }
 
-Elem* _sub(Elem** args, unsigned int argc) {
-    double result = elemEvalNumber(args[0]);
+Value* _sub(Value** args, unsigned int argc) {
+    double result = valueGetNum(args[0]);
     for (int i = 1; i < argc; i++) {
-        result -= elemEvalNumber(args[i]);
+        result -= valueGetNum(args[i]);
     }
-    return elemNewDouble(result);
+    return valueNewDouble(result);
 }
 
-Elem* _mult(Elem** args, unsigned int argc) {
-    double result = elemEvalNumber(args[0]);
+Value* _mult(Value** args, unsigned int argc) {
+    double result = valueGetNum(args[0]);
     for (int i = 1; i < argc; i++) {
-        result = result * elemEvalNumber(args[i]);
+        result = result * valueGetNum(args[i]);
     }
-    return elemNewDouble(result);
+    return valueNewDouble(result);
 }
 
-Elem* _sin(Elem **args, unsigned int argc) {
-    return elemNewDouble(sin(elemEvalNumber(args[0])));
+Value* _sin(Value **args, unsigned int argc) {
+    return valueNewDouble(sin(valueGetNum(args[0])));
 }
 
-Elem* _cos(Elem** args, unsigned int argc) {
-    return elemNewDouble(cos(elemEvalNumber(args[0])));
+Value* _cos(Value** args, unsigned int argc) {
+    return valueNewDouble(cos(valueGetNum(args[0])));
 }
 
-Elem* _tan(Elem** args, unsigned int argc) {
-    return elemNewDouble(tan(elemEvalNumber(args[0])));
+Value* _tan(Value** args, unsigned int argc) {
+    return valueNewDouble(tan(valueGetNum(args[0])));
 }
 
-Elem* _range(Elem** args, unsigned int argc) {
-    double start = elemEvalNumber(args[0]);
-    double end = elemEvalNumber(args[1]);
-    double step = argc > 2 ? elemEvalNumber(args[2]) : 1.0;
+Value* _range(Value** args, unsigned int argc) {
+    double start = valueGetNum(args[0]);
+    double end = valueGetNum(args[1]);
+    double step = argc > 2 ? valueGetNum(args[2]) : 1.0;
 
-    List* resultList = mmalloc(sizeof(List));
-    resultList->didFail = 0;
+    ValueList* resultList = mmalloc(sizeof(ValueList));
     int numValues = (end - start) / step;
-    resultList->elems = mmalloc(sizeof(Elem*) * numValues);
+    resultList->values = mmalloc(sizeof(Value*) * numValues);
 
     double value = start;
     int index = 0;
     while (value < end) {
-        Elem* newElem = elemNewDouble(value);
-        resultList->elems[index] = newElem;
+        Value* newValue = valueNewDouble(value);
+        resultList->values[index] = newValue;
         index++;
         value += step;
     }
-    resultList->elemCount = numValues;
+    resultList->length = numValues;
 
-    Elem* result = mmalloc(sizeof(Elem));
-    result->type = E_LIST;
-    result->didFail = 0;
+    Value* result = mmalloc(sizeof(Value));
+    result->type = V_LIST;
     result->val.list = resultList;
     return result;
 }
 
 static int builtinCount = 7;
-static struct FunctionIdent builtinFunctionIdents[] = {
+static struct BuiltinFunction builtinFunctions[] = {
     {
         .func = &_add,
         .name = "+"
@@ -873,37 +889,39 @@ static struct FunctionIdent builtinFunctionIdents[] = {
     }
 };
 
-Elem* listEval(List* list) {
+Value* listEval(List* list) {
     Ident firstIdent = list->elems[0]->val.ident;
     Elem** rest = list->elems + 1;
-    return executeFunctionIdent(firstIdent, rest, list->elemCount - 1);
+    return executeBuiltinFunction(firstIdent, rest, list->elemCount - 1);
 }
 
-Elem* elemEval(Elem* input) {
+Value* elemEval(Elem* input) {
     if (input->type == E_LIST) {
         return listEval(input->val.list);
     } else if (input->type == E_IDENT && input->val.ident.type == I_CELLRANGE) {
-        return elemNewDouble(envGetCellByName(input->val.ident.val.name).val.num);
+        return valueNewDouble(envGetCellByName(input->val.ident.val.name)->val.num);
+    } else if (input->type == E_IDENT && input->val.ident.type == I_NUM) {
+        return valueNewDouble(input->val.ident.val.num);
     } else {
-        return input;
+        return 0;
     }
 }
 
-Elem* executeFunctionIdent(Ident firstIdent, Elem** args, unsigned int argc) {
+Value* executeBuiltinFunction(Ident firstIdent, Elem** args, unsigned int argc) {
     char* name = firstIdent.val.name;
 
     // TODO Execute macros that don't necessarily eval
     // recursively (e.g. `if`)
 
     for (int i = 0; i < builtinCount; i++) {
-        if (streq(name, builtinFunctionIdents[i].name)) {
+        if (streq(name, builtinFunctions[i].name)) {
             // Recursively eval args
-            Elem** primitiveArgs = mmalloc(sizeof(Elem) * argc);
+            Value** evalledArgs = mmalloc(sizeof(Value*) * argc);
             for (int i = 0; i < argc; i++) {
-                primitiveArgs[i] = elemEval(args[i]);
+                evalledArgs[i] = elemEval(args[i]);
             }
 
-            return builtinFunctionIdents[i].func(primitiveArgs, argc);
+            return builtinFunctions[i].func(evalledArgs, argc);
         }
     }
 
@@ -925,8 +943,8 @@ void evalAndSetResultToCell(TokenizeResult tokens, char* input, int row, int col
 
     // TODO Error handling when result is not a type
     // with a num. Also handle string types
-    Elem* result = listEval(list(info));
-    envSetDoubleCell(row, col, result->val.ident.val.num);
+    Value* result = listEval(list(info));
+    envSetDoubleCell(row, col, result->val.num);
 }
 
 void evalAndSetResultsToCol(TokenizeResult tokens, char* input, int col) {
@@ -938,9 +956,9 @@ void evalAndSetResultsToCol(TokenizeResult tokens, char* input, int col) {
     info->tokenizeResult = &tokens;
     info->raw = input;
 
-    Elem* result = listEval(list(info));
-    List* resultList = result->val.list;
-    for (int i = 0; i < resultList->elemCount; i++) {
-        envSetDoubleCell(i, col, resultList->elems[i]->val.ident.val.num);
+    Value* result = listEval(list(info));
+    ValueList* resultList = result->val.list;
+    for (int i = 0; i < resultList->length; i++) {
+        envSetDoubleCell(i, col, resultList->values[i]->val.num);
     }
 }
