@@ -533,10 +533,11 @@ TokenInfo last(ParseInfo *info) {
 // ident : cellrange
 
 enum IdentType {
-    I_FUNC,
+    I_VAR,
     I_NUM,
     I_STR,
-    I_CELLRANGE
+    I_CELLRANGE,
+    I_VARIABLE
 };
 
 typedef struct Ident {
@@ -665,7 +666,7 @@ Elem* elem(ParseInfo *info) {
 
         result->type = E_IDENT;
         result->val.ident = (Ident) {
-            .type = I_FUNC,
+            .type = I_VAR,
             .val = { .name = currToken.raw }
         };
         return result;
@@ -763,13 +764,22 @@ typedef struct ValueList {
     int length;
 } ValueList;
 
+typedef struct ValueFunc {
+    List* body;
+    Ident** bindings;
+} ValueFunc;
+
+// TODO Eval a value func. Pass some values for the bindings.
+// When evalling the body list, evalling an identifier with I_VAR type
+// will involve looking up the binding value.
+
 typedef struct Value {
     enum ValueType type;
     union {
         double num;
         char* str;
         ValueList* list;
-        // TODO Func
+        ValueFunc* func;
     } val;
 } Value;
 
