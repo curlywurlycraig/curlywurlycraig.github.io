@@ -73,3 +73,4 @@ Don't do string comparison of idents all the time. Instead, replace string names
 - [ ] Syntax highlighting on formulas
 - [ ] Add even more cells
 - [ ] Improve styling
+- [ ] Format cells

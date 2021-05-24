@@ -676,8 +676,25 @@ Elem* elem(ParseInfo *info) {
 
 // Environment
 
-struct Value;
-typedef struct Value Value;
+typedef struct ValueList ValueList;
+typedef struct ValueFunc ValueFunc;
+
+enum ValueType {
+    V_LIST,
+    V_NUM,
+    V_STR,
+    V_FUNC
+};
+
+typedef struct Value {
+    enum ValueType type;
+    union {
+        double num;
+        char* str;
+        ValueList* list;
+        ValueFunc* func;
+    } val;
+} Value;
 
 typedef Value* (*evalFunc)(Value**, unsigned int);
 
@@ -735,9 +752,11 @@ void initEnv() {
     }
 }
 
-// TODO Make this a map instead of an array
 Value* envLookupBinding(char* name) {
-    for (int i = 0; i < env.bindingCount; i++) {
+    // Reverse lookup so most recent are found first.
+    // This means inner bound vars shadow outer ones.
+    // More like a stack that way!
+    for (int i = env.bindingCount - 1; i >= 0; i--) {
         if (streq(name, env.bindings[i].name)) {
             return env.bindings[i].val;
         }
@@ -790,13 +809,6 @@ CellValue* envGetCellByName(char* cellName) {
 
 // Interpretation
 
-enum ValueType {
-    V_LIST,
-    V_NUM,
-    V_STR,
-    V_FUNC
-};
-
 typedef struct ValueList {
     Value** values;
     int length;
@@ -813,19 +825,16 @@ Value* funcEval(ValueFunc* vf, Value** bindingValues) {
         envSetBinding(vf->bindings[i].val.name, bindingValues[i]);
     }
 
-    // TODO Unbind these
-    return listEval(vf->body);
-}
+    Value* result = listEval(vf->body);
 
-typedef struct Value {
-    enum ValueType type;
-    union {
-        double num;
-        char* str;
-        ValueList* list;
-        ValueFunc* func;
-    } val;
-} Value;
+    // Sort of like a faux stack. Just "pop" off entries by
+    // decrementing the stack pointer.
+    for (int i = 0; i < vf->argc; i++) {
+        env.bindingCount--;
+    }
+
+    return result;
+}
 
 Value* valueNewDouble(double val) {
     Value* result = mmalloc(sizeof(Value));
@@ -931,10 +940,9 @@ Value* _map(Value** args, unsigned int argc) {
 
 Value* _f(Elem** args, unsigned int argc) {
     List* bindingArgs = args[0]->val.list;
-    Ident* bindings = mmalloc(sizeof(Ident*) * bindingArgs->elemCount);
+    Ident* bindings = mmalloc(sizeof(Ident) * bindingArgs->elemCount);
 
     for (int i = 0; i < bindingArgs->elemCount; i++) {
-        prints(bindingArgs->elems[i]->val.ident.val.name);
         bindings[i] = bindingArgs->elems[i]->val.ident;
     }
 
