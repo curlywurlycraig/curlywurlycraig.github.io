@@ -204,6 +204,26 @@ Value* _map(Value** args, unsigned int argc) {
     return result;
 }
 
+Value* _reduce(Value** args, unsigned int argc) {
+    Value* func = args[0];
+    Value* list = args[1];
+    Value* result = args[2];
+
+    int numValues = list->val.list->length;
+    printf(numValues);
+
+    for (int i = 0; i < numValues; i++) {
+        Value** bindings = mmalloc(sizeof(Value*) * 2);
+        bindings[0] = result;
+        bindings[1] = list->val.list->values[i];
+        printf(bindings[1]->val.num);
+
+        result = funcEval(func->val.func, bindings);
+    }
+
+    return result;
+}
+
 // Macros (just don't eval their args)
 
 Value* _f(Elem** args, unsigned int argc) {
@@ -228,7 +248,7 @@ Value* _f(Elem** args, unsigned int argc) {
 
 // Builtins (their args are eval'd recursively)
 
-static int builtinCount = 8;
+static int builtinCount = 9;
 static struct BuiltinFunction builtinFunctions[] = {
     {
         .func = &_add,
@@ -259,6 +279,10 @@ static struct BuiltinFunction builtinFunctions[] = {
         .name = "range"
     },
     {
+        .func = &_reduce,
+        .name = "reduce"
+    },
+    {
         .func = &_map,
         .name = "map"
     }
@@ -272,7 +296,6 @@ Value* listEval(List* list) {
 
 Value* cellRangeEval(Elem* cellRange) {
     char* cellName = cellRange->val.ident.val.name;
-    prints("hm");
     if (envIsCellNameList(cellName)) {
         ValueList* resultList = mmalloc(sizeof(ValueList));
         resultList->length = 0;
@@ -283,8 +306,6 @@ Value* cellRangeEval(Elem* cellRange) {
         result->type = V_LIST;
 
         int col = envGetColumnByName(cellName);
-        prints("col");
-        printi(col);
         int row = 0;
 
         CellValue* curr = envGetCell(row, col);

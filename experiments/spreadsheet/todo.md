@@ -1,16 +1,21 @@
-# Use header files
+# Lambdas, function references, etc
+
+- [ ] Add `reduce`
+- [ ] Add `filter`
+- [ ] Add `bool` value type
+- [ ] Add ability to store parsed lisp in an env
+      (Basically some `fun` builtin)
+- [ ] Add `<`, `>`, `=`, `>=`, `<=`, `not`, etc
+- [ ] Add ability to execute parsed lisp in the env
+- [ ] Create a small "standard library" of lisp files.
+- [ ] Make it possible to pass builtins as functions to map etc
 
 # Cell ranges
 
+Extract the cell range information at parse type, instead
+of interpretation time. Make a struct that stores the start and end columns and rows.
+
 - [ ] Evaluate :C1-C5 as a list
-
-# Lambdas, function references, etc
-
-- [ ] Add `filter`
-- [ ] Add `reduce`
-- [ ] Add ability to store parsed lisp in an env
-      (Basically some `fun` builtin)
-- [ ] Add ability to execute parsed lisp in the env
 
 # Evaluation order
 
@@ -60,8 +65,6 @@ uses an iterator instead. E.g. `(repeat 10)`
 Make bindings a map instead of an array.
 
 Don't do string comparison of idents all the time. Instead, replace string names with a numerical ID.
-
-Move utilities to other files. E.g. the envIsCellNameList etc should be their own file.
 
 # Backlog
 
