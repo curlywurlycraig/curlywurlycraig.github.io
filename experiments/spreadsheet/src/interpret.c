@@ -28,6 +28,27 @@ void initEnv() {
 }
 
 Value* envLookupBinding(char* name) {
+    // First look through builtins, which are a kind of
+    // "system binding"
+    for (int i = 0; i < BUILTIN_COUNT; i++) {
+        if (streq(name, builtinFunctions[i].name)) {
+            // TODO Create all of these Values up front
+            // and store them in a "builtins" in the env.
+            // Also is this really a "binding"?
+            // I've sometimes called it "identifier", or
+            // "var"/"variable".
+            ValueFunc* vf = mmalloc(sizeof(ValueFunc));
+            vf->type = VF_BUILTIN;
+            vf->value.builtin = builtinFunctions[i];
+
+            Value* result = mmalloc(sizeof(Value));
+            result->type = V_FUNC;
+            result->val.func = vf;
+
+            return result;
+        }
+    }
+
     // Reverse lookup so most recent are found first.
     // This means inner bound vars shadow outer ones.
     // More like a stack that way!
@@ -93,22 +114,6 @@ int envGetColumnByName(char* cellName) {
 
 // Interpretation
 
-Value* funcEval(ValueFunc* vf, Value** bindingValues) {
-    for (int i = 0; i < vf->argc; i++) {
-        envSetBinding(vf->bindings[i].val.name, bindingValues[i]);
-    }
-
-    Value* result = listEval(vf->body);
-
-    // Sort of like a faux stack. Just "pop" off entries by
-    // decrementing the stack pointer.
-    for (int i = 0; i < vf->argc; i++) {
-        env.bindingCount--;
-    }
-
-    return result;
-}
-
 Value* valueNewDouble(double val) {
     Value* result = mmalloc(sizeof(Value));
     result->type = V_NUM;
@@ -137,10 +142,16 @@ Value* _sub(Value** args, unsigned int argc) {
 }
 
 Value* _mult(Value** args, unsigned int argc) {
+    prints("mult");
+    printi(argc);
     double result = valueGetNum(args[0]);
+    printd(result);
+    printd(valueGetNum(args[1]));
     for (int i = 1; i < argc; i++) {
         result = result * valueGetNum(args[i]);
     }
+
+    printd(result);
     return valueNewDouble(result);
 }
 
@@ -192,7 +203,7 @@ Value* _map(Value** args, unsigned int argc) {
     for (int i = 0; i < numValues; i++) {
         Value** bindings = mmalloc(sizeof(Value*));
         bindings[0] = list->val.list->values[i];
-        Value* newValue = funcEval(func->val.func, bindings);
+        Value* newValue = funcEval(func->val.func, bindings, argc);
         resultList->values[i] = newValue;
     }
 
@@ -210,15 +221,13 @@ Value* _reduce(Value** args, unsigned int argc) {
     Value* result = args[2];
 
     int numValues = list->val.list->length;
-    printf(numValues);
 
     for (int i = 0; i < numValues; i++) {
         Value** bindings = mmalloc(sizeof(Value*) * 2);
-        bindings[0] = result;
+        bindings[0] = valueNewDouble(valueGetNum(result));
         bindings[1] = list->val.list->values[i];
-        printf(bindings[1]->val.num);
 
-        result = funcEval(func->val.func, bindings);
+        result = funcEval(func->val.func, bindings, 2);
     }
 
     return result;
@@ -235,9 +244,14 @@ Value* _f(Elem** args, unsigned int argc) {
     }
 
     ValueFunc* vf = mmalloc(sizeof(ValueFunc));
-    vf->body = args[1]->val.list;
-    vf->bindings = bindings;
-    vf->argc = bindingArgs->elemCount;
+    vf->type = VF_LISP;
+
+    LispFunction lf;
+    lf.body = args[1]->val.list;
+    lf.bindings = bindings;
+    lf.argc = bindingArgs->elemCount;
+
+    vf->value.lispF = lf;
 
     Value* result = mmalloc(sizeof(Value));
     result->type = V_FUNC;
@@ -248,8 +262,11 @@ Value* _f(Elem** args, unsigned int argc) {
 
 // Builtins (their args are eval'd recursively)
 
-static int builtinCount = 9;
-static struct BuiltinFunction builtinFunctions[] = {
+// NOTE Remember to update BUILTIN_COUNT in interpret.h when
+// adding new items.
+// TODO Init these in the env and combine variable lookup
+// with other env things.
+static BuiltinFunction builtinFunctions[] = {
     {
         .func = &_add,
         .name = "+"
@@ -288,10 +305,27 @@ static struct BuiltinFunction builtinFunctions[] = {
     }
 };
 
-Value* listEval(List* list) {
-    Ident firstIdent = list->elems[0]->val.ident;
-    Elem** rest = list->elems + 1;
-    return executeFromIdent(firstIdent, rest, list->elemCount - 1);
+Value* funcEval(ValueFunc* vf, Value** bindingValues, int argc) {
+    if (vf->type == VF_BUILTIN) {
+        return vf->value.builtin.func(bindingValues, argc);
+    }
+
+    for (int i = 0; i < argc; i++) {
+        envSetBinding(
+            vf->value.lispF.bindings[i].val.name,
+            bindingValues[i]
+        );
+    }
+
+    Value* result = listEval(vf->value.lispF.body);
+
+    // Sort of like a faux stack. Just "pop" off entries by
+    // decrementing the stack pointer.
+    for (int i = 0; i < argc; i++) {
+        env.bindingCount--;
+    }
+
+    return result;
 }
 
 Value* cellRangeEval(Elem* cellRange) {
@@ -326,6 +360,31 @@ Value* cellRangeEval(Elem* cellRange) {
     }
 }
 
+Value* listEval(List* list) {
+    Elem** args = list->elems + 1;
+    int elemc = list->elemCount;
+    int argc = list->elemCount - 1;
+
+    Ident firstIdent = list->elems[0]->val.ident;
+    char* name = firstIdent.val.name;
+
+    // Special forms (functions that don't necessarily eval their args)
+    if (streq(name, "f")) {
+        return _f(args, argc);
+    }
+
+    // Eval args recursively
+    Value** evalledArgs = mmalloc(sizeof(Value*) * elemc);
+    for (int i = 0; i < argc + 1; i++) {
+        evalledArgs[i] = elemEval(list->elems[i]);
+    }
+
+    return funcEval(evalledArgs[0]->val.func, evalledArgs + 1, argc);
+
+    // Error case (null pointer)
+    return 0;
+}
+
 Value* elemEval(Elem* input) {
     if (input->type == E_LIST) {
         return listEval(input->val.list);
@@ -338,32 +397,6 @@ Value* elemEval(Elem* input) {
     } else {
         return 0;
     }
-}
-
-Value* executeFromIdent(Ident firstIdent, Elem** args, unsigned int argc) {
-    char* name = firstIdent.val.name;
-
-    // Special forms (functions that don't necessarily eval their args)
-    if (streq(name, "f")) {
-        return _f(args, argc);
-    }
-
-    for (int i = 0; i < builtinCount; i++) {
-        if (streq(name, builtinFunctions[i].name)) {
-            // Recursively eval args
-            Value** evalledArgs = mmalloc(sizeof(Value*) * argc);
-            for (int i = 0; i < argc; i++) {
-                evalledArgs[i] = elemEval(args[i]);
-            }
-
-            return builtinFunctions[i].func(evalledArgs, argc);
-        }
-    }
-
-    // TODO Look for the function in the env
-
-    // Error case (null pointer)
-    return 0;
 }
 
 // Evaluate lisp and set the result to the given cell

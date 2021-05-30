@@ -1,6 +1,12 @@
 # Lambdas, function references, etc
 
-- [ ] Add `reduce`
+- [ ] Make it possible to pass builtin references
+Do this by representing builtins as a ValueFunc with a builtin type.
+funcEval can then check the type of a ValueFunc and either run the
+builtin or run the body.
+
+Where should the ValueFuncs representing builtins be created? Probably create ValueFunc structs instead of BuiltinFunction structs
+
 - [ ] Add `filter`
 - [ ] Add `bool` value type
 - [ ] Add ability to store parsed lisp in an env
@@ -33,6 +39,7 @@ uses an iterator instead. E.g. `(repeat 10)`
 - [ ] Add `(repeat x)` function
 - [ ] Add `(take x)` function
 - [ ] Add `(drop x)` function
+- [ ] Add `take-while`, `drop-while`
 - [ ] Use lazy lists for whole columns (e.g. :A)
 
 # Write a proper allocator

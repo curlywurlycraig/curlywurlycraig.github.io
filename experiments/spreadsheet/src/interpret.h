@@ -3,7 +3,8 @@
 
 #include "parse.h"
 
-// Environment
+#define BUILTIN_COUNT 9
+#define MAX_BINDINGS 20
 
 typedef struct ValueList ValueList;
 typedef struct ValueFunc ValueFunc;
@@ -52,7 +53,36 @@ typedef struct Env {
     int bindingCount;
 } Env;
 
-#define MAX_BINDINGS 20
+typedef struct ValueList {
+    Value** values;
+    int length;
+} ValueList;
+
+enum ValueFuncType {
+    VF_BUILTIN,
+    VF_LISP
+};
+
+typedef struct BuiltinFunction {
+    evalFunc func;
+    char* name;
+} BuiltinFunction;
+
+typedef struct LispFunction {
+    List* body;
+    Ident* bindings;
+    int argc;
+} LispFunction;
+
+typedef struct ValueFunc {
+    enum ValueFuncType type;
+    union {
+        LispFunction lispF;
+        BuiltinFunction builtin;
+    } value;
+} ValueFunc;
+
+static BuiltinFunction builtinFunctions[BUILTIN_COUNT];
 
 void initEnv();
 
@@ -74,49 +104,11 @@ int envIsCellNameList(char* cellName);
 
 int envGetColumnByName(char* cellName);
 
-// Interpretation
-
-typedef struct ValueList {
-    Value** values;
-    int length;
-} ValueList;
-
-typedef struct ValueFunc {
-    List* body;
-    Ident* bindings;
-    int argc;
-} ValueFunc;
-
-Value* funcEval(ValueFunc* vf, Value** bindingValues);
+Value* funcEval(ValueFunc* vf, Value** bindingValues, int argc);
 
 Value* valueNewDouble(double val);
 
 double valueGetNum(Value* value);
-
-struct BuiltinFunction {
-    evalFunc func;
-    char* name;
-};
-
-Value* _add(Value** args, unsigned int argc);
-
-Value* _sub(Value** args, unsigned int argc);
-
-Value* _mult(Value** args, unsigned int argc);
-
-Value* _sin(Value **args, unsigned int argc);
-
-Value* _cos(Value** args, unsigned int argc);
-
-Value* _tan(Value** args, unsigned int argc);
-
-Value* _range(Value** args, unsigned int argc);
-
-Value* _map(Value** args, unsigned int argc);
-
-// Macros (just don't eval their args)
-
-Value* _f(Elem** args, unsigned int argc);
 
 Value* listEval(List* list);
 
