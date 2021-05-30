@@ -12,4 +12,4 @@ build:
 		-Wl,--import-memory \
 		-Wl,--max-memory=13107200 \
 		-o dist/main.wasm \
-		src/main.c
+		src/*.c

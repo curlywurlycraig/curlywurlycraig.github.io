@@ -1,15 +1,9 @@
-extern void prints(char* str);
-extern void printi(int i);
-extern void printf(float f);
-extern void printd(double d);
-extern double sin(double x);
-extern double cos(double x);
-extern double tan(double x);
-
-#include "mem.c"
-#include "string.c"
-#include "math.c"
-#include "parse.c"
+#include "mem.h"
+#include "string.h"
+#include "math.h"
+#include "parse.h"
+#include "interpret.h"
+#include "imports.h"
 
 #define MAX_FORMULA_CHARS 200
 #define COL_COUNT 20

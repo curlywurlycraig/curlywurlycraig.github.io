@@ -1,32 +1,24 @@
+# Use header files
+
+# Cell ranges
+
+- [ ] Evaluate :C1-C5 as a list
+
 # Lambdas, function references, etc
 
-`(map (f (a) (+ a 1)) (range 1 10))`
-
-Column formulas are not so useful without being able to specify
-e.g. `(map (lambda...) some-list)`.
-
-One of the Parse types should be function. Those can be executed with arguments.
-Eventually these should be able to be stored in the env:
-(i.e. with `(defn some-func (arg1 arg2) ...)`)
-
-Lambda syntax thoughts.
-
-`(f (x y) (+ x y))` Probably my favourite.
-`((x y) (+ x y))` Interesting, but would prevent e.g. `((if cond + -) 1 2)`
-`(\ (x y) (+ x y))` Nice, but very similar to `(/ 1 2)` i.e. division
-`(. (x y) (+ x y))`
-
-- [ ] Add lambdas. `(fn (x y) (+ x y))`
-- [ ] Add `map` and `filter`
+- [ ] Add `filter`
 - [ ] Add `reduce`
 - [ ] Add ability to store parsed lisp in an env
       (Basically some `fun` builtin)
 - [ ] Add ability to execute parsed lisp in the env
 
-# Write a proper allocator
+# Evaluation order
 
-- [ ] Rewrite mmalloc so that it can be deallocated.
-- [ ] When de-allocating, only de-allocate the tokenizer result and the parse result. Search through calls to `mmalloc` and ensure they're all removed.
+- [ ] Only execute cells when they are outdated
+  I.e. their dependencies have updated.
+  Prevent infinite loops!
+  Or, allow them, but they must proceed incrementally... that could be good for non-linear functions... chaos!
+- [ ] Virtualise list
 
 # Lazy lists
 
@@ -36,6 +28,32 @@ uses an iterator instead. E.g. `(repeat 10)`
 - [ ] Add `(repeat x)` function
 - [ ] Add `(take x)` function
 - [ ] Add `(drop x)` function
+- [ ] Use lazy lists for whole columns (e.g. :A)
+
+# Write a proper allocator
+
+- [ ] Rewrite mmalloc so that it can be deallocated.
+- [ ] When de-allocating, only de-allocate the tokenizer result and the parse result. Search through calls to `mmalloc` and ensure they're all removed.
+
+# Backend execution feature
+
+- [ ] Get the LISP interpreter running in Deno/node
+- [ ] Write tests: run loads of scenarios in there and make assertions
+- [ ] Write an API that allows for CRUD.
+- [ ] Add a feature whereby cells can be marked as exposed via API.
+- [ ] The sheet has some ID, and you could do e.g.
+      `GET /sheet/:sheetId/:cellName`. Maybe you can do named queries,
+      and add multiple things. So if you name cells `total`, `average`,
+      and maybe a list like `values`, you'd get:
+      `GET /sheet/:sheetId/income`
+      ```json
+      {
+            total: 123,
+            average: 111,
+            values: [104, 400, 145]
+      }
+      ```
+- [ ] Probably want sheet versioning too.
 
 # Improvements
 
@@ -43,18 +61,21 @@ Make bindings a map instead of an array.
 
 Don't do string comparison of idents all the time. Instead, replace string names with a numerical ID.
 
+Move utilities to other files. E.g. the envIsCellNameList etc should be their own file.
+
 # Backlog
 
-- [ ] Only execute cells when they are outdated
-  I.e. their dependencies have updated.
-  Prevent infinite loops!
-  Or, allow them, but they must proceed incrementally... that could be good for non-linear functions... chaos!
-- [ ] Add cell ranges
 - [ ] Highlight cells which are lisp
 - [ ] Add ability to upload CSV
 - [ ] Add ability to do web scraping. This would combine nicely with column/cell formulas
       since you could do e.g. `(web-scrape "https://blah.blah" "span.someclass")`
       and get all the contents of those spans as cells.
+
+      Will need to reveal a callback that accepts data.
+      As in, WASM calls fetch, sets requisite cells to some
+      "waiting" value, then JS eventually calls a "done"
+      callback with resulting fetch data. It might need to ask
+      WASM for a place to store the result.
 
       Try to do what I showed Meg as a demo: get 2018 values of countries by cherry production
       with a simple formula:

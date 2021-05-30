@@ -1,3 +1,5 @@
+#include "string.h"
+
 double ten_pow(int pow) {
     double result = 1;
     for (int i = 0; i < pow; i++) {
