@@ -1,7 +1,9 @@
 #ifndef __PARSE_H__
 #define __PARSE_H__
 
-// Tokenize
+#define MAX_TOKENS 256
+#define MAX_FINDERS 16
+#define MAX_TOKEN_LENGTH 256
 
 typedef enum CharType {
     START,
@@ -56,9 +58,6 @@ typedef struct TokenFinder {
     Token token;
 } TokenFinder;
 
-#define MAX_TOKENS 256
-#define MAX_FINDERS 16
-
 CharType getCharType(char input);
 
 Validity validateRange(char* range, int startIndex, int endIndex, TokenFinder finder);
@@ -105,8 +104,6 @@ typedef struct ParseInfo {
     double result;
     TokenizeResult *tokenizeResult;
     char* raw;
-
-    double x;
 } ParseInfo;
 
 TokenInfo lookAhead(ParseInfo *info, int ahead);

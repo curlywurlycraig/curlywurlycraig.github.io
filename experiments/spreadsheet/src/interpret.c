@@ -3,15 +3,9 @@
 #include "imports.h"
 #include "interpret.h"
 
-// Environment
-
-static unsigned int ROW_COUNT = 20;
-static unsigned int COL_COUNT = 20;
-
 Env env;
 
 void initEnv() {
-    // TODO Don't hard code bindings
     env.bindingCount = 0;
     env.bindings = mmalloc(sizeof(Binding) * MAX_BINDINGS);
     env.cellValues = mmalloc(sizeof(CellValue*) * ROW_COUNT);

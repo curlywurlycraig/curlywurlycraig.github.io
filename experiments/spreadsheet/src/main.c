@@ -21,6 +21,8 @@ void init() {
 
     initTokenFinders();
     initEnv();
+
+    // TODO Eval the standard library
 }
 
 char* getInputPointer() {
@@ -28,19 +30,11 @@ char* getInputPointer() {
 }
 
 void executeFormulaForCell(int row, int col) {
-    markmem();
-
     TokenizeResult tokens = tokenize(formulaInput);
     evalAndSetResultToCell(tokens, formulaInput, row, col);
-
-    resetmem();
 }
 
 void executeFormulaForCol(int col) {
-    markmem();
-
     TokenizeResult tokens = tokenize(formulaInput);
     evalAndSetResultsToCol(tokens, formulaInput, col);
-
-    resetmem();
 }

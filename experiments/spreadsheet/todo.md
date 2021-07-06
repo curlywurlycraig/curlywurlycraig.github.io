@@ -1,12 +1,5 @@
 # Lambdas, function references, etc
 
-- [ ] Make it possible to pass builtin references
-Do this by representing builtins as a ValueFunc with a builtin type.
-funcEval can then check the type of a ValueFunc and either run the
-builtin or run the body.
-
-Where should the ValueFuncs representing builtins be created? Probably create ValueFunc structs instead of BuiltinFunction structs
-
 - [ ] Add `filter`
 - [ ] Add `bool` value type
 - [ ] Add ability to store parsed lisp in an env
@@ -14,7 +7,6 @@ Where should the ValueFuncs representing builtins be created? Probably create Va
 - [ ] Add `<`, `>`, `=`, `>=`, `<=`, `not`, etc
 - [ ] Add ability to execute parsed lisp in the env
 - [ ] Create a small "standard library" of lisp files.
-- [ ] Make it possible to pass builtins as functions to map etc
 
 # Cell ranges
 
@@ -51,6 +43,7 @@ uses an iterator instead. E.g. `(repeat 10)`
 
 - [ ] Get the LISP interpreter running in Deno/node
 - [ ] Write tests: run loads of scenarios in there and make assertions
+- [ ] Memory test. Execute the same thing a few times, and assert that the allocated memory hasn't grown.
 - [ ] Write an API that allows for CRUD.
 - [ ] Add a feature whereby cells can be marked as exposed via API.
 - [ ] The sheet has some ID, and you could do e.g.

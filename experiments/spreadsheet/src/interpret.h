@@ -5,6 +5,8 @@
 
 #define BUILTIN_COUNT 9
 #define MAX_BINDINGS 20
+#define ROW_COUNT 20
+#define COL_COUNT 20
 
 typedef struct ValueList ValueList;
 typedef struct ValueFunc ValueFunc;

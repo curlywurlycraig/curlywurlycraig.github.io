@@ -3,7 +3,7 @@
 #include "string.h"
 #include "math.h"
 
-TokenFinder *tokenFinders;
+TokenFinder* tokenFinders;
 unsigned int numTokenFinders;
 
 CharState startState;
@@ -394,7 +394,7 @@ TokenizeResult tokenize(char* formula) {
                 newToken.validity = VALID;
                 newToken.startIndex = startIndex;
                 newToken.endIndex = bestEndIndex;
-                newToken.raw = mmalloc(sizeof(char) * 256);
+                newToken.raw = mmalloc(sizeof(char) * MAX_TOKEN_LENGTH);
                 strcpy(newToken.raw, formula, newToken.startIndex, newToken.endIndex);
                 result.tokens[result.tokenCount] = newToken;
                 result.tokenCount++;
@@ -419,7 +419,7 @@ TokenizeResult tokenize(char* formula) {
             newToken.validity = VALID;
             newToken.startIndex = bestStartIndex;
             newToken.endIndex = endIndex - 1;
-            newToken.raw = mmalloc(sizeof(char) * 256);
+            newToken.raw = mmalloc(sizeof(char) * MAX_TOKEN_LENGTH);
             strcpy(newToken.raw, formula, newToken.startIndex, newToken.endIndex);
             result.tokens[result.tokenCount] = newToken;
             result.tokenCount++;

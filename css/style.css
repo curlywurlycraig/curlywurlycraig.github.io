@@ -1,65 +1,73 @@
 #canvas {
-    width: 100%;
-    max-width: 400px;
-    max-height: 300px;
+  width: 100%;
+  max-width: 400px;
+  max-height: 300px;
 }
 
 body {
-    background-color: #09152b;
-    padding: 0;
-    margin-right: 10px;
-    max-width: 600px;
-    font-size: 14px;
-    hyphens: auto;
+  background-color: #09152b;
+  padding: 0;
+  margin-right: 10px;
+  max-width: 600px;
+  font-size: 14px;
+  hyphens: auto;
 }
 
 html {
-    color: #dee3f0;
-    font-family: Consolas, monospace;
+  color: #dee3f0;
+  font-family: Courier, monospace;
+}
+
+h1 {
+  font-family: Andale Mono, Courier New, monospace;
+}
+
+h2 {
+  font-family: Andale Mono, Courier New, monospace;
 }
 
 .code {
-    color: #e4a85c;
-    background-color: #FFFFFF22;
-    font-family: Consolas, Courier New, monospace;
+  color: #e4a85c;
+  background-color: #ffffff22;
+  font-family: Andale Mono, Courier New, monospace;
 }
 
 .footnote {
-    font-size: 0.8em;
-    opacity: 0.9;
+  font-size: 0.8em;
+  opacity: 0.9;
 }
 
 .todo {
-    opacity: 0.5;
+  opacity: 0.5;
 }
 
 hr {
-    height: 1px;
-    border: none;
-    background-color: #aad;
-    opacity: 0.3;
+  height: 1px;
+  border: none;
+  background-color: #aad;
+  opacity: 0.3;
 }
 
 p {
-    line-height: 150%;
+  line-height: 150%;
 }
 
 a {
-    color: #88d;
+  color: #88d;
 }
 
 a:visited {
-    color: #aad;
+  color: #aad;
 }
 
 .quote {
-    border-left: 3px solid #dee3f0;
-    padding-left: 8px;
-    background-color: #252540;
-    padding: 5px 5px 5px 8px;
+  border-left: 3px solid #dee3f0;
+  padding-left: 8px;
+  background-color: #252540;
+  padding: 5px 5px 5px 8px;
 }
 
 .silent-iframe {
-    overflow: hidden;
-    border: none;
+  overflow: hidden;
+  border: none;
 }
