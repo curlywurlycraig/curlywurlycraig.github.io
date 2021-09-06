@@ -1,9 +1,4 @@
-(ns three-body-problem.core
-  (:require [clojure.browser.repl :as repl]
-            [cljs.pprint]))
-
-;; (defonce conn
-;;   (repl/connect "http://localhost:9000/repl"))
+(ns three-body-problem.core)
 
 (def c (. js/document getElementById "c"))
 (def ctx (. c getContext "2d"))
@@ -15,20 +10,14 @@
 
 (def init-bodies
   [{:r 20
-    :x 200
-    :y 0
-    :xv 0
-    :yv 2.5}
+    :x 200 :y 0
+    :xv 0 :yv 2.5}
    {:r 20
-    :x -200
-    :y 0
-    :xv 0
-    :yv -2.5}
+    :x -200 :y 0
+    :xv 0 :yv -2.5}
    {:r 1
-    :x 0
-    :y 400
-    :xv 5
-    :yv 0}])
+    :x 0 :y 400
+    :xv 5 :yv 0}])
 
 (def bodies (atom init-bodies))
 
