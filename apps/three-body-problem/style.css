@@ -2,6 +2,7 @@
     width: 100%;
     height: 100vh;
     overflow: hidden;
+    background-color: #111;
 }
 
 #title {
@@ -10,9 +11,8 @@
     right: 10px;
     text-align: right;
     margin: 0;
-    color: #e4a85c;
-    font-style: italic;
-    font-size: 70px;
+    color: #8c6d46;
+    font-size: 50px;
 }
 
 #random {
