@@ -8,13 +8,23 @@
     <link rel="stylesheet" href="./style.css">
   </head>
   <body>
-    <h1 id="title">Three Body Problem</h2>
-    <canvas id="c" aria-label="Three circles rotating around each other in a chaotic way."></canvas>
-    <button id="random">Randomize</button>
+    <div id="top-bit">
+      <canvas id="c" aria-label="Three circles rotating around each other in a chaotic way."></canvas>
+      <button id="random">Randomize</button>
+      <div id="preset-container"></div>
+    </div>
 
+    <div id="text-content">
+      <p>Just a non-linear dynamical system. Inspired by <i>The Three-Body Problem</i> by Liu Cixin.
+        I wrote this using ClojureScript, which I found to be an expressive way to describe the problem.
+        Unfortunately the build output from ClojureScript is pretty
+        large. The result of this project is over 100kb of JS, somehow.
 
-    <h1>Some words about this</h1>
-    
-    <script src="./out/three_body_problem.js" type="text/javascript"></script>
+        You can find <a href="https://github.com/curlywurlycraig/curlywurlycraig.github.io/blob/master/apps/three-body-problem/src/three_body_problem/core.cljs">the source</a> on GitHub.
+
+        </p>
+      </div>
+
+    <script src="./main.js" type="text/javascript"></script>
   </body>
 </html>
