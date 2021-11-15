@@ -25,10 +25,13 @@
     position: absolute;
     bottom: 10px;
     right: 10px;
-    background: none;
-    border: 2px solid #e4a85c;
+    background: #ffffff22;
     color: #e4a85c;
+    font-family: Courier, monospace;
     font-size: 20px;
+    border-width: 0;
+    border-radius: 5px;
+    padding: 5px;
 }
 
 #random:hover {
