@@ -18,59 +18,28 @@
 ;; https://en.wikipedia.org/wiki/Gravitational_constant
 (def G 6.674e-11)
 
-(def presets {
-              :earth-sun
-              [
-               {:r 6.37e+6
-                :m 5.972e+24
-                :x 150.56e+9
-                :y 0
-                :xv 0
-                :yv 30e+3
-                :collides false
-                :color "#ff4444"}
-               {:r 636.34e+6
-                :m 1.989e+30
-                :x 0 :y 0
-                :xv 0 :yv 0
-                :collides false
-                :color "#44ff44"}
-               {:r 1e+6
-                :m 1e+24
-                :x 0 :y 200e+12
-                :xv 0 :yv 0
-                :collides false
-                :color "#4444ff"}
-               ]
-
-              :ejector
-              [
-               {:r 446715316.7201177
-                :m 4.747801601113963e+30
-                :x -234395537652.3922
-                :y 146091689581.0697
-                :xv -19682.5108207867
-                :yv -16608.53383736956
-                :collides false
-                :color "#ff4444"}
-               {:r 108445631.96879774
-                :m 6.348716039263539e+30
-                :x 4957727711.402954
-                :y 208081910850.28613
-                :xv 4401.989805949335
-                :yv 18975.83202357812
-                :collides false
-                :color "#44ff44"}
-               {:r 172940993.23917344
-                :m 1.409398865053951e+30
-                :x 206322935360.31714
-                :y -127981731257.94144
-                :xv 26295.314170081256
-                :yv 3060.2088297695154
-                :collides false
-                :color "#4444ff"}
-               ]
-              })
+(def init-bodies
+   [{:r 6.37e+6
+     :m 5.972e+24
+     :x 150.56e+9
+     :y 0
+     :xv 0
+     :yv 30e+3
+     :collides false
+     :color "#ff4444"}
+    {:r 636.34e+6
+     :m 1.989e+30
+     :x 0 :y 0
+     :xv 0 :yv 0
+     :collides false
+     :color "#44ff44"}
+    {:r 1e+6
+     :m 1e+24
+     :x 0 :y 200e+12
+     :xv 0 :yv 0
+     :collides false
+     :color "#4444ff"}
+    ])
 
 (def init-camera
   {:x 0
@@ -78,7 +47,6 @@
    :xscale 10e+12 ;; From left to right, distance in metres
    })
 
-(def init-bodies (:ejector presets))
 (def bodies (atom init-bodies))
 (def history (atom [init-bodies]))
 (def camera (atom init-camera))
@@ -237,5 +205,6 @@
 (def random-button (. js/document getElementById "random"))
 (.addEventListener random-button "click" randomize)
 
+(randomize)
 (draw-bodies)
 (animate)
