@@ -1,7 +1,5 @@
 (ns three-body-problem.core)
 
-(enable-console-print!)
-
 (def c (. js/document getElementById "c"))
 
 (set! (.-width c) (* 2 (.-clientWidth c)))
