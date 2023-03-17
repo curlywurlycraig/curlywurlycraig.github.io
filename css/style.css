@@ -15,6 +15,10 @@ body {
   hyphens: auto;
 }
 
+header {
+  margin-bottom: 40px;
+}
+
 html {
   color: #dee3f0;
   font-family: sans-serif;
