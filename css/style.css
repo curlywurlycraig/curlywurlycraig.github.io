@@ -5,31 +5,42 @@
 }
 
 body {
+  padding: 10px;
+  padding-top: 50px;
+  padding-bottom: 80px;
   background-color: #09152b;
-  padding: 0;
-  margin-right: 10px;
-  max-width: 600px;
-  font-size: 14px;
+  margin: auto;
+  max-width: 700px;
+  font-size: 1rem;
   hyphens: auto;
 }
 
 html {
   color: #dee3f0;
-  font-family: Courier, monospace;
+  font-family: sans-serif;
 }
 
 h1 {
-  font-family: Andale Mono, Courier New, monospace;
+  font-family: sans-serif;
+  margin-top: 40px;
+  margin-bottom: 40px;
+  font-size: 1.8em;
 }
 
 h2 {
-  font-family: Andale Mono, Courier New, monospace;
+  font-family: sans-serif;
+  margin-bottom: 20px;
+  margin-top: 40px;
+  font-size: 1.4em;
 }
 
 .code {
   color: #e4a85c;
   background-color: #ffffff22;
   font-family: Andale Mono, Courier New, monospace;
+  border-radius: 5px;
+  padding: 3px;
+  overflow-wrap: anywhere;
 }
 
 .footnote {
@@ -62,9 +73,9 @@ a:visited {
 
 .quote {
   border-left: 3px solid #dee3f0;
-  padding-left: 8px;
+  border-radius: 3px;
   background-color: #252540;
-  padding: 5px 5px 5px 8px;
+  padding: 10px 20px;
 }
 
 .silent-iframe {
