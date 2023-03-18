@@ -1,0 +1,95 @@
+<html>
+  <head>
+    <title>DOM utilities, hiccup, an editor.</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="./index.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat&family=Raleway&display=swap" rel="stylesheet"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+
+  <body>
+    <header>
+      <a href="/">
+        <img src="/favicon.ico"/>
+      </a>
+    </header>
+
+    <h1>A tiny syntax highlighted text editor</h1>
+
+    <p>
+      Demo first!
+    </p>
+
+    <div id="demo">
+        <p>
+            There's a demo of a little syntax-highlighted text editor here if you enable JavaScript.
+        </p>
+
+        <p>
+            I understand not wanting to run JavaScript on the modern web. My
+            JavaScript respects you! There's no tracking, there are no
+            dependencies, I wrote all the JavaScript. The bundle size is small.
+        </p>
+
+        <p>
+            But if you don't want to enable JS, you can still read a bit about
+            how I made this <a href="/posts/hiccup">here</a>.
+        </p>
+    </div>
+
+
+<p>
+I needed a really small text editor (in terms of bundle size) for an in-browser
+video game I'm working on. I want the game to load very fast even on poor
+internet connections, and I have found that as soon as you open the dependency
+flood-gates your bundle size grows enormously.
+</p>
+
+<p>
+Challenging myself to not use any dependencies also means being forced to learn
+a lot more than you would otherwise, since you can't just import parsers, DOM
+utilities, and so on. You have to do it yourself and learn something along the
+way. And who knows, maybe you'll end up writing something better than what you would
+have imported.
+</p>
+
+<h2>Tokenising</h2>
+
+<p>
+Tokens for the editor are identified using a set of
+<a href="https://en.wikipedia.org/wiki/Parser_combinator">parser
+combinators</a>.
+</p>
+
+<p>
+They look like this:
+</p>
+
+<div class="code-container">
+  <pre><code><span class="parsed_KEYWORD_CONST">const</span> string = <span class="parsed_FUNC_CALL">or</span>(
+    <span class="parsed_FUNC_CALL">sequence</span>(
+        <span class="parsed_FUNC_CALL">parseCharacter</span>(<span class="parsed_STRING">'"'</span>),
+        <span class="parsed_FUNC_CALL">maybe</span>(<span class="parsed_FUNC_CALL">parseWhileChar</span>(c =&gt; c !== <span class="parsed_STRING">'"'</span>)),
+        <span class="parsed_FUNC_CALL">parseCharacter</span>(<span class="parsed_STRING">'"'</span>)
+    ),
+    <span class="parsed_FUNC_CALL">sequence</span>(
+        <span class="parsed_FUNC_CALL">parseCharacter</span>(<span class="parsed_STRING">"'"</span>),
+        <span class="parsed_FUNC_CALL">maybe</span>(<span class="parsed_FUNC_CALL">parseWhileChar</span>(c =&gt; c !== <span class="parsed_STRING">"'"</span>)),
+        <span class="parsed_FUNC_CALL">parseCharacter</span>(<span class="parsed_STRING">"'"</span>)
+    )
+);
+</code></pre>
+</div>
+
+<p>
+The nice thing about parser combinators (over something like regex) is that they
+are readable and composable. Creating entirely new language parsers is easy by
+combining combinators differently.
+</p>
+
+  </body>
+
+  <script src="./out/index.js"></script>
+</html>

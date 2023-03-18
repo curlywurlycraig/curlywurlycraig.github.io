@@ -47,6 +47,10 @@ h2 {
   overflow-wrap: anywhere;
 }
 
+code {
+    font-family: monospace;
+}
+
 .footnote {
   font-size: 0.8em;
   opacity: 0.9;

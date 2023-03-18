@@ -1,0 +1,89 @@
+.editor_container {
+    position: relative;
+    min-height: 500px;
+    overflow: scroll;
+    margin: 40px 0;
+}
+
+.editor_textarea {
+    font-family: monospace;
+    font-size: 0.8rem;
+    line-height: 1.4rem;
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 5px;
+    margin: 0;
+    color: transparent;
+    caret-color: white;
+    background-color: #ffffff05;
+
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    bottom: 0;
+
+    border-radius: 8px;
+    border: 0;
+    outline: 0;
+    overflow: hidden;
+    resize: none;
+}
+
+code {
+    font-family: monospace;
+    font-size: 0.8rem;
+    line-height: 1.4rem;
+    padding: 5px;
+}
+
+.code-container {
+    background-color: #ffffff05;
+    border-radius: 8px;
+    padding: 5px;
+}
+
+.editor_draw {
+    padding: 5px;
+    position: absolute;
+    margin: 0;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    white-space: break-spaces;
+}
+
+#demo {
+    background-color: #ffffff11;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+.editor_span {
+    padding: 0;
+    margin: 0;
+}
+
+.parsed_FUNC_CALL {
+    color: #7875fc;
+}
+
+.parsed_COMMENT {
+    color: #ffffff3d;
+}
+
+.parsed_KEYWORD {
+    color: #df9754;
+}
+
+.parsed_STRING {
+    color: #ea84d0;
+}
+
+.parsed_KEYWORD_CONST {
+    color: #f06b6b;
+}
+
+.parsed_NUMBER {
+    color: #72c9e3;
+}

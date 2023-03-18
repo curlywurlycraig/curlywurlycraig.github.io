@@ -1,0 +1,127 @@
+<html>
+  <head>
+    <title>DOM utilities, hiccup, an editor.</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="./index.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat&family=Raleway&display=swap" rel="stylesheet"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+
+  <body>
+    <header>
+      <a href="/">
+        <img src="/favicon.ico"/>
+      </a>
+    </header>
+
+    <h1>Hiccup: Representing the DOM with arrays</h1>
+
+    <div id="demo">
+        <p>
+            There's a demo of a little syntax-highlighted text editor here if you enable JavaScript.
+        </p>
+
+        <p>
+            I understand not wanting to run JavaScript on the modern web. My
+            JavaScript respects you! There's no tracking, there are no
+            dependencies, I wrote all the JavaScript. The bundle size is small.
+        </p>
+
+        <p>
+            But if you don't want to enable JS, the rest of the blog post is perfectly readable.
+        </p>
+    </div>
+
+
+<p>
+Complaints and conversations about DOM interactivity (particularly about
+frameworks) are very much in vogue, with React taking the brunt of the
+naysaying. This is in large part due to being so much market share, but some
+criticisms appear, at least on the surface, to be valid.
+</p>
+
+<p>
+Issues like exploding bundle sizes, unnecessary re-renders, and bike-shedding
+dev-X approaches over actual problem solving are in line with my experience on
+React projects.
+</p>
+
+<p>
+What better way to interrogate some of these concerns than by writing another?
+No less as part of a project which is deemed unlikely to ever finish because of
+such a pursuit.
+</p>
+
+<p>
+    Anyway, I found myself just <i>feeling bad</i> about pulling in React (or
+    any dependencies, for that matter) and additional dependencies for a video
+    game I've been working on (one of many projects that may never end). As a
+    result I ended up trying to solve the DOM problems I had myself, building on some
+    <a href="https://github.com/btfidelis/hiccupjs">prior</a> <a href="https://news.ycombinator.com/item?id=23590750">art</a>.
+</p>
+
+<p>
+    Something beatiful about the result when trying to reduce these problems to
+    their most minimal is that you eventually arrive at something almost
+    archetypal. The above bits of code get at something nearly irreducable about
+    making updates to DOM elements. What is left is the core assumptions about how the DOM works.
+</p>
+
+<h2>1. Patch element attributes</h2>
+
+<p>
+    One of these "archetypes" of DOM programming is patching element attributes. That is,
+    given a DOM element and an object (a mapping of attribute name to value),
+    update the DOM element's attributes.
+</p>
+
+<div id="archetype1_container">
+<pre>
+<code>
+code here.
+</code>
+</pre>
+</div>
+
+<h2>2. Render JSX "components"</h2>
+
+<p>
+    Given some JSX, render the JSX and all of its children until reaching "leaf"
+    nodes. A leaf node is a real HTML DOM element such as <code>span</code> or
+    <code>p</code>, or a text node.
+</p>
+
+<div id="archetype2_container">
+<pre>
+<code>
+code here.
+</code>
+</pre>
+</div>
+
+
+<h2>Whatever</h2>
+
+<p>
+Anyway I'm a bit bored writing about all of them, but you get the gist. You can
+find the complete code for this approach
+<a href="https://github.com/curlywurlycraig/vdom-util">here</a>.
+</p>
+
+<p>
+Really, I just want to solve the problem I face directly, and this small excursion into general purpose tooling
+for making modifications to the DOM in a reactive manner (while keeping bundle
+size very small) was satisfactory.
+</p>
+
+<p>
+    I am still back and forth about whether I want to just focus on the MVP of
+    my game, or spend time on my own tooling. I'm fine with my own tooling for now...
+</p>
+
+  </body>
+
+  <script src="./out/index.js"></script>
+</html>
