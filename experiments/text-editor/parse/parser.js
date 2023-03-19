@@ -6,6 +6,10 @@ export class ParseContext {
     constructor(inp) {
         this.raw = inp;
     }
+
+    isAtEnd() {
+        return this.idx >= this.raw.length;
+    }
 }
 
 const isAlpha = (c) => {
@@ -21,6 +25,36 @@ const isDigit = (c) => {
 
 const isWhitespace = (c) => {
     return (c === '\n' || c === ' ' || c === '\t');
+}
+
+const parseUntil = (parser) => (ctx) => {
+    const startIndex = ctx.idx;
+    while (!parser(ctx)) {
+        if (ctx.isAtEnd()) {
+            ctx.idx = startIndex;
+            return null;
+        }
+
+        ctx.idx++;
+    }
+
+    const endIndex = ctx.idx;
+    ctx.idx = startIndex;
+    return {
+        start: startIndex,
+        end: endIndex
+    };
+}
+
+const parseEnd = () => (ctx) => {
+    if (ctx.isAtEnd()) {
+        return {
+            start: ctx.idx,
+            end: ctx.idx
+        };
+    }
+
+    return null;
 }
 
 const parseWhileChar = (charCond) => (ctx) => {
@@ -186,9 +220,21 @@ const funcCallName = sequence(
     peek(parseCharacter("("))
 );
 
-const comment = sequence(
-    parseString("//"),
-    maybe(parseWhileChar(c => c !== '\n'))
+const comment = or(
+    sequence(
+        parseString("//"),
+        maybe(parseWhileChar(c => c !== '\n'))
+    ),
+    sequence(
+        parseString("/*"),
+        parseUntil(
+            or(
+                parseString("*/"),
+                parseEnd(),
+            )
+        ),
+        maybe(parseString("*/"))
+    )
 )
 
 const string = or(
@@ -272,6 +318,15 @@ export const parseJS = untilEnd(
         consume(keyword("return"), "KEYWORD"),
         consume(keyword("null"), "KEYWORD"),
         consume(keyword("undefined"), "KEYWORD"),
+        consume(keyword("if"), "KEYWORD"),
+        consume(keyword("while"), "KEYWORD"),
+        consume(keyword("let"), "KEYWORD"),
+        consume(keyword("import"), "KEYWORD"),
+        consume(keyword("from"), "KEYWORD"),
+        consume(keyword("object"), "KEYWORD"),
+        consume(keyword("as"), "KEYWORD"),
+        consume(keyword("else"), "KEYWORD"),
+        consume(keyword("typeof"), "KEYWORD"),
         drop(one())
     )
 )

@@ -1,51 +1,44 @@
 .editor_container {
     position: relative;
-    min-height: 500px;
-    overflow: scroll;
     margin: 40px 0;
+    background-color: #ffffff05;
+    border-radius: 8px;
+    padding-bottom: 20px;
 }
 
 .editor_textarea {
-    font-family: monospace;
-    font-size: 0.8rem;
-    line-height: 1.4rem;
     position: absolute;
     top: 0;
     left: 0;
     padding: 5px;
     margin: 0;
-    color: transparent;
-    caret-color: white;
-    background-color: #ffffff05;
 
     width: 100%;
     height: 100%;
     box-sizing: border-box;
     bottom: 0;
 
-    border-radius: 8px;
     border: 0;
     outline: 0;
     overflow: hidden;
     resize: none;
+
+    font-family: monospace;
+    font-size: 0.8rem;
+    line-height: 1.4rem;
+    color: transparent;
+    caret-color: white;
+    background-color: transparent;
 }
 
 code {
     font-family: monospace;
     font-size: 0.8rem;
     line-height: 1.4rem;
-    padding: 5px;
-}
-
-.code-container {
-    background-color: #ffffff05;
-    border-radius: 8px;
-    padding: 5px;
 }
 
 .editor_draw {
     padding: 5px;
-    position: absolute;
     margin: 0;
     top: 0;
     left: 0;

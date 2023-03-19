@@ -12,9 +12,32 @@
     <link rel="stylesheet" href="/css/style.css" />
   </head>
   <body>
+    <header>
+      <a href="/">
+        <img src="/favicon.ico"/>
+      </a>
+    </header>
+
+    <h1>
+      It's a cube
+    </h1>
+
     <canvas width="800px" height="600px" id="canvas"></canvas>
 
     <p id="errors"></p>
+
+    <p>
+      This page is a little test of writing C to interact with a WebGL context.
+      I have somehow lost the C part of the code. All it did was produce view
+      and transformation matrices to be used in vertex shaders, but it is a
+      shame nonetheless.
+    </p>
+
+    <p>
+      If I remember right, it wasn't so bad using C for this at all. Much
+      inspiration comes from CNLohr's
+      <a href="https://github.com/cntools/rawdraw">rawdraw</a>.
+    </p>
 
     <script type="module" src="index.js">
     </script>

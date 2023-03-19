@@ -1,3 +1,0 @@
-void main() {
-    return "hello world!"; // that doesn't make sense
-}

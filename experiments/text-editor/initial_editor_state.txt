@@ -1,35 +1,12 @@
-export class ParseContext {
-    tokens = [];
-    raw = "";
-    idx = 0;
+// EDIT ME!
 
-    constructor(inp) {
-        this.raw = inp;
-    }
-}
+import { fire, getRotation, getXVel, getYVel } from "game.js";
 
-const isAlpha = (c) => {
-    return (
-        (c >= 'a' && c <= 'z') ||
-        (c >= 'A' && c <= 'Z') ||
-        (c >= '0' && c <= '9'));
-}
-
-const isWhitespace = (c) => {
-    return (c === '\n' || c === ' ' || c === '\t');
-}
-
-const parseWhileChar = (charCond) => (ctx) => {
-    const startIndex = ctx.idx;
-    let endIndex = startIndex;
-    while (charCond(ctx.raw[endIndex]) && ctx.raw[endIndex] !== undefined) {
-        endIndex++;
-    }
-
-    if (endIndex > startIndex) {
-        return {
-            start: startIndex,
-            end: endIndex
-        };
-    }
-}
+// Call this function once per game tick.
+// The contents of this function are non-sensical, but should
+// get the idea across.
+tick(() => {
+  if (getXVel() > 10.0 && getYVel() > 10.0) {
+    fire();
+  }
+});

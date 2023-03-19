@@ -47,8 +47,18 @@ h2 {
   overflow-wrap: anywhere;
 }
 
+pre {
+  margin: 0;
+}
+
 code {
     font-family: monospace;
+}
+
+.code-container {
+    background-color: #ffffff05;
+    border-radius: 8px;
+    padding: 10px;
 }
 
 .footnote {

@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>DOM utilities, hiccup, an editor.</title>
+    <title>Hiccup: Representing the DOM with arrays</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="./index.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,64 +18,89 @@
 
     <h1>Hiccup: Representing the DOM with arrays</h1>
 
-    <div id="demo">
-        <p>
-            There's a demo of a little syntax-highlighted text editor here if you enable JavaScript.
-        </p>
-
-        <p>
-            I understand not wanting to run JavaScript on the modern web. My
-            JavaScript respects you! There's no tracking, there are no
-            dependencies, I wrote all the JavaScript. The bundle size is small.
-        </p>
-
-        <p>
-            But if you don't want to enable JS, the rest of the blog post is perfectly readable.
-        </p>
-    </div>
-
-
 <p>
-Complaints and conversations about DOM interactivity (particularly about
-frameworks) are very much in vogue, with React taking the brunt of the
-naysaying. This is in large part due to being so much market share, but some
-criticisms appear, at least on the surface, to be valid.
+  Complaints and conversations about DOM interactivity (particularly about
+  frameworks) are very much in vogue. I'd like to avoid too much
+  pontification about my experience with JS frameworks, likes and dislikes, the
+  industry as a whole, pile-ons against React + hooks, etc., since this has been
+  debated to death on sites like Hacker News (which I have regretably 
+  participated in).
 </p>
 
 <p>
-Issues like exploding bundle sizes, unnecessary re-renders, and bike-shedding
-dev-X approaches over actual problem solving are in line with my experience on
-React projects.
+  Instead, I'd like to focus on a fun, quiet corner of JS DOM hackery that I
+  enjoy working with and which has a nice history.
 </p>
 
 <p>
-What better way to interrogate some of these concerns than by writing another?
-No less as part of a project which is deemed unlikely to ever finish because of
-such a pursuit.
+  Something beatiful about the result when trying to reduce these problems to
+  their most minimal is that you eventually arrive at something almost
+  archetypal, where the inherent simplicity in the tree structure of the DOM
+  shines through.
+</p>
+
+<h2>What is hiccup?</h2>
+
+<p>
+Hiccup is a very simple way to represent a DOM hierarchy. Well, it can represent
+any hierarchy really, and in many ways is so simple that it is presumably used
+in many contexts in many codebases without such a name.
 </p>
 
 <p>
-    Anyway, I found myself just <i>feeling bad</i> about pulling in React (or
-    any dependencies, for that matter) and additional dependencies for a video
-    game I've been working on (one of many projects that may never end). As a
-    result I ended up trying to solve the DOM problems I had myself, building on some
-    <a href="https://github.com/btfidelis/hiccupjs">prior</a> <a href="https://news.ycombinator.com/item?id=23590750">art</a>.
+The basic idea is to take a DOM hierarchy, such as:
+</p>
+
+<div class="code-container">
+  <pre><code>&lt;<span class="parsed_TAG">div</span> id=<span class="parsed_STRING">"men"</span>&gt;
+  &lt;<span class="parsed_TAG">p</span>&gt;hello world!&lt;/<span class="parsed_TAG">p</span>&gt;
+&lt;<span class="parsed_TAG">div</span>&gt;</code></pre>
+</div>
+
+<p>
+  And represent it as a nested array:
+</p>
+
+<div class="code-container">
+<pre><code key="__reec0eec1c0">[<span class="parsed_STRING" key="__reec0eec1c0c1">"div"</span>, {id: <span class="parsed_STRING" key="__reec0eec1c0c3">"men"</span>}, [
+  [<span class="parsed_STRING" key="__reec0eec1c0c5">"p"</span>, {}, [<span class="parsed_STRING" key="__reec0eec1c0c7">"hello world!"</span>]], <span class="parsed_COMMENT" key="__reec0eec1c0c9">// children of "men"</span>
+]];
+</code></pre>
+</div>
+
+<p>
+  The idea and name come from James Reeve's
+  <a href="https://github.com/weavejester/hiccup">Clojure project</a>,
+  and it's easy to see how this representation could be valuable in Clojure
+  with its Lispy style.
 </p>
 
 <p>
-    Something beatiful about the result when trying to reduce these problems to
-    their most minimal is that you eventually arrive at something almost
-    archetypal. The above bits of code get at something nearly irreducable about
-    making updates to DOM elements. What is left is the core assumptions about how the DOM works.
+  This idea is built upon in JS, as I found in Bruno Fidelis' project <a
+  href="https://github.com/btfidelis/hiccupjs">hiccupjs</a>, to which I made
+  small contributions and have since mutated in various ways across a few recent
+  small projects (including the <a href="/experiments/text-editor/">text editor
+  project</a> which I published at the same time as the post you are reading).
 </p>
 
-<h2>1. Patch element attributes</h2>
+<h2>Hiccup and the DOM</h2>
 
 <p>
-    One of these "archetypes" of DOM programming is patching element attributes. That is,
-    given a DOM element and an object (a mapping of attribute name to value),
-    update the DOM element's attributes.
+  Given a hiccup array, there are only a small number of things we need to be
+  able to do to use it on the DOM from JS.
 </p>
+
+<h3>Patching element attributes</h3>
+
+<p>
+    The first of these is patching element attributes. That is, given a DOM
+    element and an object (a mapping of attribute name to value), update the DOM
+    element's attributes.
+</p>
+
+TODO Add the code for patching attributes
+TODO Add a thing at the end suggesting to let me know if any issues are spotted
+or any obvious reductions are possible
 
 <div id="archetype1_container">
 <pre>
@@ -122,6 +147,4 @@ size very small) was satisfactory.
 </p>
 
   </body>
-
-  <script src="./out/index.js"></script>
 </html>

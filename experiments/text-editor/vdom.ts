@@ -1,3 +1,4 @@
+// HicType extends array literally just so that instanceof can be (ab)used.
 class HicType extends Array {}
 
 interface Tagged {

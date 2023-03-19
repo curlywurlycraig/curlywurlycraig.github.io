@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>DOM utilities, hiccup, an editor.</title>
+    <title>Syntax highlighted text editor</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="./index.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,11 +16,7 @@
       </a>
     </header>
 
-    <h1>A tiny syntax highlighted text editor</h1>
-
-    <p>
-      Demo first!
-    </p>
+    <h1>Syntax highlighted text editor</h1>
 
     <div id="demo">
         <p>
@@ -86,8 +82,34 @@ They look like this:
 <p>
 The nice thing about parser combinators (over something like regex) is that they
 are readable and composable. Creating entirely new language parsers is easy by
-combining combinators differently.
+combining combinators differently. They're also fast, but I haven't benchmarked
+them against regex.
 </p>
+
+<p>
+  You can see all of the other combinators used in the above text editor <a href="parse/parser.js">here</a>.
+</p>
+
+<h2>Hiccup</h2>
+
+<p>
+  The remaining work to produce an interactive text editor on the basis of the
+  parser combinators is some utilities to patch changes to the DOM using a
+  simple representation.
+</p>
+
+<p>
+  I used hiccup for the reasons outlined <a href="/posts/hiccup/">in this post</a>.
+</p>
+
+<h2>Why?</h2>
+
+<p>Well, I can use it in my game without shipping megabytes of JS to users. I
+can also use it for blogging purposes: I can use the above with different parser
+combinators and then simply copy the inner HTML of the resulting code
+element and paste into the source. That's how I generated the code block showing
+what the parser combinators look like without requiring JS at all (try this page
+without JS).</p>
 
   </body>
 
