@@ -17,3 +17,15 @@ code {
 .parsed_STRING {
     color: #ea84d0;
 }
+
+.parsed_FUNC_CALL {
+    color: #7875fc;
+}
+
+.parsed_KEYWORD_CONST {
+    color: #f06b6b;
+}
+
+.parsed_NUMBER {
+    color: #72c9e3;
+}

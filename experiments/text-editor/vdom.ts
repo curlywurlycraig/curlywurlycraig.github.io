@@ -57,10 +57,8 @@ export const render = (hic: HicType, key = "__r"): HicType => {
 };
 
 /**
- * Adds a dictionary representation of the HTMLElement
- * to the element
- * EX:
- * input | { click: (event) => alert('hello') }
+ * Applies a dictionary representation of the HTMLElement properties
+ * to the element.
  */
 const updateAttrs = (el: TaggedElement, attrs: object) => {
   const [, prevAttrs] = el._hic || [];

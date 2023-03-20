@@ -49,6 +49,7 @@ h2 {
 
 pre {
   margin: 0;
+  white-space: pre-wrap;
 }
 
 code {

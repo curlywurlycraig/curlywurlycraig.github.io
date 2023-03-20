@@ -98,7 +98,42 @@ The basic idea is to take a DOM hierarchy, such as:
     element's attributes.
 </p>
 
-TODO Add the code for patching attributes
+<div class="code-container">
+  <pre><code key="__reec0eec1c0"><span class="parsed_COMMENT" key="__reec0eec1c0c0">/**
+ * Applies a dictionary representation of the HTMLElement properties
+ * to the element.
+ */</span>
+<span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c2">const</span> updateAttrs = (el: TaggedElement, attrs: <span class="parsed_KEYWORD" key="__reec0eec1c0c4">object</span>) =&gt; {
+  <span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c6">const</span> [, prevAttrs] = el._hic || [];
+
+  Object
+    .<span class="parsed_FUNC_CALL" key="__reec0eec1c0c8">entries</span>(attrs)
+    .<span class="parsed_FUNC_CALL" key="__reec0eec1c0c10">forEach</span>(([k, v]) =&gt; { 
+      <span class="parsed_KEYWORD" key="__reec0eec1c0c12">if</span> (prevAttrs &amp;&amp; <span class="parsed_KEYWORD" key="__reec0eec1c0c14">typeof</span> prevAttrs[k] === <span class="parsed_STRING" key="__reec0eec1c0c16">"function"</span>) {
+        el.<span class="parsed_FUNC_CALL" key="__reec0eec1c0c18">removeEventListener</span>(k, prevAttrs[k]);
+      }
+
+      <span class="parsed_KEYWORD" key="__reec0eec1c0c20">if</span> (<span class="parsed_KEYWORD" key="__reec0eec1c0c22">typeof</span> v === FUNC_TOKEN) {
+        el.<span class="parsed_FUNC_CALL" key="__reec0eec1c0c24">addEventListener</span>(k.<span class="parsed_FUNC_CALL" key="__reec0eec1c0c26">toLowerCase</span>(), v);
+      } <span class="parsed_KEYWORD" key="__reec0eec1c0c28">else</span> {
+        <span class="parsed_COMMENT" key="__reec0eec1c0c30">// Weird specific case. The view doesn't update if you do el.setAttribute('value', 10) on an input element.</span>
+        <span class="parsed_KEYWORD" key="__reec0eec1c0c32">if</span> (k === <span class="parsed_STRING" key="__reec0eec1c0c34">'value'</span> || k === <span class="parsed_STRING" key="__reec0eec1c0c36">'disabled'</span>) {
+          el[k] = v;
+          <span class="parsed_KEYWORD" key="__reec0eec1c0c38">return</span>;
+        }
+        
+        <span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c40">const</span> asElement = el <span class="parsed_KEYWORD" key="__reec0eec1c0c42">as</span> TaggedElement;
+        <span class="parsed_KEYWORD" key="__reec0eec1c0c44">if</span> (asElement.<span class="parsed_FUNC_CALL" key="__reec0eec1c0c46">getAttribute</span>(k) !== v) {
+          asElement.<span class="parsed_FUNC_CALL" key="__reec0eec1c0c48">setAttribute</span>(k, v);
+        }
+      }
+    })
+
+  <span class="parsed_KEYWORD" key="__reec0eec1c0c50">return</span> el;
+}
+   </code></pre>
+</div>
+
 TODO Add a thing at the end suggesting to let me know if any issues are spotted
 or any obvious reductions are possible
 
