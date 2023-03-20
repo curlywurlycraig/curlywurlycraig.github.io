@@ -55,8 +55,8 @@ The basic idea is to take a DOM hierarchy, such as:
 </p>
 
 <div class="code-container">
-<pre><code key="__reec0eec1c0">[<span class="parsed_STRING" key="__reec0eec1c0c1">"div"</span>, {id: <span class="parsed_STRING" key="__reec0eec1c0c3">"men"</span>}, [
-  [<span class="parsed_STRING" key="__reec0eec1c0c5">"p"</span>, {}, [<span class="parsed_STRING" key="__reec0eec1c0c7">"hello world!"</span>]], <span class="parsed_COMMENT" key="__reec0eec1c0c9">// children of "men"</span>
+<pre><code>[<span class="parsed_STRING">"div"</span>, {id: <span class="parsed_STRING">"men"</span>}, [
+  [<span class="parsed_STRING">"p"</span>, {}, [<span class="parsed_STRING">"hello world!"</span>]], <span class="parsed_COMMENT">// children of "men"</span>
 ]];
 </code></pre>
 </div>
@@ -69,14 +69,14 @@ The basic idea is to take a DOM hierarchy, such as:
 </p>
 
 <p>
-  This idea is built upon in JS, as I found in Bruno Fidelis' project <a
+  This idea is built upon Bruno Fidelis' JavaScript project <a
   href="https://github.com/btfidelis/hiccupjs">hiccupjs</a>, to which I made
   small contributions and have since mutated in various ways across a few recent
   small projects (including the <a href="/experiments/text-editor/">text editor
   project</a> which I published at the same time as the post you are reading).
 </p>
 
-<h2>Hiccup and the DOM</h2>
+<h2>Writing utilities to apply hiccup to the DOM</h2>
 
 <p>
   Given a hiccup array, there are only a small number of things we need to be
@@ -86,7 +86,7 @@ The basic idea is to take a DOM hierarchy, such as:
 <p>
   The result is a set of simple utilities which, together, enable declarative
   changes to the DOM and the ability to patch those changes.
-  Something beatiful about the result when trying to reduce these problems to
+  Something beautiful about the result when trying to reduce these problems to
   their most minimal is that you eventually arrive at something almost
   archetypal, where the inherent simplicity in the tree structure of the DOM
   shines through.
@@ -95,43 +95,44 @@ The basic idea is to take a DOM hierarchy, such as:
 <h3>Patching element attributes</h3>
 
 <p>
-    The first of these is patching element attributes. That is, given a DOM
+    The first function (and probably the one which is most useful as a
+    standalone utility) is for patching element attributes. That is, given a DOM
     element and an object (a mapping of attribute name to value), update the DOM
-    element's attributes.
+    element's attributes to match the object.
 </p>
 
 <div class="code-container">
-  <pre><code key="__reec0eec1c0"><span class="parsed_COMMENT" key="__reec0eec1c0c0">/**
+  <pre><code><span class="parsed_COMMENT">/**
  * Applies a dictionary representation of the HTMLElement properties
  * to the element.
  */</span>
-<span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c2">const</span> updateAttrs = (el: TaggedElement, attrs: <span class="parsed_KEYWORD" key="__reec0eec1c0c4">object</span>) =&gt; {
-  <span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c6">const</span> [, prevAttrs] = el._hic || [];
+<span class="parsed_KEYWORD_CONST">const</span> updateAttrs = (el: TaggedElement, attrs: <span class="parsed_KEYWORD">object</span>) =&gt; {
+  <span class="parsed_KEYWORD_CONST">const</span> [, prevAttrs] = el._hic || [];
 
   Object
-    .<span class="parsed_FUNC_CALL" key="__reec0eec1c0c8">entries</span>(attrs)
-    .<span class="parsed_FUNC_CALL" key="__reec0eec1c0c10">forEach</span>(([k, v]) =&gt; { 
-      <span class="parsed_KEYWORD" key="__reec0eec1c0c12">if</span> (prevAttrs &amp;&amp; <span class="parsed_KEYWORD" key="__reec0eec1c0c14">typeof</span> prevAttrs[k] === <span class="parsed_STRING" key="__reec0eec1c0c16">"function"</span>) {
-        el.<span class="parsed_FUNC_CALL" key="__reec0eec1c0c18">removeEventListener</span>(k, prevAttrs[k]);
+    .<span class="parsed_FUNC_CALL">entries</span>(attrs)
+    .<span class="parsed_FUNC_CALL">forEach</span>(([k, v]) =&gt; { 
+      <span class="parsed_KEYWORD">if</span> (prevAttrs &amp;&amp; <span class="parsed_KEYWORD">typeof</span> prevAttrs[k] === <span class="parsed_STRING">"function"</span>) {
+        el.<span class="parsed_FUNC_CALL">removeEventListener</span>(k, prevAttrs[k]);
       }
 
-      <span class="parsed_KEYWORD" key="__reec0eec1c0c20">if</span> (<span class="parsed_KEYWORD" key="__reec0eec1c0c22">typeof</span> v === FUNC_TOKEN) {
-        el.<span class="parsed_FUNC_CALL" key="__reec0eec1c0c24">addEventListener</span>(k.<span class="parsed_FUNC_CALL" key="__reec0eec1c0c26">toLowerCase</span>(), v);
-      } <span class="parsed_KEYWORD" key="__reec0eec1c0c28">else</span> {
-        <span class="parsed_COMMENT" key="__reec0eec1c0c30">// Weird specific case. The view doesn't update if you do el.setAttribute('value', 10) on an input element.</span>
-        <span class="parsed_KEYWORD" key="__reec0eec1c0c32">if</span> (k === <span class="parsed_STRING" key="__reec0eec1c0c34">'value'</span> || k === <span class="parsed_STRING" key="__reec0eec1c0c36">'disabled'</span>) {
+      <span class="parsed_KEYWORD">if</span> (<span class="parsed_KEYWORD">typeof</span> v === FUNC_TOKEN) {
+        el.<span class="parsed_FUNC_CALL">addEventListener</span>(k.<span class="parsed_FUNC_CALL">toLowerCase</span>(), v);
+      } <span class="parsed_KEYWORD">else</span> {
+        <span class="parsed_COMMENT">// Weird specific case. The view doesn't update if you do el.setAttribute('value', 10) on an input element.</span>
+        <span class="parsed_KEYWORD">if</span> (k === <span class="parsed_STRING">'value'</span> || k === <span class="parsed_STRING">'disabled'</span>) {
           el[k] = v;
-          <span class="parsed_KEYWORD" key="__reec0eec1c0c38">return</span>;
+          <span class="parsed_KEYWORD">return</span>;
         }
         
-        <span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c40">const</span> asElement = el <span class="parsed_KEYWORD" key="__reec0eec1c0c42">as</span> TaggedElement;
-        <span class="parsed_KEYWORD" key="__reec0eec1c0c44">if</span> (asElement.<span class="parsed_FUNC_CALL" key="__reec0eec1c0c46">getAttribute</span>(k) !== v) {
-          asElement.<span class="parsed_FUNC_CALL" key="__reec0eec1c0c48">setAttribute</span>(k, v);
+        <span class="parsed_KEYWORD_CONST">const</span> asElement = el <span class="parsed_KEYWORD">as</span> TaggedElement;
+        <span class="parsed_KEYWORD">if</span> (asElement.<span class="parsed_FUNC_CALL">getAttribute</span>(k) !== v) {
+          asElement.<span class="parsed_FUNC_CALL">setAttribute</span>(k, v);
         }
       }
     })
 
-  <span class="parsed_KEYWORD" key="__reec0eec1c0c50">return</span> el;
+  <span class="parsed_KEYWORD">return</span> el;
 }
    </code></pre>
 </div>
@@ -145,10 +146,10 @@ The basic idea is to take a DOM hierarchy, such as:
 </p>
 
 <div class="code-container">
-  <pre class="editor_draw" key="__reec0eec1"><code key="__reec0eec1c0"><span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c0">const</span> StyledParagraph = ({ children }) =&gt;
-    [<span class="parsed_STRING" key="__reec0eec1c0c2">"p"</span>, { <span class="parsed_KEYWORD" key="__reec0eec1c0c4">class</span>: <span class="parsed_STRING" key="__reec0eec1c0c6">"my_class"</span> }, children];
+  <pre class="editor_draw"><code><span class="parsed_KEYWORD_CONST">const</span> StyledParagraph = ({ children }) =&gt;
+    [<span class="parsed_STRING">"p"</span>, { <span class="parsed_KEYWORD">class</span>: <span class="parsed_STRING">"my_class"</span> }, children];
 
-<span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c8">const</span> myStyledElement = [StyledParagraph, {}, <span class="parsed_STRING" key="__reec0eec1c0c10">"hello"</span>];</code></pre>
+<span class="parsed_KEYWORD_CONST">const</span> myStyledElement = [StyledParagraph, {}, <span class="parsed_STRING">"hello"</span>];</code></pre>
 </div>
 
 <p>
@@ -182,95 +183,155 @@ The basic idea is to take a DOM hierarchy, such as:
    <span class="parsed_KEYWORD">return</span> <span class="parsed_FUNC_CALL">render</span>(renderResult);
  }
 
- <span class="parsed_KEYWORD" >return</span> [tag, attrs, renderedChildren];
+ <span class="parsed_KEYWORD">return</span> [tag, attrs, renderedChildren];
 };
 </code></pre>
 </div>
 
 <h3>Applying hiccup to the DOM</h3>
 
-<p>TODO: Write about these, and split them up</p>
+<p>
+All that remains is two functions. One to update the children of a DOM element,
+and another to tie everything together. 
+</p>
+
 
 <div class="code-container">
-  <pre class="editor_draw" key="__reec0eec1"><code key="__reec0eec1c0"><span class="parsed_COMMENT" key="__reec0eec1c0c0">/**
+  <pre class="editor_draw"><code><span class="parsed_COMMENT">/**
    Given an element and an array of children, make the array of elements
    be the children of the element, while being minimally destructive of
    existing children. This is so that state associated with element instances
    is not damaged (for example, the element does not lose focus).
  */</span>
-<span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c2">const</span> updateChildren = (el, newChildren) =&gt; {
-  for (<span class="parsed_KEYWORD" key="__reec0eec1c0c4">let</span> i = newChildren.length - <span class="parsed_NUMBER" key="__reec0eec1c0c6">1</span>; i &gt;= <span class="parsed_NUMBER" key="__reec0eec1c0c8">0</span>; i--) {
-    <span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c10">const</span> currChild = newChildren[i];
-    <span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c12">const</span> desiredNextSibling = newChildren[i+<span class="parsed_NUMBER" key="__reec0eec1c0c14">1</span>] || <span class="parsed_KEYWORD" key="__reec0eec1c0c16">null</span>;
-    <span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c18">const</span> existingNextSibling = currChild.nextSibling;
-    <span class="parsed_KEYWORD" key="__reec0eec1c0c20">if</span> (desiredNextSibling !== existingNextSibling || !el.<span class="parsed_FUNC_CALL" key="__reec0eec1c0c22">contains</span>(currChild)) {
-      el?.<span class="parsed_FUNC_CALL" key="__reec0eec1c0c24">insertBefore</span>(currChild, desiredNextSibling);
+<span class="parsed_KEYWORD_CONST">const</span> updateChildren = (el, newChildren) =&gt; {
+  for (<span class="parsed_KEYWORD">let</span> i = newChildren.length - <span class="parsed_NUMBER">1</span>; i &gt;= <span class="parsed_NUMBER">0</span>; i--) {
+    <span class="parsed_KEYWORD_CONST">const</span> currChild = newChildren[i];
+    <span class="parsed_KEYWORD_CONST">const</span> desiredNextSibling = newChildren[i+<span class="parsed_NUMBER">1</span>] || <span class="parsed_KEYWORD">null</span>;
+    <span class="parsed_KEYWORD_CONST">const</span> existingNextSibling = currChild.nextSibling;
+    <span class="parsed_KEYWORD">if</span> (desiredNextSibling !== existingNextSibling || !el.<span class="parsed_FUNC_CALL">contains</span>(currChild)) {
+      el?.<span class="parsed_FUNC_CALL">insertBefore</span>(currChild, desiredNextSibling);
     }
   }
 
-  <span class="parsed_KEYWORD" key="__reec0eec1c0c26">while</span> (el.childNodes.length &gt; newChildren.length) {
-    el?.<span class="parsed_FUNC_CALL" key="__reec0eec1c0c28">removeChild</span>(el.childNodes[<span class="parsed_NUMBER" key="__reec0eec1c0c30">0</span>]);
+  <span class="parsed_KEYWORD">while</span> (el.childNodes.length &gt; newChildren.length) {
+    el?.<span class="parsed_FUNC_CALL">removeChild</span>(el.childNodes[<span class="parsed_NUMBER">0</span>]);
   }
 
-  <span class="parsed_KEYWORD" key="__reec0eec1c0c32">return</span> el;
+  <span class="parsed_KEYWORD">return</span> el;
 }
 
-<span class="parsed_COMMENT" key="__reec0eec1c0c34">/**
+<span class="parsed_COMMENT">/**
    Given some HTML element, update that element and its children with the hiccup.
    This preserves existing HTML elements without removing and creating new ones.
 */</span>
-<span class="parsed_KEYWORD" key="__reec0eec1c0c36">export</span> <span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c38">const</span> apply = (hic, el) =&gt; {
-  <span class="parsed_KEYWORD" key="__reec0eec1c0c40">let</span> result = el;
+<span class="parsed_KEYWORD">export</span> <span class="parsed_KEYWORD_CONST">const</span> apply = (hic, el) =&gt; {
+  <span class="parsed_KEYWORD">let</span> result = el;
 
-  <span class="parsed_KEYWORD" key="__reec0eec1c0c42">if</span> (!hic &amp;&amp; hic !== <span class="parsed_STRING" key="__reec0eec1c0c44">""</span>) {
-    <span class="parsed_KEYWORD" key="__reec0eec1c0c46">return</span> <span class="parsed_KEYWORD" key="__reec0eec1c0c48">null</span>;
+  <span class="parsed_KEYWORD">if</span> (!hic &amp;&amp; hic !== <span class="parsed_STRING">""</span>) {
+    <span class="parsed_KEYWORD">return</span> <span class="parsed_KEYWORD">null</span>;
   }
   
-  <span class="parsed_COMMENT" key="__reec0eec1c0c50">// Basically leaf text nodes. Early return because they cannot have children</span>
-  <span class="parsed_KEYWORD" key="__reec0eec1c0c52">if</span> (!<span class="parsed_FUNC_CALL" key="__reec0eec1c0c54">isHic</span>(hic)) {
-    <span class="parsed_KEYWORD" key="__reec0eec1c0c56">if</span> (el?.nodeType !== <span class="parsed_NUMBER" key="__reec0eec1c0c58">3</span>) {
-      <span class="parsed_KEYWORD" key="__reec0eec1c0c60">return</span> document.<span class="parsed_FUNC_CALL" key="__reec0eec1c0c62">createTextNode</span>(hic);
+  <span class="parsed_COMMENT">// Basically leaf text nodes. Early return because they cannot have children</span>
+  <span class="parsed_KEYWORD">if</span> (!<span class="parsed_FUNC_CALL">isHic</span>(hic)) {
+    <span class="parsed_KEYWORD">if</span> (el?.nodeType !== <span class="parsed_NUMBER">3</span>) {
+      <span class="parsed_KEYWORD">return</span> document.<span class="parsed_FUNC_CALL">createTextNode</span>(hic);
     }
 
-    <span class="parsed_KEYWORD" key="__reec0eec1c0c64">if</span> (el.textContent !== hic) {
+    <span class="parsed_KEYWORD">if</span> (el.textContent !== hic) {
       el.textContent = hic;
     }
 
-    <span class="parsed_KEYWORD" key="__reec0eec1c0c66">return</span> el;
+    <span class="parsed_KEYWORD">return</span> el;
   }
 
-  <span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c68">const</span> [prevTag, prevAttrs] = el?._hic || [];
-  <span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c70">const</span> [tag, attrs] = hic;
+  <span class="parsed_KEYWORD_CONST">const</span> [prevTag, prevAttrs] = el?._hic || [];
+  <span class="parsed_KEYWORD_CONST">const</span> [tag, attrs] = hic;
 
-  <span class="parsed_COMMENT" key="__reec0eec1c0c72">// New element case. When creating elements we need to specify the correct namespace</span>
-  <span class="parsed_KEYWORD" key="__reec0eec1c0c74">if</span> (prevTag !== tag || !result) {
-    <span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c76">const</span> currentNS = attrs.xmlns || (tag === <span class="parsed_STRING" key="__reec0eec1c0c78">'svg'</span> ? <span class="parsed_STRING" key="__reec0eec1c0c80">'http://www.w3.org/2000/svg'</span> : <span class="parsed_STRING" key="__reec0eec1c0c82">'http://www.w3.org/1999/xhtml'</span>);
-    result = document.<span class="parsed_FUNC_CALL" key="__reec0eec1c0c84">createElementNS</span>(currentNS, tag);
+  <span class="parsed_COMMENT">// New element case. When creating elements we need to specify the correct namespace</span>
+  <span class="parsed_KEYWORD">if</span> (prevTag !== tag || !result) {
+    <span class="parsed_KEYWORD_CONST">const</span> currentNS = attrs.xmlns || (tag === <span class="parsed_STRING">'svg'</span> ? <span class="parsed_STRING">'http://www.w3.org/2000/svg'</span> : <span class="parsed_STRING">'http://www.w3.org/1999/xhtml'</span>);
+    result = document.<span class="parsed_FUNC_CALL">createElementNS</span>(currentNS, tag);
   }
 
-  <span class="parsed_COMMENT" key="__reec0eec1c0c86">// Update element with attrs (we defined this earlier)</span>
-  <span class="parsed_FUNC_CALL" key="__reec0eec1c0c88">updateAttrs</span>(result, attrs);
+  <span class="parsed_COMMENT">// Update element with attrs (we defined this earlier)</span>
+  <span class="parsed_FUNC_CALL">updateAttrs</span>(result, attrs);
 
-  <span class="parsed_COMMENT" key="__reec0eec1c0c90">// Store the hic used as a "hidden" property of the DOM element.</span>
+  <span class="parsed_COMMENT">// Store the hic used as a "hidden" property of the DOM element.</span>
   result._hic = hic;
 
-  <span class="parsed_COMMENT" key="__reec0eec1c0c92">// Apply each child and assign as a child to this element.</span>
-  <span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c94">const</span> children = <span class="parsed_FUNC_CALL" key="__reec0eec1c0c96">isHic</span>(hic) ? hic[<span class="parsed_NUMBER" key="__reec0eec1c0c98">2</span>] : [];
-  <span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c100">const</span> newChildren = children
-    .<span class="parsed_FUNC_CALL" key="__reec0eec1c0c102">filter</span>(c =&gt; c)
-    .<span class="parsed_FUNC_CALL" key="__reec0eec1c0c104">map</span>((child, idx) =&gt; {
-      <span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c106">const</span> existingNode = el?.childNodes[idx];
-      <span class="parsed_KEYWORD" key="__reec0eec1c0c108">return</span> <span class="parsed_FUNC_CALL" key="__reec0eec1c0c110">apply</span>(child, existingNode <span class="parsed_KEYWORD" key="__reec0eec1c0c112">as</span> TaggedElement);
+  <span class="parsed_COMMENT">// Apply each child and assign as a child to this element.</span>
+  <span class="parsed_KEYWORD_CONST">const</span> children = <span class="parsed_FUNC_CALL">isHic</span>(hic) ? hic[<span class="parsed_NUMBER">2</span>] : [];
+  <span class="parsed_KEYWORD_CONST">const</span> newChildren = children
+    .<span class="parsed_FUNC_CALL">filter</span>(c =&gt; c)
+    .<span class="parsed_FUNC_CALL">map</span>((child, idx) =&gt; {
+      <span class="parsed_KEYWORD_CONST">const</span> existingNode = el?.childNodes[idx];
+      <span class="parsed_KEYWORD">return</span> <span class="parsed_FUNC_CALL">apply</span>(child, existingNode <span class="parsed_KEYWORD">as</span> TaggedElement);
     });
 
-  <span class="parsed_FUNC_CALL" key="__reec0eec1c0c114">updateChildren</span>(result, newChildren);
+  <span class="parsed_FUNC_CALL">updateChildren</span>(result, newChildren);
 
-  <span class="parsed_KEYWORD" key="__reec0eec1c0c116">if</span> (el !== result) {
-    el?.parentNode?.<span class="parsed_FUNC_CALL" key="__reec0eec1c0c118">replaceChild</span>(result, el!!);
+  <span class="parsed_KEYWORD">if</span> (el !== result) {
+    el?.parentNode?.<span class="parsed_FUNC_CALL">replaceChild</span>(result, el!!);
   }
 
-  <span class="parsed_KEYWORD" key="__reec0eec1c0c120">return</span> result;
+  <span class="parsed_KEYWORD">return</span> result;
 }</code></pre>
 </div>
+
+<p>
+  And with that, we have a set of tools that make it very straight forward to
+  interact with the DOM, and taking up only around 1kb minified (or 600 bytes gzipped!).
+  I've been thinking of these utilities as a kind of jQuery for the modern age.
+</p>
+
+<h2>Addendum: JSX</h2>
+
+<p>
+  With the help of a bundler that supports JSX, we can support it with the
+  inclusion of one more function:
+</p>
+
+<div class="code-container">
+  <pre class="editor_draw"><code><span class="parsed_COMMENT">/**
+    Conform to the jsx factory signature to produce hiccup.
+ */</span>
+ <span class="parsed_KEYWORD">export</span> <span class="parsed_KEYWORD_CONST">const</span> hic = (name, options, ...children): HicType =&gt; {
+   <span class="parsed_KEYWORD_CONST">const</span> flatChildren = children.<span class="parsed_FUNC_CALL">reduce</span>((acc, child) =&gt; {
+     <span class="parsed_KEYWORD">if</span> (Array.<span class="parsed_FUNC_CALL">isArray</span>(child) &amp;&amp; !<span class="parsed_FUNC_CALL">isHic</span>(child)) {
+       acc.<span class="parsed_FUNC_CALL">push</span>(...child);
+     } <span class="parsed_KEYWORD">else</span> {
+       acc.<span class="parsed_FUNC_CALL">push</span>(child);
+     }
+     <span class="parsed_KEYWORD">return</span> acc;
+   }, []);
+ 
+   <span class="parsed_KEYWORD">return</span> [name, options || {}, flatChildren];
+ }
+ </code></pre>
+</div>
+
+<p>
+  Which allows us to rewrite our custom element function:
+</p>
+
+<div class="code-container">
+<pre class="editor_draw"><code><span class="parsed_KEYWORD_CONST">const</span> StyledParagraph = ({ children }) =&gt;
+  &lt;<span class="parsed_FUNC_CALL">p</span> <span class="parsed_KEYWORD">class</span>=<span class="parsed_STRING">"my_class"</span>&gt;{ children }&lt;/<span class="parsed_FUNC_CALL">p</span>&gt;;
+
+<span class="parsed_KEYWORD_CONST">const</span> myStyledElement = [StyledParagraph, {}, <span class="parsed_STRING">"hello"</span>];</code></pre>
+</div>
+
+<p>
+  And then with something like babel or esbuild's <a href="https://esbuild.github.io/api/#jsx-factory"><code class="inline">jsxFactory</code></a>
+  we just need to supply the hic function as the factory.
+</p>
+
+<h2>Feedback</h2>
+
+<p>
+  Let me know if you have any feedback by sending me an email at <a href="mailto:craig@crwi.uk">craig@crwi.uk</a>.
+  If there's any way you can see simple improvements or reductions, or just have any thoughts about this approach at all.
+</p>
+
   </body>
 </html>
