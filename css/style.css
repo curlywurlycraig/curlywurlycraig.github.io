@@ -28,20 +28,22 @@ h1 {
   font-family: sans-serif;
   margin-top: 40px;
   margin-bottom: 40px;
-  font-size: 1.8em;
+  font-size: 1.8rem;
+  line-height: 3.0rem;
 }
 
 h2 {
   font-family: sans-serif;
   margin-bottom: 20px;
   margin-top: 40px;
-  font-size: 1.4em;
+  font-size: 1.4rem;
+  line-height: 2.4rem;
 }
 
 .code {
   color: #e4a85c;
   background-color: #ffffff22;
-  font-family: Andale Mono, Courier New, monospace;
+  font-family: Menlo, monospace;
   border-radius: 5px;
   padding: 3px;
   overflow-wrap: anywhere;
@@ -53,15 +55,25 @@ pre {
 }
 
 code {
-    font-family: monospace;
+    font-family: Menlo, monospace;
+    font-size: 0.8rem;
+    line-height: 1.4rem;
+}
+
+code.inline {
+  font-size: 0.8em;
+  background-color: #ffffff11;
+  padding: 4px 6px;
+  border-radius: 5px;
+  color: #daacba;
 }
 
 .code-container {
     background-color: #ffffff05;
     border-radius: 8px;
     padding: 10px;
-    font-size: 0.8em;
-    line-height: 1.4em;
+    font-size: 0.8rem;
+    line-height: 1.4rem;
 }
 
 .footnote {

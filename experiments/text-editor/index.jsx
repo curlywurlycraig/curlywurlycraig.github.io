@@ -4,9 +4,13 @@ import { ParseContext, parseJS } from "./parse/parser.js";
 import initialEditorState from "./initial_editor_state.txt"
 
 const Editor = compose(
-  withState({ width: 0, textareaRef: { value: null } }),
+  withState({
+    width: 0,
+    textareaRef: { value: null },
+    preRef: { value: null }
+  }),
 
-  ({ value, onChange, textareaRef, ref }) => {
+  ({ value, onChange, textareaRef, preRef, ref }) => {
     const computeSpans = () => {
       const tok = new ParseContext(value);
       parseResult = parseJS(tok);
@@ -37,7 +41,7 @@ const Editor = compose(
     const resizeTextarea = () => {
       const textareaEl = textareaRef.value;
       if (textareaEl) {
-        textareaEl.style.height = textareaEl.scrollHeight;
+        textareaEl.style.height = preRef.value.scrollHeight + 20;
       }
     }
 
@@ -46,14 +50,18 @@ const Editor = compose(
       resizeTextarea();
     }
 
-    const textAreaRef = ref => {
+    const onTextareaRef = ref => {
       textareaRef.value = ref;
+    }
+
+    const onPreRef = ref => {
+      preRef.value = ref;
     }
 
     return (
       <div ref={ref} class="editor_container">
-        <textarea ref={textAreaRef} class="editor_textarea" value={value} input={e => onInputChange(e.target.value)} />
-        <pre class="editor_draw">
+        <textarea ref={onTextareaRef} class="editor_textarea" value={value} input={e => onInputChange(e.target.value)} />
+        <pre ref={onPreRef} class="editor_draw">
           <code>
             { computeSpans() }
           </code>

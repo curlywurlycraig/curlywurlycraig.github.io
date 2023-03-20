@@ -32,13 +32,6 @@
   enjoy working with and which has a nice history.
 </p>
 
-<p>
-  Something beatiful about the result when trying to reduce these problems to
-  their most minimal is that you eventually arrive at something almost
-  archetypal, where the inherent simplicity in the tree structure of the DOM
-  shines through.
-</p>
-
 <h2>What is hiccup?</h2>
 
 <p>
@@ -90,6 +83,15 @@ The basic idea is to take a DOM hierarchy, such as:
   able to do to use it on the DOM from JS.
 </p>
 
+<p>
+  The result is a set of simple utilities which, together, enable declarative
+  changes to the DOM and the ability to patch those changes.
+  Something beatiful about the result when trying to reduce these problems to
+  their most minimal is that you eventually arrive at something almost
+  archetypal, where the inherent simplicity in the tree structure of the DOM
+  shines through.
+</p>
+
 <h3>Patching element attributes</h3>
 
 <p>
@@ -134,47 +136,139 @@ The basic idea is to take a DOM hierarchy, such as:
    </code></pre>
 </div>
 
-TODO Add a thing at the end suggesting to let me know if any issues are spotted
-or any obvious reductions are possible
 
-<div id="archetype1_container">
-<pre>
-<code>
-code here.
-</code>
-</pre>
+<h3>Recursive rendering of function elements</h3>
+
+<p>
+  With one small addition, we can add some idea of a custom component too: allow
+  functions as the first entry in a hiccup array. For example:
+</p>
+
+<div class="code-container">
+  <pre class="editor_draw" key="__reec0eec1"><code key="__reec0eec1c0"><span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c0">const</span> StyledParagraph = ({ children }) =&gt;
+    [<span class="parsed_STRING" key="__reec0eec1c0c2">"p"</span>, { <span class="parsed_KEYWORD" key="__reec0eec1c0c4">class</span>: <span class="parsed_STRING" key="__reec0eec1c0c6">"my_class"</span> }, children];
+
+<span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c8">const</span> myStyledElement = [StyledParagraph, {}, <span class="parsed_STRING" key="__reec0eec1c0c10">"hello"</span>];</code></pre>
 </div>
 
-<h2>Recursive rendering of function elements</h2>
-
-TODO Quick aside on having a function as the first argument to HIC, and how it
-opens up a whole new world
-
 <p>
-    Given some JSX, render the JSX and all of its children until reaching "leaf"
-    nodes. A leaf node is a real HTML DOM element such as <code>span</code> or
-    <code>p</code>, or a text node.
+  We can write a simple function to expand <code class="inline">myStyledElement</code> into
+  nested hiccup that only contains "real" DOM elements:
 </p>
 
+<div class="code-container">
+<pre><code><span class="parsed_COMMENT">/**
+  Given some hiccup, resolve any components to their resulting DOM only
+  hiccup. That is, only hiccup elements with lower case tag names should remain.
+  
+  This entails running the components with their attributes.
 
-<h2>Whatever</h2>
+  Code to maintain unique keys has been removed from the below for simplicity,
+  as well as Typescript types.
+*/</span>
+<span class="parsed_KEYWORD">export</span> <span class="parsed_KEYWORD_CONST">const</span> render = (hic) =&gt; {
+ <span class="parsed_KEYWORD">if</span> (!<span class="parsed_FUNC_CALL">isHic</span>(hic)) {
+   <span class="parsed_KEYWORD">return</span> hic;
+ }
 
-<p>
-Anyway I'm a bit bored writing about all of them, but you get the gist. You can
-find the complete code for this approach
-<a href="https://github.com/curlywurlycraig/vdom-util">here</a>.
-</p>
+ <span class="parsed_KEYWORD_CONST">const</span> [tag, attrs, children] = hic;
+ <span class="parsed_KEYWORD_CONST">const</span> renderedChildren = children
+   .<span class="parsed_FUNC_CALL">map</span>((child: HicType) =&gt; {
+     <span class="parsed_KEYWORD">return</span> <span class="parsed_FUNC_CALL">render</span>(child);
+   });
 
-<p>
-Really, I just want to solve the problem I face directly, and this small excursion into general purpose tooling
-for making modifications to the DOM in a reactive manner (while keeping bundle
-size very small) was satisfactory.
-</p>
+ <span class="parsed_KEYWORD">if</span> (<span class="parsed_KEYWORD">typeof</span> tag === FUNC_TOKEN) {
+   <span class="parsed_KEYWORD_CONST">const</span> renderResult = <span class="parsed_FUNC_CALL">tag</span>({ ...attrs, children: renderedChildren });
+   <span class="parsed_KEYWORD">return</span> <span class="parsed_FUNC_CALL">render</span>(renderResult);
+ }
 
-<p>
-    I am still back and forth about whether I want to just focus on the MVP of
-    my game, or spend time on my own tooling. I'm fine with my own tooling for now...
-</p>
+ <span class="parsed_KEYWORD" >return</span> [tag, attrs, renderedChildren];
+};
+</code></pre>
+</div>
 
+<h3>Applying hiccup to the DOM</h3>
+
+<div class="code-container">
+  <pre class="editor_draw" key="__reec0eec1"><code key="__reec0eec1c0"><span class="parsed_COMMENT" key="__reec0eec1c0c0">/**
+   Given an element and an array of children, make the array of elements
+   be the children of the element, while being minimally destructive of
+   existing children. This is so that state associated with element instances
+   is not damaged (for example, the element does not lose focus).
+ */</span>
+<span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c2">const</span> updateChildren = (el, newChildren) =&gt; {
+  for (<span class="parsed_KEYWORD" key="__reec0eec1c0c4">let</span> i = newChildren.length - <span class="parsed_NUMBER" key="__reec0eec1c0c6">1</span>; i &gt;= <span class="parsed_NUMBER" key="__reec0eec1c0c8">0</span>; i--) {
+    <span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c10">const</span> currChild = newChildren[i];
+    <span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c12">const</span> desiredNextSibling = newChildren[i+<span class="parsed_NUMBER" key="__reec0eec1c0c14">1</span>] || <span class="parsed_KEYWORD" key="__reec0eec1c0c16">null</span>;
+    <span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c18">const</span> existingNextSibling = currChild.nextSibling;
+    <span class="parsed_KEYWORD" key="__reec0eec1c0c20">if</span> (desiredNextSibling !== existingNextSibling || !el.<span class="parsed_FUNC_CALL" key="__reec0eec1c0c22">contains</span>(currChild)) {
+      el?.<span class="parsed_FUNC_CALL" key="__reec0eec1c0c24">insertBefore</span>(currChild, desiredNextSibling);
+    }
+  }
+
+  <span class="parsed_KEYWORD" key="__reec0eec1c0c26">while</span> (el.childNodes.length &gt; newChildren.length) {
+    el?.<span class="parsed_FUNC_CALL" key="__reec0eec1c0c28">removeChild</span>(el.childNodes[<span class="parsed_NUMBER" key="__reec0eec1c0c30">0</span>]);
+  }
+
+  <span class="parsed_KEYWORD" key="__reec0eec1c0c32">return</span> el;
+}
+
+<span class="parsed_COMMENT" key="__reec0eec1c0c34">/**
+   Given some HTML element, update that element and its children with the hiccup.
+   This preserves existing HTML elements without removing and creating new ones.
+*/</span>
+<span class="parsed_KEYWORD" key="__reec0eec1c0c36">export</span> <span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c38">const</span> apply = (hic, el) =&gt; {
+  <span class="parsed_KEYWORD" key="__reec0eec1c0c40">let</span> result = el;
+
+  <span class="parsed_KEYWORD" key="__reec0eec1c0c42">if</span> (!hic &amp;&amp; hic !== <span class="parsed_STRING" key="__reec0eec1c0c44">""</span>) {
+    <span class="parsed_KEYWORD" key="__reec0eec1c0c46">return</span> <span class="parsed_KEYWORD" key="__reec0eec1c0c48">null</span>;
+  }
+  
+  <span class="parsed_COMMENT" key="__reec0eec1c0c50">// Basically leaf text nodes. Early return because they cannot have children</span>
+  <span class="parsed_KEYWORD" key="__reec0eec1c0c52">if</span> (!<span class="parsed_FUNC_CALL" key="__reec0eec1c0c54">isHic</span>(hic)) {
+    <span class="parsed_KEYWORD" key="__reec0eec1c0c56">if</span> (el?.nodeType !== <span class="parsed_NUMBER" key="__reec0eec1c0c58">3</span>) {
+      <span class="parsed_KEYWORD" key="__reec0eec1c0c60">return</span> document.<span class="parsed_FUNC_CALL" key="__reec0eec1c0c62">createTextNode</span>(hic);
+    }
+
+    <span class="parsed_KEYWORD" key="__reec0eec1c0c64">if</span> (el.textContent !== hic) {
+      el.textContent = hic;
+    }
+
+    <span class="parsed_KEYWORD" key="__reec0eec1c0c66">return</span> el;
+  }
+
+  <span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c68">const</span> [prevTag, prevAttrs] = el?._hic || [];
+  <span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c70">const</span> [tag, attrs] = hic;
+
+  <span class="parsed_COMMENT" key="__reec0eec1c0c72">// New element case. When creating elements we need to specify the correct namespace</span>
+  <span class="parsed_KEYWORD" key="__reec0eec1c0c74">if</span> (prevTag !== tag || !result) {
+    <span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c76">const</span> currentNS = attrs.xmlns || (tag === <span class="parsed_STRING" key="__reec0eec1c0c78">'svg'</span> ? <span class="parsed_STRING" key="__reec0eec1c0c80">'http://www.w3.org/2000/svg'</span> : <span class="parsed_STRING" key="__reec0eec1c0c82">'http://www.w3.org/1999/xhtml'</span>);
+    result = document.<span class="parsed_FUNC_CALL" key="__reec0eec1c0c84">createElementNS</span>(currentNS, tag);
+  }
+
+  <span class="parsed_COMMENT" key="__reec0eec1c0c86">// Update element with attrs (we defined this earlier)</span>
+  <span class="parsed_FUNC_CALL" key="__reec0eec1c0c88">updateAttrs</span>(result, attrs);
+
+  <span class="parsed_COMMENT" key="__reec0eec1c0c90">// Store the hic used as a "hidden" property of the DOM element.</span>
+  result._hic = hic;
+
+  <span class="parsed_COMMENT" key="__reec0eec1c0c92">// Apply each child and assign as a child to this element.</span>
+  <span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c94">const</span> children = <span class="parsed_FUNC_CALL" key="__reec0eec1c0c96">isHic</span>(hic) ? hic[<span class="parsed_NUMBER" key="__reec0eec1c0c98">2</span>] : [];
+  <span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c100">const</span> newChildren = children
+    .<span class="parsed_FUNC_CALL" key="__reec0eec1c0c102">filter</span>(c =&gt; c)
+    .<span class="parsed_FUNC_CALL" key="__reec0eec1c0c104">map</span>((child, idx) =&gt; {
+      <span class="parsed_KEYWORD_CONST" key="__reec0eec1c0c106">const</span> existingNode = el?.childNodes[idx];
+      <span class="parsed_KEYWORD" key="__reec0eec1c0c108">return</span> <span class="parsed_FUNC_CALL" key="__reec0eec1c0c110">apply</span>(child, existingNode <span class="parsed_KEYWORD" key="__reec0eec1c0c112">as</span> TaggedElement);
+    });
+
+  <span class="parsed_FUNC_CALL" key="__reec0eec1c0c114">updateChildren</span>(result, newChildren);
+
+  <span class="parsed_KEYWORD" key="__reec0eec1c0c116">if</span> (el !== result) {
+    el?.parentNode?.<span class="parsed_FUNC_CALL" key="__reec0eec1c0c118">replaceChild</span>(result, el!!);
+  }
+
+  <span class="parsed_KEYWORD" key="__reec0eec1c0c120">return</span> result;
+}</code></pre>
+</div>
   </body>
 </html>

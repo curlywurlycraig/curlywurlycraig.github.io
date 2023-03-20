@@ -23,18 +23,12 @@
     overflow: hidden;
     resize: none;
 
-    font-family: monospace;
+    font-family: Menlo, monospace;
     font-size: 0.8rem;
     line-height: 1.4rem;
     color: transparent;
     caret-color: white;
     background-color: transparent;
-}
-
-code {
-    font-family: monospace;
-    font-size: 0.8rem;
-    line-height: 1.4rem;
 }
 
 .editor_draw {
@@ -43,6 +37,7 @@ code {
     top: 0;
     left: 0;
     pointer-events: none;
+    min-height: 1.5rem;
 }
 
 #demo {
