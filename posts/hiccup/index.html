@@ -106,7 +106,7 @@ The basic idea is to take a DOM hierarchy, such as:
  * Applies a dictionary representation of the HTMLElement properties
  * to the element.
  */</span>
-<span class="parsed_KEYWORD_CONST">const</span> updateAttrs = (el: TaggedElement, attrs: <span class="parsed_KEYWORD">object</span>) =&gt; {
+<span class="parsed_KEYWORD_CONST">const</span> updateAttrs = (el, attrs) =&gt; {
   <span class="parsed_KEYWORD_CONST">const</span> [, prevAttrs] = el._hic || [];
 
   Object
@@ -116,7 +116,7 @@ The basic idea is to take a DOM hierarchy, such as:
         el.<span class="parsed_FUNC_CALL">removeEventListener</span>(k, prevAttrs[k]);
       }
 
-      <span class="parsed_KEYWORD">if</span> (<span class="parsed_KEYWORD">typeof</span> v === FUNC_TOKEN) {
+      <span class="parsed_KEYWORD">if</span> (<span class="parsed_KEYWORD">typeof</span> v === <span class="parsed_STRING">"function"</span>) {
         el.<span class="parsed_FUNC_CALL">addEventListener</span>(k.<span class="parsed_FUNC_CALL">toLowerCase</span>(), v);
       } <span class="parsed_KEYWORD">else</span> {
         <span class="parsed_COMMENT">// Weird specific case. The view doesn't update if you do el.setAttribute('value', 10) on an input element.</span>
@@ -125,7 +125,7 @@ The basic idea is to take a DOM hierarchy, such as:
           <span class="parsed_KEYWORD">return</span>;
         }
         
-        <span class="parsed_KEYWORD_CONST">const</span> asElement = el <span class="parsed_KEYWORD">as</span> TaggedElement;
+        <span class="parsed_KEYWORD_CONST">const</span> asElement = el;
         <span class="parsed_KEYWORD">if</span> (asElement.<span class="parsed_FUNC_CALL">getAttribute</span>(k) !== v) {
           asElement.<span class="parsed_FUNC_CALL">setAttribute</span>(k, v);
         }
@@ -154,7 +154,7 @@ The basic idea is to take a DOM hierarchy, such as:
 
 <p>
   We can write a simple function to expand <code class="inline">myStyledElement</code> into
-  nested hiccup that only contains "real" DOM elements:
+  nested hiccup that only contains "real" DOM elements (this is sort of equivalent to the React "render" step):
 </p>
 
 <div class="code-container">
@@ -178,7 +178,7 @@ The basic idea is to take a DOM hierarchy, such as:
      <span class="parsed_KEYWORD">return</span> <span class="parsed_FUNC_CALL">render</span>(child);
    });
 
- <span class="parsed_KEYWORD">if</span> (<span class="parsed_KEYWORD">typeof</span> tag === FUNC_TOKEN) {
+ <span class="parsed_KEYWORD">if</span> (<span class="parsed_KEYWORD">typeof</span> tag === <span class="parsed_STRING">"function"</span>) {
    <span class="parsed_KEYWORD_CONST">const</span> renderResult = <span class="parsed_FUNC_CALL">tag</span>({ ...attrs, children: renderedChildren });
    <span class="parsed_KEYWORD">return</span> <span class="parsed_FUNC_CALL">render</span>(renderResult);
  }
@@ -192,9 +192,9 @@ The basic idea is to take a DOM hierarchy, such as:
 
 <p>
 All that remains is two functions. One to update the children of a DOM element,
-and another to tie everything together. 
+and another to tie everything together. This is a little complex but there's not
+a great deal to say about it:
 </p>
-
 
 <div class="code-container">
   <pre class="editor_draw"><code><span class="parsed_COMMENT">/**

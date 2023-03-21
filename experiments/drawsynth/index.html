@@ -51,18 +51,18 @@
       waveform) directly instead of having to pass messages and so on.
 
     <p>
-      However, <span class="code">SharedArrayBuffer</span>s present <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer#security_requirements">a security concern</a> which may affect browser support if not carefully considered.
+      However, <code class="inline">SharedArrayBuffer</code>s present <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer#security_requirements">a security concern</a> which may affect browser support if not carefully considered.
 
     <p>
       I'm still experimenting with the best approach for this kind of
       audio programming. Maybe
-      the <span class="code">AudioWorkletProcessor</span> should
+      the <code class="inline">AudioWorkletProcessor</code> should
       initialise the WASM instead, and
-      accept <span class="code">AudioParam</span>s when configuration
+      accept <code class="inline">AudioParam</code>s when configuration
       is changed instead. This would result in some overhead for
       passing messages between the main thread (where user interaction
       takes place) and
-      the <span class="code">AudioWorkletProcessor</span>, but this probably
+      the <code class="inline">AudioWorkletProcessor</code>, but this probably
       won't make a meaningful enough effect on audio processing
       performance to be a problem.
 
