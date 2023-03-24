@@ -6,19 +6,6 @@
 // https://surma.dev/things/c-to-webassembly/
 // https://ihsavru.medium.com/calling-javascript-code-from-c-c-using-webassembly-a9445c11bc6d
 
-/*
-  Get a webgl context from the canvas element.
- */
-function getWebGLContext() {
-    const canvas = document.querySelector("#canvas");
-    const gl = canvas.getContext("webgl");
-    if (gl === null){
-        alert("Failed to init webgl.");
-    }
-    return gl;
-}
-    
-
 async function start() {
     // init webgl
     const canvas = document.querySelector("#canvas");
