@@ -1,0 +1,46 @@
+<html>
+  <head>
+    <title>Syntax highlighted text editor</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="./index.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat&family=Raleway&display=swap" rel="stylesheet"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+
+  <body>
+    <header>
+      <a href="/">
+        <img src="/favicon.ico"/>
+      </a>
+    </header>
+
+    <h1>WebGL scratchpad</h1>
+
+    <p>
+      This is a place for me to experiment with WebGL. Obviously JavaScript is
+      required.
+    </p>
+
+    <canvas id="canvas-basic" width="200" height="100"></canvas>
+    <script id="basic-frag" type="x-shader/x-fragment">
+      precision mediump float;
+
+      void main() {
+        gl_FragColor = vec4(1, 0, 0.5, 1); // return reddish-purple
+      }
+    </script>
+    <script id="basic-vert" type="x-shader/x-vertex">
+      attribute vec4 a_position;
+
+      // all shaders have a main function
+      void main() {
+        // gl_Position is a special variable a vertex shader
+        // is responsible for setting
+        gl_Position = a_position;
+      }
+    </script>
+    <script src="./canvas_basic.js"></script>
+  </body>
+</html>
