@@ -49,6 +49,73 @@ function resizeCanvasToDisplaySize(canvas, isRetina = true) {
     return needResize;
 }
 
+function translationMatrix(x, y) {
+    return [
+        1, 0, 0,
+        0, 1, 0,
+        x, y, 1,
+    ];
+}
+
+function rotationMatrix(angle) {
+    const c = Math.cos(angle);
+    const s = Math.sin(angle);
+    return [
+        c, -s, 0,
+        s, c, 0,
+        0, 0, 1,
+    ];
+}
+
+function scaleMatrix(sx, sy) {
+    return [
+        sx, 0, 0,
+        0, sy, 0,
+        0, 0, 1,
+    ];
+}
+
+function multiplyMatrix(a, b) {
+    var a00 = a[0 * 3 + 0];
+    var a01 = a[0 * 3 + 1];
+    var a02 = a[0 * 3 + 2];
+    var a10 = a[1 * 3 + 0];
+    var a11 = a[1 * 3 + 1];
+    var a12 = a[1 * 3 + 2];
+    var a20 = a[2 * 3 + 0];
+    var a21 = a[2 * 3 + 1];
+    var a22 = a[2 * 3 + 2];
+    var b00 = b[0 * 3 + 0];
+    var b01 = b[0 * 3 + 1];
+    var b02 = b[0 * 3 + 2];
+    var b10 = b[1 * 3 + 0];
+    var b11 = b[1 * 3 + 1];
+    var b12 = b[1 * 3 + 2];
+    var b20 = b[2 * 3 + 0];
+    var b21 = b[2 * 3 + 1];
+    var b22 = b[2 * 3 + 2];
+
+    return [
+      b00 * a00 + b01 * a10 + b02 * a20,
+      b00 * a01 + b01 * a11 + b02 * a21,
+      b00 * a02 + b01 * a12 + b02 * a22,
+      b10 * a00 + b11 * a10 + b12 * a20,
+      b10 * a01 + b11 * a11 + b12 * a21,
+      b10 * a02 + b11 * a12 + b12 * a22,
+      b20 * a00 + b21 * a10 + b22 * a20,
+      b20 * a01 + b21 * a11 + b22 * a21,
+      b20 * a02 + b21 * a12 + b22 * a22,
+    ];
+}
+
+function identityMatrix() {
+    return [
+        1, 0, 0,
+        0, 1, 0,
+        0, 0, 1,
+    ];
+}
+
 function renderBasic() {
     const fragmentShaderSource = `#version 300 es
         precision highp float;
@@ -500,10 +567,163 @@ function renderRotatedSquares() {
     }
 }
 
+function renderAnimatedSquares() {
+    const vertexShaderSource = `#version 300 es
+
+        in vec2 a_position;
+        uniform vec2 u_resolution;
+        uniform mat3 u_transform;
+
+        void main() {
+            vec2 position = (u_transform * vec3(a_position, 1)).xy;
+
+            // convert the position from pixels to 0.0 to 1.0
+            vec2 zeroToOne = position / u_resolution;
+
+            // convert from 0->1 to 0->2
+            vec2 zeroToTwo = zeroToOne * 2.0;
+
+            vec2 clipSpace = zeroToTwo - 1.0;
+            
+            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+        }
+    `;
+
+    const fragmentShaderSource = `#version 300 es
+        precision highp float;
+        out vec4 outColor;
+        uniform float u_brightness;
+
+        void main() {
+            vec3 calibratedColor = vec3(0.2, 0.1, 0.4) + u_brightness * vec3(1.0, 1.0, 1.0);
+            outColor = vec4(calibratedColor, 1);
+        }
+    `;
+
+    const canvas = document.getElementById("canvas-animated-squares");
+
+    // get webgl context
+    const gl = canvas.getContext("webgl2");
+
+    if (!gl) {
+        console.error("Failed to init webgl.")
+    }
+
+    const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+    const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+    const basicProgram = createProgram(gl, vertexShader, fragmentShader);
+
+    const positionAttributeLocation = gl.getAttribLocation(basicProgram, "a_position");
+    const resolutionUniformLocation = gl.getUniformLocation(basicProgram, "u_resolution");
+    const brightnessUniformLocation = gl.getUniformLocation(basicProgram, "u_brightness");
+    const transformUniformLocation = gl.getUniformLocation(basicProgram, "u_transform");
+
+    const vao = gl.createVertexArray();
+    gl.bindVertexArray(vao);
+    gl.enableVertexAttribArray(positionAttributeLocation);
+
+    const positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+    const geometry = [
+        0, 0,
+        100, 0,
+        0, 100,
+        100, 0,
+        100, 100,
+        0, 100,
+    ];
+    const origin = [50, 50];
+
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(geometry), gl.STATIC_DRAW);
+
+    const size = 2;          // 2 components per iteration
+    const type = gl.FLOAT;   // the data is 32bit floats
+    const normalize = false; // don't normalize the data
+    const stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+    const offset = 0;        // start at the beginning of the buffer
+    gl.vertexAttribPointer(
+        positionAttributeLocation, size, type, normalize, stride, offset);
+
+    resizeCanvasToDisplaySize(canvas, true);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.useProgram(basicProgram);
+
+    gl.bindVertexArray(vao);
+
+    gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
+
+    const squares = [];
+
+    // draw 10 random squares with random brightness
+    for (let i = 0; i < 10; i++) {
+        const x = Math.random() * 400;
+        const y = Math.random() * 400;
+        const scale = Math.random();
+        const brightness = Math.random();
+        const rotationRads = Math.random() * Math.PI * 2;
+
+        squares.push({
+            brightness,
+            rotation: rotationRads,
+            x,
+            y,
+            scale
+        });
+    }
+
+    function render() {
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        gl.useProgram(basicProgram);
+        gl.bindVertexArray(vao);
+
+        gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
+
+        for (let i = 0; i < squares.length; i++) {
+            const { brightness, x, y, rotation, scale } = squares[i];
+
+            // Matrices
+            const translateM = translationMatrix(x, y);
+            const rotationM = rotationMatrix(rotation);
+            const scaleM = scaleMatrix(scale, scale);
+            const moveOriginMatrix = translationMatrix(-origin[0], -origin[1]);
+            const transformM = multiplyMatrix(translateM, multiplyMatrix(rotationM, multiplyMatrix(scaleM, moveOriginMatrix)));
+
+            gl.uniform1f(brightnessUniformLocation, brightness);
+            gl.uniformMatrix3fv(
+                transformUniformLocation,
+                false,
+                transformM
+            );
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+        }
+    }
+
+    function update() {
+        for (let i = 0; i < squares.length; i++) {
+            squares[i].rotation -= 0.01;
+            squares[i].scale = 0.5 + Math.sin(squares[i].rotation * 2) * 0.2;
+        }
+    }
+
+    window.requestAnimationFrame(function loop() {
+        render();
+        update();
+        window.requestAnimationFrame(loop);
+    });
+}
+
+
 window.onload = function() {
     renderBasic();
     renderPixels();
     renderMultiSquares();
     renderTranslatedSquares();
     renderRotatedSquares();
+    renderAnimatedSquares();
 }
