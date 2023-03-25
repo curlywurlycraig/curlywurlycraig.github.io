@@ -162,7 +162,7 @@ function renderPixels() {
         80, 0,
         0, 80,
         0, 80,
-        80, 80,
+        80, 0,
         80, 80,
     ];
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
@@ -278,7 +278,7 @@ function renderMultiSquares() {
             x2, y1,
             x1, y2,
             x1, y2,
-            x2, y2,
+            x2, y1,
             x2, y2,
         ];
 
@@ -288,8 +288,107 @@ function renderMultiSquares() {
     }
 }
 
+function renderTranslatedSquares() {
+    const vertexShaderSource = `#version 300 es
+
+        in vec2 a_position;
+        uniform vec2 u_resolution;
+        uniform vec2 u_translation;
+
+        void main() {
+            vec2 position = a_position + u_translation;
+
+            // convert the position from pixels to 0.0 to 1.0
+            vec2 zeroToOne = position / u_resolution;
+
+            // convert from 0->1 to 0->2
+            vec2 zeroToTwo = zeroToOne * 2.0;
+
+            vec2 clipSpace = zeroToTwo - 1.0;
+            
+            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+        }
+    `;
+
+    const fragmentShaderSource = `#version 300 es
+        precision highp float;
+        out vec4 outColor;
+        uniform float u_brightness;
+
+        void main() {
+            vec3 calibratedColor = vec3(0.2, 0.1, 0.4) + u_brightness * vec3(1.0, 1.0, 1.0);
+            outColor = vec4(calibratedColor, 1);
+        }
+    `;
+
+    const canvas = document.getElementById("canvas-translated-squares");
+
+    // get webgl context
+    const gl = canvas.getContext("webgl2");
+
+    if (!gl) {
+        console.error("Failed to init webgl.")
+    }
+
+    const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+    const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+    const basicProgram = createProgram(gl, vertexShader, fragmentShader);
+
+    const positionAttributeLocation = gl.getAttribLocation(basicProgram, "a_position");
+    const resolutionUniformLocation = gl.getUniformLocation(basicProgram, "u_resolution");
+    const brightnessUniformLocation = gl.getUniformLocation(basicProgram, "u_brightness");
+    const translationUniformLocation = gl.getUniformLocation(basicProgram, "u_translation");
+
+    const vao = gl.createVertexArray();
+    gl.bindVertexArray(vao);
+    gl.enableVertexAttribArray(positionAttributeLocation);
+
+    const positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+    const positions = [
+        0, 0,
+        100, 0,
+        0, 100,
+        100, 0,
+        100, 100,
+        0, 100,
+    ];
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+    const size = 2;          // 2 components per iteration
+    const type = gl.FLOAT;   // the data is 32bit floats
+    const normalize = false; // don't normalize the data
+    const stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+    const offset = 0;        // start at the beginning of the buffer
+    gl.vertexAttribPointer(
+        positionAttributeLocation, size, type, normalize, stride, offset);
+
+    resizeCanvasToDisplaySize(canvas, true);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.useProgram(basicProgram);
+
+    gl.bindVertexArray(vao);
+
+    gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
+
+    // draw 10 random squares with random brightness
+    for (let i = 0; i < 10; i++) {
+        const x = Math.random() * 400;
+        const y = Math.random() * 400;
+        const brightness = Math.random();
+
+        gl.uniform1f(brightnessUniformLocation, brightness);
+        gl.uniform2f(translationUniformLocation, x, y);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+    }
+}
+
 window.onload = function() {
     renderBasic();
     renderPixels();
     renderMultiSquares();
+    renderTranslatedSquares();
 }
