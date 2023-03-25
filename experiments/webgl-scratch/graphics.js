@@ -708,12 +708,19 @@ function renderAnimatedSquares() {
         for (let i = 0; i < squares.length; i++) {
             squares[i].rotation -= 0.01;
             squares[i].scale = 0.5 + Math.sin(squares[i].rotation * 2) * 0.2;
+
+            // flash every 0.5 rads
+            squares[i].brightness = squares[i].rotation < 0.1 ? 1 : 0;
+
+            if (squares[i].rotation < 0) {
+                squares[i].rotation += Math.PI / 2.0;
+            }
         }
     }
 
     window.requestAnimationFrame(function loop() {
-        render();
         update();
+        render();
         window.requestAnimationFrame(loop);
     });
 }
