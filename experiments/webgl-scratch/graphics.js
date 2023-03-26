@@ -710,10 +710,219 @@ function renderAnimatedSquares() {
             squares[i].scale = 0.5 + Math.sin(squares[i].rotation * 2) * 0.2;
 
             // flash every 0.5 rads
-            squares[i].brightness = squares[i].rotation < 0.1 ? 1 : 0;
+            squares[i].brightness = squares[i].rotation < 0.05 ? 1 : 0;
 
             if (squares[i].rotation < 0) {
                 squares[i].rotation += Math.PI / 2.0;
+            }
+        }
+    }
+
+    window.requestAnimationFrame(function loop() {
+        update();
+        render();
+        window.requestAnimationFrame(loop);
+    });
+}
+
+function renderTexturedSquares() {
+    const vertexShaderSource = `#version 300 es
+
+        in vec2 a_texcoord;
+        in vec2 a_position;
+        uniform vec2 u_resolution;
+        uniform mat3 u_transform;
+
+        out vec2 v_texcoord;
+
+        void main() {
+            vec2 position = (u_transform * vec3(a_position, 1)).xy;
+
+            // convert the position from pixels to 0.0 to 1.0
+            vec2 zeroToOne = position / u_resolution;
+
+            // convert from 0->1 to 0->2
+            vec2 zeroToTwo = zeroToOne * 2.0;
+
+            vec2 clipSpace = zeroToTwo - 1.0;
+            
+            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+            v_texcoord = a_texcoord;
+        }
+    `;
+
+    const fragmentShaderSource = `#version 300 es
+        precision highp float;
+        
+        in vec2 v_texcoord;
+        out vec4 outColor;
+        uniform float u_brightness;
+        uniform sampler2D u_texture;
+
+        void main() {
+            vec4 textureColor = texture(u_texture, v_texcoord);
+            vec4 brightenedColor = textureColor + u_brightness * vec4(1.0, 1.0, 1.0, 0.0);
+            outColor = vec4(brightenedColor.rgb, textureColor.a);
+        }
+    `;
+
+    const canvas = document.getElementById("canvas-textured-squares");
+
+    // get webgl context
+    const gl = canvas.getContext("webgl2");
+
+    if (!gl) {
+        console.error("Failed to init webgl.")
+    }
+
+    gl.disable(gl.DEPTH_TEST);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.enable(gl.BLEND);
+
+    const geometry = [
+        0, 0,
+        100, 0,
+        0, 100,
+        100, 0,
+        100, 100,
+        0, 100,
+    ];
+    const origin = [50, 50];
+
+    const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+    const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+    const basicProgram = createProgram(gl, vertexShader, fragmentShader);
+
+    const positionAttributeLocation = gl.getAttribLocation(basicProgram, "a_position");
+    const resolutionUniformLocation = gl.getUniformLocation(basicProgram, "u_resolution");
+    const brightnessUniformLocation = gl.getUniformLocation(basicProgram, "u_brightness");
+    const transformUniformLocation = gl.getUniformLocation(basicProgram, "u_transform");
+    const texcoordAttributeLocation = gl.getAttribLocation(basicProgram, "a_texcoord");
+
+    const vao = gl.createVertexArray();
+    gl.bindVertexArray(vao);
+
+    // position buffer
+    {
+        const positionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(geometry), gl.STATIC_DRAW);
+        gl.enableVertexAttribArray(positionAttributeLocation);
+        const size = 2;          // 2 components per iteration
+        const type = gl.FLOAT;   // the data is 32bit floats
+        const normalize = false; // don't normalize the data
+        const stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+        const offset = 0;        // start at the beginning of the buffer
+        gl.vertexAttribPointer(
+            positionAttributeLocation, size, type, normalize, stride, offset);
+    }
+
+    // texcoord buffer
+    {
+        const texBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, texBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+            0, 0,
+            0.5, 0,
+            0, 1,
+            0.5, 0,
+            0.5, 1,
+            0, 1,
+        ]), gl.STATIC_DRAW);
+        gl.enableVertexAttribArray(texcoordAttributeLocation);
+        const size = 2;          // 2 components per iteration
+        const type = gl.FLOAT;   // the data is 32bit floats
+        const normalize = false; // don't normalize the data
+        const stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+        const offset = 0;        // start at the beginning of the buffer
+        gl.vertexAttribPointer(
+            texcoordAttributeLocation, size, type, normalize, stride, offset);
+    }
+
+    // Load texture
+    {
+        const texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+        // Fill with a 1x1 blue pixel.
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+            new Uint8Array([0, 0, 255, 255]));
+
+        const image = new Image();
+        image.src = "resources/ship2.png";
+        image.addEventListener('load', () => {
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, image);
+            gl.generateMipmap(gl.TEXTURE_2D);
+        });
+    }
+
+    resizeCanvasToDisplaySize(canvas, true);
+
+    const ships = [];
+
+    // create 10 random ships with random brightness
+    for (let i = 0; i < 10; i++) {
+        const x = Math.random() * 400;
+        const y = Math.random() * 400;
+        const scale = Math.random();
+        const brightness = Math.random();
+        const rotationRads = Math.random() * Math.PI * 2;
+
+        ships.push({
+            brightness,
+            rotation: rotationRads,
+            x,
+            y,
+            scale
+        });
+    }
+
+    function render() {
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        gl.useProgram(basicProgram);
+        gl.bindVertexArray(vao);
+
+        gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
+
+        for (let i = 0; i < ships.length; i++) {
+            const { brightness, x, y, rotation, scale } = ships[i];
+
+            // Matrices
+            const translateM = translationMatrix(x, y);
+            const rotationM = rotationMatrix(rotation);
+            const scaleM = scaleMatrix(scale, scale);
+            const moveOriginMatrix = translationMatrix(-origin[0], -origin[1]);
+            const transformM = multiplyMatrix(translateM, multiplyMatrix(rotationM, multiplyMatrix(scaleM, moveOriginMatrix)));
+
+            gl.uniform1f(brightnessUniformLocation, brightness);
+            gl.uniformMatrix3fv(
+                transformUniformLocation,
+                false,
+                transformM
+            );
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+        }
+    }
+
+    function update() {
+        for (let i = 0; i < ships.length; i++) {
+            ships[i].rotation -= 0.01;
+            ships[i].scale = 0.5 + Math.sin(ships[i].rotation * 2) * 0.2;
+
+            // flash the brightness when the rotation is close to 0
+            ships[i].brightness = ships[i].rotation < 0.05 ? 1 : 0;
+
+            if (ships[i].rotation < 0) {
+                ships[i].rotation += Math.PI * 2.0;
             }
         }
     }
@@ -733,4 +942,5 @@ window.onload = function() {
     renderTranslatedSquares();
     renderRotatedSquares();
     renderAnimatedSquares();
+    renderTexturedSquares();
 }
