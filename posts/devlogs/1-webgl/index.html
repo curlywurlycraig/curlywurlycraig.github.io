@@ -29,11 +29,25 @@
       So far, the backend is working, and I'm getting there on the frontend part.
       I've created a syntax-highlighted
       <a href="/posts/experiments/text-editor">text editor</a>
-      and begun work on the graphics.
+      and begun work on the graphics:
     </p>
 
     <canvas id="canvas-textured-squares"></canvas>
 
-    <script src="./graphics.js"></script>
+    <p>
+      Above is mainly to get used to using shaders and WebGL, which I was
+      unfamiliar with. Tying this together with my previous work on
+      <a href="/posts/experiments/text-editor">a syntax highlighted text editor</a>
+      is easy. Edit the following JSON to change the ship's angle, health and position:
+    </p>
+
+    <div id="editor"></div>
+    <canvas id="canvas-json-driven-ship"></canvas>
+
+    <p>
+      Hooking this up to the data sent from the backend will be straight forward.
+    </p>
+
+    <script src="./out/index.js"></script>
   </body>
 </html>
