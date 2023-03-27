@@ -610,7 +610,6 @@ function runJSONDrivenShipLoop() {
         ship.rotation = lerp(ship.rotation, shipTarget.rotation, 0.1);
         if (ship.health > shipTarget.health) {
             ship.brightness = 1 - (shipTarget.health / ship.health);
-            console.log(ship.brightness);
         } else {
             ship.brightness = 0;
         }
