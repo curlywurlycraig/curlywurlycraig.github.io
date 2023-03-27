@@ -45,7 +45,19 @@
     <canvas id="canvas-json-driven-ship"></canvas>
 
     <p>
-      Hooking this up to the data sent from the backend will be straight forward.
+      While this might not look like much, it demonstrates the composition of a
+      few different milestones: a text editor, and state that is based on
+      contents of the editor (granted this will actually come from the dogfight
+      updates from the server, but it's good to have the two things related in
+      this demo), and some basic graphics.
+    </p>
+
+    <p>
+      Hooking this up to the data sent from the backend will be straight
+      forward. Next changes are going to be to add a nice health bar, thruster
+      graphics, laser/cannon graphics, background graphics (maybe), and hooking up
+      to a kind of "timeline" state (lines of JSON) which emulate how the
+      dogfight updates are sent from the backend.
     </p>
 
     <script src="./out/index.js"></script>
