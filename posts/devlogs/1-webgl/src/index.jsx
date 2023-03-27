@@ -538,16 +538,16 @@ function runJSONDrivenShipLoop() {
         editorContent = v;
         try {
             const parsed = JSON.parse(editorContent);
-            if (parsed.x) {
+            if (parsed.x || parsed.x === 0) {
                 shipTarget.x = parsed.x;
             }
-            if (parsed.y) {
+            if (parsed.y || parsed.y === 0) {
                 shipTarget.y = parsed.y;
             }
-            if (parsed.rotation) {
+            if (parsed.rotation || parsed.rotation === 0) {
                 shipTarget.rotation = parsed.rotation;
             }
-            if (parsed.health) {
+            if (parsed.health || parsed.health === 0) {
                 shipTarget.health = parsed.health;
             }
             error = null;
