@@ -1,0 +1,42 @@
+<html>
+  <head>
+    <title>Mimir Devlog 1: Introduction</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="./style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+
+  <body>
+    <header>
+      <a href="/">
+        <img src="/favicon.ico"/>
+      </a>
+    </header>
+
+    <h1>Codename Mimir devlog 2: Timeline</h1>
+
+    <p>
+      In the previous (and first) <a href="/posts/devlogs/1-webgl">devlog</a>, I introduced
+      Mimir and showed some progress on displaying the ship and adjusting its appearance based on
+      interactive JSON values.
+    </p>
+
+    <p>
+      In this devlog, I'll show how many JSON objects over time can be used to
+      represent a fight between ships. This is how (for now) the backend will
+      send the fight to the frontend.
+    </p>
+
+    <p>
+      Note that most of this devlog won't work if you have JS disabled. I'm writing these
+      to be a kind of interactive devlog, since being a web based game makes it possible to do so.
+    </p>
+
+    <h1>Progress</h1>
+
+    <div id="controls"></div>
+    <canvas id="example-timeline-ships"></canvas>
+
+    <script src="./out/index.js"></script>
+  </body>
+</html>
