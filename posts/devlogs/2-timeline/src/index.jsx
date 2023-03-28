@@ -1,7 +1,8 @@
 import { ParseContext, parseJSON } from "./parser.js";
 import { hic, apply, render } from "./vdom.js";
+import { createShader, createProgram, resizeCanvasToDisplaySize } from "./webgl-utils.js";
 
-const shipGeometry = [
+const geometry = [
     0, 0,
     100, 0,
     0, 100,
@@ -9,13 +10,9 @@ const shipGeometry = [
     100, 100,
     0, 100,
 ];
-const shipOrigin = [50, 50];
+const origin = [50, 50];
 
-function lerp(a, b, t) {
-    return a * (1 - t) + b * t;
-}
-
-const Editor = ({ value, onChange }) => {
+const HighlightedJSONText = ({ value }) => {
     const computeSpans = () => {
         const tok = new ParseContext(value);
         parseResult = parseJSON(tok);
@@ -43,19 +40,12 @@ const Editor = ({ value, onChange }) => {
         }, []);
     }
     
-    const onInputChange = (v) => {
-        onChange(v);
-    }
-    
     return (
-        <div id="editor" class="editor_container">
-            <textarea class="editor_textarea" value={value} input={e => onInputChange(e.target.value)} />
-            <pre class="editor_draw">
-                <code>
-                    { computeSpans() }
-                </code>
-            </pre>
-        </div>
+        <pre class="editor_draw">
+            <code>
+                { computeSpans() }
+            </code>
+        </pre>
     );
 }
 
@@ -217,24 +207,23 @@ function runTimelineExample() {
         },
     ]
 
-    let editorContent = JSON.stringify(shipGoal, null, 2);
-    let error = null;
-    function updateEditorContent(v) {
-        editorContent = v;
-        renderEditor();
-    }
-
-    function renderEditor() {
-        apply(render(<div id="editor">
-                <Editor value={editorContent} onChange={updateEditorContent} />
-                <div class="error-container">
-                    { error && <p>
-                        { error.toString() }
-                    </p> }
+    function renderTimeline() {
+        const rows = timeline.map((frame, idx) => {
+            // TODO I AM HERE: make the style be slightly transparent
+            // when the frame is not the current frame.
+            return (
+                <div class="timeline-row" style={}>
+                    <HighlightedJSONText value={JSON.stringify(frame)} />
                 </div>
-            </div>), document.getElementById("editor"));
+            );
+        });
+
+        apply(render(
+            <div id="timeline-controls">
+                { rows }
+            </div>), document.getElementById("timeline-controls"));
     }
-    renderEditor();
+    renderTimeline();
 
     function renderShip() {
         gl.viewport(0, 0, canvas.width, canvas.height);
@@ -278,11 +267,11 @@ function runTimelineExample() {
         }
     }
 
-    window.requestAnimationFrame(function loop() {
-        update();
-        renderShip();
-        window.requestAnimationFrame(loop);
-    });
+    // window.requestAnimationFrame(function loop() {
+        // update();
+        // renderShip();
+        // window.requestAnimationFrame(loop);
+    // });
 }
 
 window.onload = function() {

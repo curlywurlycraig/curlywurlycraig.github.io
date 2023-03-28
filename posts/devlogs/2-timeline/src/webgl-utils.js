@@ -115,3 +115,7 @@ export function identityMatrix() {
         0, 0, 1,
     ];
 }
+
+function lerp(a, b, t) {
+    return a * (1 - t) + b * t;
+}
