@@ -81,10 +81,15 @@ function runTimelineExample() {
         in vec2 v_texcoord;
         out vec4 outColor;
         uniform float u_brightness;
+        uniform int u_sprite_idx;
+        uniform int u_sprite_count;
         uniform sampler2D u_texture;
 
         void main() {
-            vec4 textureColor = texture(u_texture, v_texcoord);
+            vec2 frame_texcoord = v_texcoord +
+                vec2(float(u_sprite_idx) / float(u_sprite_count), 0);
+
+            vec4 textureColor = texture(u_texture, frame_texcoord);
             vec4 brightenedColor = textureColor + u_brightness * vec4(1.0, 1.0, 1.0, 0.0);
             outColor = vec4(brightenedColor.rgb, textureColor.a);
         }
@@ -108,10 +113,12 @@ function runTimelineExample() {
     const basicProgram = glutils.createProgram(gl, vertexShader, fragmentShader);
 
     const positionAttributeLocation = gl.getAttribLocation(basicProgram, "a_position");
+    const texcoordAttributeLocation = gl.getAttribLocation(basicProgram, "a_texcoord");
     const resolutionUniformLocation = gl.getUniformLocation(basicProgram, "u_resolution");
     const brightnessUniformLocation = gl.getUniformLocation(basicProgram, "u_brightness");
     const transformUniformLocation = gl.getUniformLocation(basicProgram, "u_transform");
-    const texcoordAttributeLocation = gl.getAttribLocation(basicProgram, "a_texcoord");
+    const spriteIdxUniformLocation = gl.getUniformLocation(basicProgram, "u_sprite_idx");
+    const spriteCountUniformLocation = gl.getUniformLocation(basicProgram, "u_sprite_count");
 
     const vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
@@ -189,6 +196,7 @@ function runTimelineExample() {
             brightness: 0,
             rotation: 0,
             health: 100,
+            frame: 0
         }
     }
 
@@ -209,8 +217,6 @@ function runTimelineExample() {
 
     function renderTimeline() {
         const rows = timeline.map((frame, idx) => {
-            // TODO I AM HERE: make the style be slightly transparent
-            // when the frame is not the current frame.
             const style = `opacity: ${idx === gameState.frameIdx ? 1 : 0.5};`;
             return (
                 <div class="timeline-row" style={style}>
@@ -219,10 +225,13 @@ function runTimelineExample() {
             );
         });
 
-        apply(render(
+        const el = (
             <div id="timeline-controls">
                 { rows }
-            </div>), document.getElementById("timeline-controls"));
+            </div>
+        );
+
+        apply(render(el), document.getElementById("timeline-controls"));
     }
     renderTimeline();
 
@@ -236,7 +245,7 @@ function runTimelineExample() {
 
         gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
 
-        const { brightness, x, y, rotation } = gameState.ship;
+        const { brightness, x, y, rotation, frame } = gameState.ship;
 
         // Matrices
         const translateM = glutils.translationMatrix(x, y);
@@ -247,6 +256,8 @@ function runTimelineExample() {
             glutils.multiplyMatrix(rotationM,
                 glutils.multiplyMatrix(scaleM, moveOriginMatrix)));
 
+        gl.uniform1i(spriteIdxUniformLocation, frame);
+        gl.uniform1i(spriteCountUniformLocation, 2);
         gl.uniform1f(brightnessUniformLocation, brightness);
         gl.uniformMatrix3fv(
             transformUniformLocation,
@@ -273,11 +284,17 @@ function runTimelineExample() {
     }
 
     let lastTickTime = 0;
+    let lastWobbleTime = 0;
     window.requestAnimationFrame(function loop(t) {
         if (t - lastTickTime > 1000) {
             gameState.frameIdx = (gameState.frameIdx + 1) % timeline.length;
             lastTickTime = t;
             renderTimeline();
+        }
+
+        if (t - lastWobbleTime > 200) {
+            gameState.ship.frame = (gameState.ship.frame + 1) % 2;
+            lastWobbleTime = t;
         }
 
         update();
