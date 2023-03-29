@@ -1,6 +1,6 @@
 import { ParseContext, parseJSON } from "./parser.js";
 import { hic, apply, render } from "./vdom.js";
-import { createShader, createProgram, resizeCanvasToDisplaySize } from "./webgl-utils.js";
+import * as glutils from "./webgl-utils.js";
 
 const geometry = [
     0, 0,
@@ -103,9 +103,9 @@ function runTimelineExample() {
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.enable(gl.BLEND);
 
-    const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-    const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
-    const basicProgram = createProgram(gl, vertexShader, fragmentShader);
+    const vertexShader = glutils.createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+    const fragmentShader = glutils.createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+    const basicProgram = glutils.createProgram(gl, vertexShader, fragmentShader);
 
     const positionAttributeLocation = gl.getAttribLocation(basicProgram, "a_position");
     const resolutionUniformLocation = gl.getUniformLocation(basicProgram, "u_resolution");
@@ -176,7 +176,7 @@ function runTimelineExample() {
         });
     }
 
-    resizeCanvasToDisplaySize(canvas, true);
+    glutils.resizeCanvasToDisplaySize(canvas, true);
 
     const gameState = {
         frameIdx: 0,
@@ -211,8 +211,9 @@ function runTimelineExample() {
         const rows = timeline.map((frame, idx) => {
             // TODO I AM HERE: make the style be slightly transparent
             // when the frame is not the current frame.
+            const style = `opacity: ${idx === gameState.frameIdx ? 1 : 0.5};`;
             return (
-                <div class="timeline-row" style={}>
+                <div class="timeline-row" style={style}>
                     <HighlightedJSONText value={JSON.stringify(frame)} />
                 </div>
             );
@@ -235,14 +236,16 @@ function runTimelineExample() {
 
         gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
 
-        const { brightness, x, y, rotation } = ship;
+        const { brightness, x, y, rotation } = gameState.ship;
 
         // Matrices
-        const translateM = translationMatrix(x, y);
-        const rotationM = rotationMatrix(rotation);
-        const scaleM = scaleMatrix(1, 1);
-        const moveOriginMatrix = translationMatrix(-origin[0], -origin[1]);
-        const transformM = multiplyMatrix(translateM, multiplyMatrix(rotationM, multiplyMatrix(scaleM, moveOriginMatrix)));
+        const translateM = glutils.translationMatrix(x, y);
+        const rotationM = glutils.rotationMatrix(rotation);
+        const scaleM = glutils.scaleMatrix(1, 1);
+        const moveOriginMatrix = glutils.translationMatrix(-origin[0], -origin[1]);
+        const transformM = glutils.multiplyMatrix(translateM,
+            glutils.multiplyMatrix(rotationM,
+                glutils.multiplyMatrix(scaleM, moveOriginMatrix)));
 
         gl.uniform1f(brightnessUniformLocation, brightness);
         gl.uniformMatrix3fv(
@@ -256,10 +259,12 @@ function runTimelineExample() {
     function update() {
         // set the ship x, y, and rotation based on the targets and the current content
         // of the json
-        ship.x = lerp(ship.x, shipTarget.x, 0.1);
-        ship.y = lerp(ship.y, shipTarget.y, 0.1);
-        ship.health = lerp(ship.health, shipTarget.health, 0.5);
-        ship.rotation = lerp(ship.rotation, shipTarget.rotation, 0.1);
+        const shipTarget = timeline[gameState.frameIdx];
+        const ship = gameState.ship;
+        ship.x = glutils.lerp(ship.x, shipTarget.x, 0.1);
+        ship.y = glutils.lerp(ship.y, shipTarget.y, 0.1);
+        ship.health = glutils.lerp(ship.health, shipTarget.health, 0.1);
+        ship.rotation = glutils.lerp(ship.rotation, shipTarget.rotation, 0.1);
         if (ship.health > shipTarget.health) {
             ship.brightness = 1 - (shipTarget.health / ship.health);
         } else {
@@ -267,11 +272,18 @@ function runTimelineExample() {
         }
     }
 
-    // window.requestAnimationFrame(function loop() {
-        // update();
-        // renderShip();
-        // window.requestAnimationFrame(loop);
-    // });
+    let lastTickTime = 0;
+    window.requestAnimationFrame(function loop(t) {
+        if (t - lastTickTime > 1000) {
+            gameState.frameIdx = (gameState.frameIdx + 1) % timeline.length;
+            lastTickTime = t;
+            renderTimeline();
+        }
+
+        update();
+        renderShip();
+        window.requestAnimationFrame(loop);
+    });
 }
 
 window.onload = function() {
