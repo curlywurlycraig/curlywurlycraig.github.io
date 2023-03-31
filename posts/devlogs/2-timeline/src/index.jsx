@@ -2,9 +2,27 @@ import { ParseContext, parseJSON } from "./parser.js";
 import { hic, apply, render } from "./vdom.js";
 import * as glutils from "./webgl-utils.js";
 
-const starfieldFragmentShaderSource = `#version 300 es
+const starfieldVertexShaderSource = `#version 300 es
 
-#define SIZE 0.01
+in vec2 a_position;
+
+out vec2 v_texcoord;
+
+void main() {
+    gl_Position = vec4(a_position, 0.9, 1.);
+}
+`;
+
+
+const starfieldFragmentShaderSource = `#version 300 es
+precision mediump float;
+
+#define SIZE 0.02
+#define COLOR vec3(0.05, 0.05, 0.1)
+
+uniform vec2 u_resolution;
+uniform float u_time;
+out vec4 outColor;
 
 // got this from https://www.shadertoy.com/view/MdcfDj
 float sinHash(vec2 p) {
@@ -12,50 +30,50 @@ float sinHash(vec2 p) {
 }
 
 vec3 layer(vec2 uv, float depth) {
+    float t = u_time;
+
     // zoom
     uv = uv * depth;
-    uv += iTime/3.;
+    uv += t/3.;
     
     vec2 gridPos = floor(uv);
     vec2 relPos = uv - gridPos;
     
     float id = sinHash(gridPos+depth);
-    float brightness = max(0., (sin(id*100000. + iTime)));
+    float brightness = max(0., (sin(id*100000. + t)));
     relPos += vec2(-0.5);
     float xJimmy = (fract(id)) -0.5;
     float yJimmy = (fract(id*10.)) -0.5;
     relPos += vec2(xJimmy, yJimmy);
-    //relPos += 0.1 * sin(iTime+id);
+    //relPos += 0.1 * sin(u_time+id);
         
-    // uv = vec2(0.1*sin(uv.x+iTime),0.1*cos(uv.y+iTime));
+    // uv = vec2(0.1*sin(uv.x+u_time),0.1*cos(uv.y+t));
     
     vec3 col = vec3(0.);
     col += 1. - smoothstep(SIZE, SIZE + 0.003, length(relPos));
     return col * brightness;
 }
 
-in vec2 v_texcoord;
-uniform vec2 iResolution;
-
 void main() {
-    vec2 uv = (gl_FragCoord.xy-0.5*iResolution.xy)/iResolution.y;
+    vec2 uv = (gl_FragCoord.xy-0.5*u_resolution.xy)/u_resolution.y;
     
     // Apply multiple layers
-    vec3 col = layer(uv, 9.0);
+    vec3 col = COLOR;
+    col += layer(uv, 9.0);
     col += layer(uv, 15.0);
 
     // Output to screen
-    gl_FragColor = vec4(col,1.0);
+    outColor = vec4(col,1.0);
 }`;
 
-const backgroundGeometry = [
+const starfieldGeometry = [
     -1, -1,
     1, -1,
     -1, 1,
     1, -1,
     1, 1,
     -1, 1,
-]
+];
 
 const geometry = [
     0, 0,
@@ -166,6 +184,13 @@ function runTimelineExample() {
     const vertexShader = glutils.createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
     const fragmentShader = glutils.createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
     const basicProgram = glutils.createProgram(gl, vertexShader, fragmentShader);
+    const starfieldVertexShader = glutils.createShader(gl, gl.VERTEX_SHADER, starfieldVertexShaderSource);
+    const starfieldFragmentShader = glutils.createShader(gl, gl.FRAGMENT_SHADER, starfieldFragmentShaderSource);
+    const starfieldProgram = glutils.createProgram(gl, starfieldVertexShader, starfieldFragmentShader);
+
+    const starfieldPositionAttributeLocation = gl.getAttribLocation(starfieldProgram, "a_position");
+    const starfieldResolutionUniformLocation = gl.getUniformLocation(starfieldProgram, "u_resolution");
+    const starfieldTimeUniformLocation = gl.getUniformLocation(starfieldProgram, "u_time");
 
     const positionAttributeLocation = gl.getAttribLocation(basicProgram, "a_position");
     const texcoordAttributeLocation = gl.getAttribLocation(basicProgram, "a_texcoord");
@@ -175,13 +200,30 @@ function runTimelineExample() {
     const spriteIdxUniformLocation = gl.getUniformLocation(basicProgram, "u_sprite_idx");
     const spriteCountUniformLocation = gl.getUniformLocation(basicProgram, "u_sprite_count");
 
-    const vao = gl.createVertexArray();
-    gl.bindVertexArray(vao);
+    const spriteVao = gl.createVertexArray();
+    const starfieldVao = gl.createVertexArray();
 
     const textures = {};
 
+    // starfield position buffer
+    {
+        gl.bindVertexArray(starfieldVao);
+        const positionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(starfieldGeometry), gl.STATIC_DRAW);
+        gl.enableVertexAttribArray(starfieldPositionAttributeLocation);
+        const size = 2;          // 2 components per iteration
+        const type = gl.FLOAT;   // the data is 32bit floats
+        const normalize = false; // don't normalize the data
+        const stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+        const offset = 0;        // start at the beginning of the buffer
+        gl.vertexAttribPointer(
+            starfieldPositionAttributeLocation, size, type, normalize, stride, offset);
+    }
+
     // position buffer
     {
+        gl.bindVertexArray(spriteVao);
         const positionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(geometry), gl.STATIC_DRAW);
@@ -346,7 +388,7 @@ function runTimelineExample() {
 
     function renderSprite(sprite) {
         gl.useProgram(basicProgram);
-        gl.bindVertexArray(vao);
+        gl.bindVertexArray(spriteVao);
 
         gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
 
@@ -369,6 +411,16 @@ function runTimelineExample() {
             false,
             transformM
         );
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+    }
+
+    function renderStarfield(t) {
+        gl.useProgram(starfieldProgram);
+        gl.bindVertexArray(starfieldVao);
+
+        gl.uniform2f(starfieldResolutionUniformLocation, canvas.width, canvas.height);
+        gl.uniform1f(starfieldTimeUniformLocation, t/2000);
+
         gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
 
@@ -410,6 +462,7 @@ function runTimelineExample() {
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         // TODO Render multiple ships and missiles etc
+        renderStarfield(t);
         renderSprite(gameState.ship);
 
         window.requestAnimationFrame(loop);

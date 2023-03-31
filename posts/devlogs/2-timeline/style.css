@@ -46,13 +46,3 @@ canvas {
 .parsed_NUMBER {
     color: #72c9e3;
 }
-
-.error-container > p {
-    background-color: #40293e;
-    font-family: Menlo, monospace;
-    font-size: 0.8em;
-    padding: 5px;
-    border-radius: 2px;
-    border: 1px solid #684848;
-    color: #ecc6c6;
-}
