@@ -1,6 +1,7 @@
 canvas {
     width: 400px;
     height: 200px;
+    margin: 20px 0;
 }
 
 .editor_container {
