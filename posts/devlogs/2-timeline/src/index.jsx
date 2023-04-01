@@ -15,7 +15,7 @@ void main() {
 
 
 const starfieldFragmentShaderSource = `#version 300 es
-precision mediump float;
+precision highp float;
 
 #define SIZE 0.02
 #define COLOR vec3(0.05, 0.05, 0.1)
