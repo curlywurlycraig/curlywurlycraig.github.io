@@ -47,19 +47,26 @@
     </p>
 
     <p>
-      You can see a preview of how a timeline of states works below.
+      Underneath the example you can see how each step is represented as a JSON
+      object. The animation is "jumpy" because I have slowed down the rate at which
+      the state is updated, to make it easier to see the steps.
     </p>
 
-    <div id="timeline-controls"></div>
+    <p>
+      The bits in between the steps are interpolated, so the ship will smoothly
+      move between steps. This makes it possible to adjust the game rate independently.
+      It will be useful to tune this to trade off between smoothness and how
+      much server space is used to represent the fight.
+    </p>
+
     <canvas id="example-timeline-ships"></canvas>
+    <div id="timeline-controls"></div>
 
     <script src="./out/index.js"></script>
 
     <p>
-      TODO: Add thruster sprite
-      TODO: Generalise sprite rendering to handle lasers, thrusters and ships (and other characters etc)
-      in a nice way
       TODO: Add health bars
+      TODO: Add thruster sprite
       TODO: Be framerate agnostic
       TODO: Add an actual flight simulation
     </p>
