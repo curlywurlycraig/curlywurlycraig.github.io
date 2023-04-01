@@ -1,6 +1,6 @@
 import { hic, apply, render } from "./vdom.js";
 import * as glutils from "./webgl-utils.js";
-import { ShipsRenderer } from "./gfx/ships.js";
+import { SpriteRenderer } from "./gfx/sprite.js";
 import { StarfieldRenderer } from "./gfx/starfield.js";
 import { HighlightedJSONText } from "./gui/editor.jsx";
 
@@ -20,7 +20,18 @@ function runTimelineExample() {
 
     glutils.resizeCanvasToDisplaySize(canvas, true);
 
-    const shipsRenderer = new ShipsRenderer(gl);
+    const shipsRenderer = new SpriteRenderer(
+        gl,
+        [100, 100],
+        [50, 50],
+        "resources/ship.png"
+    );
+    const missileRenderer = new SpriteRenderer(
+        gl,
+        [16, 32],
+        [8, 8],
+        "resources/missile.png"
+    );
     const starfieldRenderer = new StarfieldRenderer(gl);
 
     const gameState = {
@@ -160,7 +171,8 @@ function runTimelineExample() {
 
         // TODO Render multiple ships and missiles etc
         starfieldRenderer.render(t, canvas);
-        shipsRenderer.render(gameState.ship, canvas);
+        shipsRenderer.render(canvas, gameState.ship);
+        missileRenderer.render(canvas, gameState.ship);
 
         window.requestAnimationFrame(loop);
     });

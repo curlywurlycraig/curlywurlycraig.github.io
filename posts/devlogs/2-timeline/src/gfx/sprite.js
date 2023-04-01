@@ -45,17 +45,8 @@ void main() {
 }
 `;
 
-const geometry = [
-    0, 0,
-    100, 0,
-    0, 100,
-    100, 0,
-    100, 100,
-    0, 100,
-];
-const origin = [50, 50];
 
-export class ShipsRenderer {
+export class SpriteRenderer {
     gl = null;
     program = null;
 
@@ -70,9 +61,23 @@ export class ShipsRenderer {
     vao = null;
 
     texture = null;
+    geometry = null;
+    dimensions = null;
 
-    constructor(gl) {
+    constructor(gl, dimensions, origin, spriteURL) {
         this.gl = gl;
+
+        this.origin = origin;
+        const [width, height] = dimensions;
+        this.dimensions = dimensions;
+        this.geometry = [
+            0, 0,
+            width, 0,
+            0, height,
+            width, 0,
+            width, height,
+            0, height,
+        ];
 
         const vertexShader = glutils.createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
         const fragmentShader = glutils.createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
@@ -93,7 +98,7 @@ export class ShipsRenderer {
             gl.bindVertexArray(this.vao);
             const positionBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(geometry), gl.STATIC_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.geometry), gl.STATIC_DRAW);
             gl.enableVertexAttribArray(this.posA);
             const size = 2;          // 2 components per iteration
             const type = gl.FLOAT;   // the data is 32bit floats
@@ -141,7 +146,7 @@ export class ShipsRenderer {
                 new Uint8Array([0, 0, 255, 255]));
     
             const image = new Image();
-            image.src = "resources/ship.png";
+            image.src = spriteURL;
             image.addEventListener('load', () => {
                 gl.bindTexture(gl.TEXTURE_2D, this.texture);
                 gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, image);
@@ -150,20 +155,21 @@ export class ShipsRenderer {
         }
     }
 
-    render(ship, canvas) {
+    render(canvas, params) {
+        const { brightness, x, y, rotation, frame } = params;
+
         const gl = this.gl;
         gl.useProgram(this.program);
         gl.bindVertexArray(this.vao);
+        gl.bindTexture(gl.TEXTURE_2D, this.texture);
 
         gl.uniform2f(this.resolutionU, canvas.width, canvas.height);
-
-        const { brightness, x, y, rotation, frame } = ship;
 
         // Matrices
         const translateM = glutils.translationMatrix(x, y);
         const rotationM = glutils.rotationMatrix(rotation);
         const scaleM = glutils.scaleMatrix(1, 1);
-        const moveOriginMatrix = glutils.translationMatrix(-origin[0], -origin[1]);
+        const moveOriginMatrix = glutils.translationMatrix(-this.origin[0], -this.origin[1]);
         const transformM = glutils.multiplyMatrix(translateM,
             glutils.multiplyMatrix(rotationM,
                 glutils.multiplyMatrix(scaleM, moveOriginMatrix)));
