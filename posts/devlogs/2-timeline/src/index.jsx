@@ -3,6 +3,7 @@ import * as glutils from "./webgl-utils.js";
 import { SpriteRenderer } from "./gfx/sprite.js";
 import { StarfieldRenderer } from "./gfx/starfield.js";
 import { HighlightedJSONText } from "./gui/editor.jsx";
+import { timeline } from "./timeline.js";
 
 function runTimelineExample() {
     const canvas = document.getElementById("example-timeline-ships");
@@ -39,78 +40,29 @@ function runTimelineExample() {
         // ship is the actual on screen ship, the target values
         // we want to animate to are stored at the current index
         // in the timeline.
-        ship: {
-            x: 200,
-            y: 200,
-            brightness: 0,
-            rotation: 0,
-            health: 100,
-            frame: 0
+        missiles: {
+            1: {
+                x: 200,
+                y: 50,
+                rotation: Math.PI,
+            },
+            2: {
+                x: 400,
+                y: -100,
+                rotation: Math.PI,
+            }
+        },
+        ships: {
+            0: {
+                x: 200,
+                y: 200,
+                brightness: 0,
+                rotation: 0,
+                health: 100,
+                frame: 0
+            }
         }
     }
-
-    const timeline = [
-        {
-            x: 100,
-            y: 300,
-            health: 100,
-            rotation: 3 * Math.PI / 2.0,
-        },
-        {
-            x: 100,
-            y: 300,
-            health: 100,
-            rotation: 3 * Math.PI / 2.0,
-        },
-        {
-            x: 100,
-            y: 300,
-            health: 100,
-            rotation: 3 * Math.PI / 2.0,
-        },
-        {
-            x: 200,
-            y: 300,
-            health: 100,
-            rotation: 3.5 * Math.PI / 2.0,
-        },
-        {
-            x: 300,
-            y: 250,
-            health: 50,
-            rotation: 2 * Math.PI,
-        },
-        {
-            x: 400,
-            y: 200,
-            health: 50,
-            rotation: 2 * Math.PI + Math.PI / 4.0,
-        },
-        {
-            x: 500,
-            y: 180,
-            health: 20,
-            rotation: 2 * Math.PI + 2 * Math.PI / 4.0,
-        },
-        {
-            x: 600,
-            y: 150,
-            health: 20,
-            rotation: 2 * Math.PI + 3 * Math.PI / 4.0,
-        },
-        {
-            x: 600,
-            y: 150,
-            health: 20,
-            rotation: 2 * Math.PI + 3 * Math.PI / 4.0,
-        },
-        {
-            x: 600,
-            y: 150,
-            health: 20,
-            rotation: 2 * Math.PI + 3 * Math.PI / 4.0,
-        },
-    ]
 
     function renderTimeline() {
         const rows = timeline.map((frame, idx) => {
@@ -135,8 +87,11 @@ function runTimelineExample() {
     function update() {
         // set the ship x, y, and rotation based on the targets and the current content
         // of the json
-        const shipTarget = timeline[gameState.frameIdx];
-        const ship = gameState.ship;
+        const timelineFrame = timeline[gameState.frameIdx];
+
+        const shipTarget = timelineFrame.ships[0];
+
+        const ship = gameState.ships[0];
         ship.x = glutils.lerp(ship.x, shipTarget.x, 0.1);
         ship.y = glutils.lerp(ship.y, shipTarget.y, 0.1);
         ship.health = glutils.lerp(ship.health, shipTarget.health, 0.1);
@@ -146,6 +101,30 @@ function runTimelineExample() {
         } else {
             ship.brightness = 0;
         }
+
+        Object.entries(timelineFrame.missiles).forEach(([idx, missileTarget]) => {
+            if (!gameState.missiles[idx]) {
+                gameState.missiles[idx] = {
+                    x: missileTarget.x,
+                    y: missileTarget.y,
+                    rotation: missileTarget.rotation,
+                };
+            }
+        });
+
+        // update missile positions
+        Object.entries(gameState.missiles).forEach(([idx, missile]) => {
+            const missileTarget = timelineFrame.missiles[idx];
+            if (missileTarget === undefined) {
+                delete gameState.missiles[idx];
+                return;
+            }
+
+            missile.x = glutils.lerp(missile.x, missileTarget.x, 0.1);
+            missile.y = glutils.lerp(missile.y, missileTarget.y, 0.1);
+            missile.health = glutils.lerp(missile.health, missileTarget.health, 0.1);
+            missile.rotation = glutils.lerp(missile.rotation, missileTarget.rotation, 0.1);
+        });
     }
 
     let lastTickTime = 0;
@@ -158,7 +137,7 @@ function runTimelineExample() {
         }
 
         if (t - lastWobbleTime > 200) {
-            gameState.ship.frame = (gameState.ship.frame + 1) % 2;
+            gameState.ships[0].frame = (gameState.ships[0].frame + 1) % 2;
             lastWobbleTime = t;
         }
 
@@ -169,10 +148,16 @@ function runTimelineExample() {
         gl.clearColor(0, 0, 0, 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
-        // TODO Render multiple ships and missiles etc
         starfieldRenderer.render(t, canvas);
-        shipsRenderer.render(canvas, gameState.ship);
-        missileRenderer.render(canvas, gameState.ship);
+        shipsRenderer.render(canvas, gameState.ships[0]);
+        
+        Object.values(gameState.missiles).forEach((missile) => {
+            missileRenderer.render(canvas, {
+                ...missile,
+                brightness: 0,
+                frame: 0,
+            });
+        });
 
         window.requestAnimationFrame(loop);
     });
