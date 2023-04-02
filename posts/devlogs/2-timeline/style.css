@@ -1,3 +1,7 @@
+/* 
+    Timeline
+*/
+
 #example-timeline-ships-container {
     margin: 20px 0;
     border-radius: 5px;
@@ -11,6 +15,11 @@ canvas#example-timeline-ships {
     height: 100%;
     width: 100%;
 }
+
+
+/*
+    GUI
+*/
 
 #example-timeline-ships-gui {
     position: absolute;
@@ -33,13 +42,9 @@ canvas#example-timeline-ships {
     transition: width 0.1s linear;
 }
 
-.editor_container {
-    position: relative;
-    background-color: #ffffff05;
-    border-radius: 8px;
-    padding-bottom: 0;
-    margin: 0;
-}
+/*
+    Code editor
+*/
 
 .editor_draw {
     padding: 0;
