@@ -1,5 +1,5 @@
 import { hic, apply, render } from "./vdom.js";
-import * as glutils from "./webgl-utils.js";
+import * as glutils from "./gfx/webgl-utils.js";
 import { SpriteRenderer } from "./gfx/sprite.js";
 import { StarfieldRenderer } from "./gfx/starfield.js";
 import { HighlightedJSONText } from "./gui/editor.jsx";
@@ -21,19 +21,10 @@ function runTimelineExample() {
 
     glutils.resizeCanvasToDisplaySize(canvas, true);
 
-    const shipsRenderer = new SpriteRenderer(
-        gl,
-        [100, 100],
-        [50, 50],
-        "resources/ship.png"
-    );
-    const missileRenderer = new SpriteRenderer(
-        gl,
-        [16, 32],
-        [8, 8],
-        "resources/missile.png"
-    );
     const starfieldRenderer = new StarfieldRenderer(gl);
+    const spriteRenderer = new SpriteRenderer(gl);
+    spriteRenderer.loadSprite("resources/ship.png", [100, 100], [50, 50], 2);
+    spriteRenderer.loadSprite("resources/missile.png", [30, 60], [15, 15], 2);
 
     const gameState = {
         frameIdx: 0,
@@ -149,10 +140,10 @@ function runTimelineExample() {
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         starfieldRenderer.render(t, canvas);
-        shipsRenderer.render(canvas, gameState.ships[0]);
+        spriteRenderer.render(canvas, "resources/ship.png", gameState.ships[0]);
         
         Object.values(gameState.missiles).forEach((missile) => {
-            missileRenderer.render(canvas, {
+            spriteRenderer.render(canvas, "resources/missile.png", {
                 ...missile,
                 brightness: 0,
                 frame: 0,

@@ -1,4 +1,4 @@
-import * as glutils from "../webgl-utils.js";
+import * as glutils from "./webgl-utils.js";
 
 const geometry = [
     -1, -1,

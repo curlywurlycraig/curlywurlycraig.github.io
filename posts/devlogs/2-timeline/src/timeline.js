@@ -8,7 +8,7 @@ export const timeline = [
             },
             2: {
                 x: 400,
-                y: 50,
+                y: -100,
                 rotation: Math.PI
             },
         },
@@ -30,7 +30,7 @@ export const timeline = [
             },
             2: {
                 x: 400,
-                y: 100,
+                y: 0,
                 rotation: Math.PI
             },
         },
@@ -47,7 +47,7 @@ export const timeline = [
         missiles: {
             2: {
                 x: 400,
-                y: 150,
+                y: 100,
                 rotation: Math.PI
             },
         },

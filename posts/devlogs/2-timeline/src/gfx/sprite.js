@@ -1,4 +1,4 @@
-import * as glutils from "../webgl-utils.js";
+import * as glutils from "./webgl-utils.js";
 
 const vertexShaderSource = `#version 300 es
 
@@ -60,24 +60,10 @@ export class SpriteRenderer {
 
     vao = null;
 
-    texture = null;
-    geometry = null;
-    dimensions = null;
+    sprites = {};
 
-    constructor(gl, dimensions, origin, spriteURL) {
+    constructor(gl) {
         this.gl = gl;
-
-        this.origin = origin;
-        const [width, height] = dimensions;
-        this.dimensions = dimensions;
-        this.geometry = [
-            0, 0,
-            width, 0,
-            0, height,
-            width, 0,
-            width, height,
-            0, height,
-        ];
 
         const vertexShader = glutils.createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
         const fragmentShader = glutils.createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
@@ -98,7 +84,14 @@ export class SpriteRenderer {
             gl.bindVertexArray(this.vao);
             const positionBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.geometry), gl.STATIC_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                0, 0,
+                1, 0,
+                0, 1,
+                1, 0,
+                1, 1,
+                0, 1,
+            ]), gl.STATIC_DRAW);
             gl.enableVertexAttribArray(this.posA);
             const size = 2;          // 2 components per iteration
             const type = gl.FLOAT;   // the data is 32bit floats
@@ -130,52 +123,61 @@ export class SpriteRenderer {
             gl.vertexAttribPointer(
                 this.texcoordA, size, type, normalize, stride, offset);
         }
-
-        // Load texture
-        {
-            this.texture = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_2D, this.texture);
-    
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    
-            // Fill with a 1x1 blue pixel.
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
-                new Uint8Array([0, 0, 255, 255]));
-    
-            const image = new Image();
-            image.src = spriteURL;
-            image.addEventListener('load', () => {
-                gl.bindTexture(gl.TEXTURE_2D, this.texture);
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, image);
-                gl.generateMipmap(gl.TEXTURE_2D);
-            });
-        }
     }
 
-    render(canvas, params) {
+    loadSprite(url, dimensions, origin, frameCount) {
+        const gl = this.gl;
+        const newTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, newTexture);
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+        // Fill with a 1x1 blue pixel.
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+            new Uint8Array([0, 0, 255, 255]));
+
+        const image = new Image();
+        image.src = url;
+        image.addEventListener('load', () => {
+            gl.bindTexture(gl.TEXTURE_2D, newTexture);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, image);
+            gl.generateMipmap(gl.TEXTURE_2D);
+        });
+
+        this.sprites[url] = {
+            texture: newTexture,
+            url,
+            origin,
+            dimensions,
+            frameCount
+        };
+    }
+
+    render(canvas, sprite, params) {
+        const { dimensions, origin, texture, frameCount } = this.sprites[sprite];
         const { brightness, x, y, rotation, frame } = params;
 
         const gl = this.gl;
         gl.useProgram(this.program);
         gl.bindVertexArray(this.vao);
-        gl.bindTexture(gl.TEXTURE_2D, this.texture);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
 
         gl.uniform2f(this.resolutionU, canvas.width, canvas.height);
 
         // Matrices
         const translateM = glutils.translationMatrix(x, y);
         const rotationM = glutils.rotationMatrix(rotation);
-        const scaleM = glutils.scaleMatrix(1, 1);
-        const moveOriginMatrix = glutils.translationMatrix(-this.origin[0], -this.origin[1]);
+        const scaleM = glutils.scaleMatrix(dimensions[0], dimensions[1]);
+        const moveOriginMatrix = glutils.translationMatrix(-origin[0], -origin[1]);
         const transformM = glutils.multiplyMatrix(translateM,
             glutils.multiplyMatrix(rotationM,
-                glutils.multiplyMatrix(scaleM, moveOriginMatrix)));
+                glutils.multiplyMatrix(moveOriginMatrix, scaleM)));
 
         gl.uniform1i(this.spriteIdxU, frame);
-        gl.uniform1i(this.spriteCountU, 2);
+        gl.uniform1i(this.spriteCountU, frameCount);
         gl.uniform1f(this.brightnessU, brightness);
         gl.uniformMatrix3fv(
             this.transformU,
