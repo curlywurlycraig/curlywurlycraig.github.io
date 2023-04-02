@@ -55,6 +55,22 @@ function runTimelineExample() {
         }
     }
 
+    function renderGUI() {
+        const left = (gameState.ships[0].x - 50) / 2.0;
+        const top = (gameState.ships[0].y - 50) / 2.0;
+        const width = 50 * (gameState.ships[0].health / 100);
+        const styleString = `left: ${left}px; width: ${width}px; top: ${top}px;`;
+
+        const el = (
+            <div id="example-timeline-ships-gui">
+                <div class="health-bar-background" style={styleString}></div>
+                <div class="health-bar" style={styleString}></div>
+            </div>
+        );
+
+        apply(render(el), document.getElementById("example-timeline-ships-gui"));
+    }
+
     function renderTimeline() {
         const rows = timeline.map((frame, idx) => {
             const style = `opacity: ${idx === gameState.frameIdx ? 1 : 0.5};`;
@@ -85,7 +101,7 @@ function runTimelineExample() {
         const ship = gameState.ships[0];
         ship.x = glutils.lerp(ship.x, shipTarget.x, 0.1);
         ship.y = glutils.lerp(ship.y, shipTarget.y, 0.1);
-        ship.health = glutils.lerp(ship.health, shipTarget.health, 0.1);
+        ship.health = glutils.lerp(ship.health, shipTarget.health, 0.5);
         ship.rotation = glutils.lerp(ship.rotation, shipTarget.rotation, 0.1);
         if (ship.health > shipTarget.health) {
             ship.brightness = 1 - (shipTarget.health / ship.health);
@@ -113,9 +129,27 @@ function runTimelineExample() {
 
             missile.x = glutils.lerp(missile.x, missileTarget.x, 0.1);
             missile.y = glutils.lerp(missile.y, missileTarget.y, 0.1);
-            missile.health = glutils.lerp(missile.health, missileTarget.health, 0.1);
             missile.rotation = glutils.lerp(missile.rotation, missileTarget.rotation, 0.1);
         });
+    }
+
+    function draw(t) {
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        starfieldRenderer.render(t, canvas);
+        spriteRenderer.render(canvas, "resources/ship.png", gameState.ships[0]);
+        
+        Object.values(gameState.missiles).forEach((missile) => {
+            spriteRenderer.render(canvas, "resources/missile.png", {
+                ...missile,
+                brightness: 0,
+                frame: 0,
+            });
+        });
+
+        renderGUI();
     }
 
     let lastTickTime = 0;
@@ -133,22 +167,7 @@ function runTimelineExample() {
         }
 
         update();
-
-        // draw
-        gl.viewport(0, 0, canvas.width, canvas.height);
-        gl.clearColor(0, 0, 0, 0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-
-        starfieldRenderer.render(t, canvas);
-        spriteRenderer.render(canvas, "resources/ship.png", gameState.ships[0]);
-        
-        Object.values(gameState.missiles).forEach((missile) => {
-            spriteRenderer.render(canvas, "resources/missile.png", {
-                ...missile,
-                brightness: 0,
-                frame: 0,
-            });
-        });
+        draw(t);
 
         window.requestAnimationFrame(loop);
     });
