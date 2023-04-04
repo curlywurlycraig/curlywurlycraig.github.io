@@ -92,20 +92,21 @@ function runTimelineExample() {
     }
     renderTimeline();
 
-    function update() {
+    function update(t) {
         // set the ship x, y, and rotation based on the targets and the current content
         // of the json
         const timelineFrame = timeline[gameState.frameIdx];
 
         const shipTarget = timelineFrame.ships[0];
 
+        const tSecs = t * 0.001;
         const ship = gameState.ships[0];
-        ship.x = glutils.lerp(ship.x, shipTarget.x, 0.1);
-        ship.y = glutils.lerp(ship.y, shipTarget.y, 0.1);
-        ship.health = glutils.lerp(ship.health, shipTarget.health, 0.5);
-        ship.rotation = glutils.lerp(ship.rotation, shipTarget.rotation, 0.1);
-        if (ship.health > shipTarget.health) {
-            ship.brightness = 1 - (shipTarget.health / ship.health);
+        ship.x = glutils.lerp(ship.x, shipTarget.x, 5 * tSecs);
+        ship.y = glutils.lerp(ship.y, shipTarget.y, 5 * tSecs);
+        ship.rotation = glutils.lerp(ship.rotation, shipTarget.rotation, 5 * tSecs);
+        ship.health = glutils.lerp(ship.health, shipTarget.health, 20 * tSecs);
+        if ((ship.health / shipTarget.health) > 1.01) {
+            ship.brightness = 1;
         } else {
             ship.brightness = 0;
         }
@@ -129,9 +130,9 @@ function runTimelineExample() {
                 return;
             }
 
-            missile.x = glutils.lerp(missile.x, missileTarget.x, 0.1);
-            missile.y = glutils.lerp(missile.y, missileTarget.y, 0.1);
-            missile.rotation = glutils.lerp(missile.rotation, missileTarget.rotation, 0.1);
+            missile.x = glutils.lerp(missile.x, missileTarget.x, 5 * tSecs);
+            missile.y = glutils.lerp(missile.y, missileTarget.y, 5 * tSecs);
+            missile.rotation = glutils.lerp(missile.rotation, missileTarget.rotation, 5 * tSecs);
         });
     }
 
@@ -145,7 +146,6 @@ function runTimelineExample() {
         const ship = gameState.ships[0];
 
         if (ship.thrusters) {
-            console.log(ship.thrusters)
             const firstJetModelMatrix = glutils.modelMatrix({
                 x: ship.x,
                 y: ship.y,
@@ -213,6 +213,7 @@ function runTimelineExample() {
 
     let lastTickTime = 0;
     let lastWobbleTime = 0;
+    let lastFrameTime = 0;
     window.requestAnimationFrame(function loop(t) {
         if (t - lastTickTime > 200) {
             gameState.frameIdx = (gameState.frameIdx + 1) % timeline.length;
@@ -225,10 +226,12 @@ function runTimelineExample() {
             lastWobbleTime = t;
         }
 
-        update();
+        update(t - lastFrameTime);
         draw(t);
 
         window.requestAnimationFrame(loop);
+
+        lastFrameTime = t;
     });
 }
 
