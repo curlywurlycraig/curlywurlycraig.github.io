@@ -156,9 +156,27 @@ export class SpriteRenderer {
         };
     }
 
+    // Since scaling and origin are taken care of by SpriteRenderer,
+    // just provide a convenience function which takes x, y, and rotation,
+    // and returns a model matrix.
+    //
+    // This is a code smell, would be better to
+    // take care of the model matrix outside of SpriteRenderer.
+    getModelMatrix(x, y, rotation, spriteName) {
+        return glutils.modelMatrix({
+            x,
+            y,
+            rotation,
+            scaleX: this.sprites[spriteName].dimensions[0],
+            scaleY: this.sprites[spriteName].dimensions[1],
+            originX: this.sprites[spriteName].origin[0],
+            originY: this.sprites[spriteName].origin[1]
+        });
+    }
+
     render(canvas, sprite, params) {
-        const { dimensions, origin, texture, frameCount } = this.sprites[sprite];
-        const { brightness, x, y, rotation, frame } = params;
+        const { texture, frameCount } = this.sprites[sprite];
+        const { brightness, frame, modelMatrix } = params;
 
         const gl = this.gl;
         gl.useProgram(this.program);
@@ -167,22 +185,13 @@ export class SpriteRenderer {
 
         gl.uniform2f(this.resolutionU, canvas.width, canvas.height);
 
-        // Matrices
-        const translateM = glutils.translationMatrix(x, y);
-        const rotationM = glutils.rotationMatrix(rotation);
-        const scaleM = glutils.scaleMatrix(dimensions[0], dimensions[1]);
-        const moveOriginMatrix = glutils.translationMatrix(-origin[0], -origin[1]);
-        const transformM = glutils.multiplyMatrix(translateM,
-            glutils.multiplyMatrix(rotationM,
-                glutils.multiplyMatrix(moveOriginMatrix, scaleM)));
-
         gl.uniform1i(this.spriteIdxU, frame);
         gl.uniform1i(this.spriteCountU, frameCount);
         gl.uniform1f(this.brightnessU, brightness);
         gl.uniformMatrix3fv(
             this.transformU,
             false,
-            transformM
+            modelMatrix
         );
         gl.drawArrays(gl.TRIANGLES, 0, 6);
     }

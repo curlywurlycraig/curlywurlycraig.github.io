@@ -85,6 +85,7 @@ export const timeline = [
                 y: 180,
                 health: 20,
                 rotation: 2 * Math.PI + 2 * Math.PI / 4.0,
+                thrusters: true
             }
         }
     },
@@ -96,6 +97,7 @@ export const timeline = [
                 y: 150,
                 health: 20,
                 rotation: 2 * Math.PI + 3 * Math.PI / 4.0,
+                thrusters: true
             }
         }
     },
@@ -107,6 +109,7 @@ export const timeline = [
                 y: 150,
                 health: 20,
                 rotation: 2 * Math.PI + 3 * Math.PI / 4.0,
+                thrusters: true
             }
         }
     },
@@ -118,6 +121,7 @@ export const timeline = [
                 y: 150,
                 health: 20,
                 rotation: 2 * Math.PI + 3 * Math.PI / 4.0,
+                thrusters: true
             }
         }
     },

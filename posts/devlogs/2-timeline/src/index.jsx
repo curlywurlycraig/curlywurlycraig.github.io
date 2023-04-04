@@ -25,6 +25,7 @@ function runTimelineExample() {
     const spriteRenderer = new SpriteRenderer(gl);
     spriteRenderer.loadSprite("resources/ship.png", [100, 100], [50, 50], 2);
     spriteRenderer.loadSprite("resources/missile.png", [30, 60], [15, 15], 2);
+    spriteRenderer.loadSprite("resources/jet.png", [32, 40], [16, 0], 2);
 
     const gameState = {
         frameIdx: 0,
@@ -108,6 +109,7 @@ function runTimelineExample() {
         } else {
             ship.brightness = 0;
         }
+        ship.thrusters = shipTarget.thrusters;
 
         Object.entries(timelineFrame.missiles).forEach(([idx, missileTarget]) => {
             if (!gameState.missiles[idx]) {
@@ -139,11 +141,68 @@ function runTimelineExample() {
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         starfieldRenderer.render(t, canvas);
-        spriteRenderer.render(canvas, "resources/ship.png", gameState.ships[0]);
+
+        const ship = gameState.ships[0];
+
+        if (ship.thrusters) {
+            console.log(ship.thrusters)
+            const firstJetModelMatrix = glutils.modelMatrix({
+                x: ship.x,
+                y: ship.y,
+                rotation: ship.rotation,
+                scaleX: 32,
+                scaleY: 40,
+                originX: 16 + 22,
+                originY: -38,
+            });
+
+            const secondJetModelMatrix = glutils.modelMatrix({
+                x: ship.x,
+                y: ship.y,
+                rotation: ship.rotation,
+                scaleX: 32,
+                scaleY: 40,
+                originX: 16 - 20,
+                originY: -38,
+            });
+
+            spriteRenderer.render(canvas, "resources/jet.png", {
+                ...ship,
+                brightness: 0,
+                modelMatrix: firstJetModelMatrix,
+            });
+            spriteRenderer.render(canvas, "resources/jet.png", {
+                ...ship,
+                brightness: 0,
+                modelMatrix: secondJetModelMatrix,
+            });
+        }
+
+        const shipModelMatrix = spriteRenderer.getModelMatrix(
+            ship.x,
+            ship.y,
+            ship.rotation,
+            "resources/ship.png"
+        );
+
+        spriteRenderer.render(canvas, "resources/ship.png", {
+            modelMatrix: shipModelMatrix,
+            brightness: ship.brightness,
+            frame: ship.frame
+        });
+        
         
         Object.values(gameState.missiles).forEach((missile) => {
+            const missileModelMatrix = spriteRenderer.getModelMatrix(
+                missile.x,
+                missile.y,
+                missile.rotation,
+                "resources/missile.png"
+            );
+
             spriteRenderer.render(canvas, "resources/missile.png", {
                 ...missile,
+                modelMatrix: missileModelMatrix,
                 brightness: 0,
                 frame: 0,
             });

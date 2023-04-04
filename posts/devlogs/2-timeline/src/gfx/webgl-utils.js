@@ -119,3 +119,30 @@ export function identityMatrix() {
 export function lerp(a, b, t) {
     return a * (1 - t) + b * t;
 }
+
+export function toPolar(x, y) {
+    return {
+        r: Math.sqrt(x * x + y * y),
+        theta: Math.atan2(y, x),
+    };
+}
+
+export function fromPolar(r, theta) {
+    return {
+        x: r * Math.cos(theta),
+        y: r * Math.sin(theta),
+    };
+}
+
+export function modelMatrix(params) {
+    const { x, y, rotation, scaleX, scaleY, originX, originY } = params;
+    const translateM = translationMatrix(x, y);
+    const rotationM = rotationMatrix(rotation);
+    const scaleM = scaleMatrix(scaleX, scaleY);
+    const moveOriginMatrix = translationMatrix(-originX, -originY);
+    const transformM = multiplyMatrix(translateM,
+        multiplyMatrix(rotationM,
+            multiplyMatrix(moveOriginMatrix, scaleM)));
+
+    return transformM;
+}
