@@ -1,0 +1,107 @@
+/* 
+    Timeline
+*/
+
+#example-timeline-ships-container {
+    margin: 20px 0;
+    border-radius: 5px;
+    width: 400px;
+    height: 200px;
+    position: relative;
+    overflow: hidden;
+}
+
+canvas#example-timeline-ships {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+}
+
+#timeline-rows-container {
+    position: relative;
+    border-radius: 8px;
+    margin: 0;
+    overflow: scroll;
+    padding: 10px;
+    background-color: #0000004d;
+}
+
+#timeline-rows-container code {
+    white-space: pre;
+}
+
+button.inline {
+    background: none;
+    border: none;
+    color: #fff;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+    outline: inherit;
+    border-bottom: 1px dashed;
+}
+
+/*
+    GUI
+*/
+
+#example-timeline-ships-gui {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+}
+
+.health-bar {
+    position: absolute;
+    height: 5px;
+    background-color: #c63f3f;
+    border-radius: 5px;
+}
+
+.health-bar-background {
+    position: absolute;
+    height: 5px;
+    background-color: white;
+    border-radius: 5px;
+    transition: width 0.1s linear;
+}
+
+/*
+    Code editor
+*/
+
+.editor_draw {
+    padding: 0;
+    margin: 0;
+    top: 0;
+    left: 0;
+}
+
+.editor_span {
+    padding: 0;
+    margin: 0;
+}
+
+.parsed_FUNC_CALL {
+    color: #7875fc;
+}
+
+.parsed_COMMENT {
+    color: #ffffff3d;
+}
+
+.parsed_KEYWORD {
+    color: #df9754;
+}
+
+.parsed_STRING {
+    color: #ea84d0;
+}
+
+.parsed_KEYWORD_CONST {
+    color: #f06b6b;
+}
+
+.parsed_NUMBER {
+    color: #72c9e3;
+}
