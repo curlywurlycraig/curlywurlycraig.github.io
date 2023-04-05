@@ -37,3 +37,29 @@ export const HighlightedJSONText = ({ value }) => {
         </pre>
     );
 }
+
+export const TimelineControls = ({ currentIndex, timeline, isExpanded, onExpandClick }) => {
+    if (!isExpanded) {
+        return (
+            <div id="timeline-controls">
+                <p>Click <button class="inline" click={onExpandClick}>here</button> to show the JSON timeline.</p>
+            </div>
+        );
+    }
+
+    const rows = timeline.map((frame, idx) => {
+        const style = `opacity: ${idx === currentIndex ? 1 : 0.5};`;
+        return (
+            <div class="timeline-row" style={style}>
+                <HighlightedJSONText value={JSON.stringify(frame)} />
+            </div>
+        );
+    });
+
+    return (
+        <div id="timeline-controls">
+            <p>Click <button class="inline" click={onExpandClick}>here</button> to hide the JSON timeline.</p>
+            { rows }
+        </div>
+    );
+}

@@ -2,7 +2,7 @@ import { hic, apply, render } from "./vdom.js";
 import * as glutils from "./gfx/webgl-utils.js";
 import { SpriteRenderer } from "./gfx/sprite.js";
 import { StarfieldRenderer } from "./gfx/starfield.js";
-import { HighlightedJSONText } from "./gui/editor.jsx";
+import { HighlightedJSONText, TimelineControls } from "./gui/editor.jsx";
 import { timeline } from "./timeline.js";
 
 function runTimelineExample() {
@@ -72,23 +72,17 @@ function runTimelineExample() {
         apply(render(el), document.getElementById("example-timeline-ships-gui"));
     }
 
+    let isTimelineExpanded = false;
+    function toggleTimeline() {
+        isTimelineExpanded = !isTimelineExpanded;
+        renderTimeline();
+    };
     function renderTimeline() {
-        const rows = timeline.map((frame, idx) => {
-            const style = `opacity: ${idx === gameState.frameIdx ? 1 : 0.5};`;
-            return (
-                <div class="timeline-row" style={style}>
-                    <HighlightedJSONText value={JSON.stringify(frame)} />
-                </div>
-            );
-        });
-
-        const el = (
-            <div id="timeline-controls">
-                { rows }
-            </div>
-        );
-
-        apply(render(el), document.getElementById("timeline-controls"));
+        apply(render(<TimelineControls
+            currentIndex={gameState.frameIdx}
+            onExpandClick={toggleTimeline}
+            isExpanded={isTimelineExpanded}
+            timeline={timeline} />), document.getElementById("timeline-controls"));
     }
     renderTimeline();
 
