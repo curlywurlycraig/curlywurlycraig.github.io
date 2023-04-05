@@ -42,7 +42,7 @@ h2 {
 
 .code {
   color: #e4a85c;
-  background-color: #ffffff22;
+  background-color: #00000044;
   font-family: Menlo, monospace;
   border-radius: 5px;
   padding: 3px;
@@ -62,14 +62,14 @@ code {
 
 code.inline {
   font-size: 0.8em;
-  background-color: #ffffff11;
+  background-color: #00000044;
   padding: 4px 6px;
   border-radius: 5px;
   color: #daacba;
 }
 
 .code-container {
-    background-color: #ffffff05;
+    background-color: #00000044;
     border-radius: 8px;
     padding: 10px;
     font-size: 0.8rem;

@@ -5,7 +5,7 @@ canvas {
 
 .editor_container {
     position: relative;
-    background-color: #ffffff05;
+    background-color: #00000044;
     border-radius: 8px;
     padding-bottom: 0;
     margin: 0;
@@ -46,7 +46,7 @@ canvas {
 }
 
 #demo {
-    background-color: #ffffff05;
+    background-color: #00000044;
     padding: 10px 20px;
     border-radius: 5px;
     border-left: 3px solid #df9754;
