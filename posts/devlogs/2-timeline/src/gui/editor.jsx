@@ -59,7 +59,9 @@ export const TimelineControls = ({ currentIndex, timeline, isExpanded, onExpandC
     return (
         <div id="timeline-controls">
             <p>Click <button class="inline" click={onExpandClick}>here</button> to hide the JSON timeline.</p>
-            { rows }
+            <div id="timeline-rows-container">
+                { rows }
+            </div>
         </div>
     );
 }
