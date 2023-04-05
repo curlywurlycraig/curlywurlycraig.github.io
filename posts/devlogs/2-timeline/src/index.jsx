@@ -215,7 +215,12 @@ function runTimelineExample() {
     let lastWobbleTime = 0;
     let lastFrameTime = 0;
     window.requestAnimationFrame(function loop(t) {
-        if (t - lastTickTime > 200) {
+        let timeDelta = t-lastFrameTime;
+        if (timeDelta > 500) {
+            timeDelta = 10;
+        }
+
+        if (t-lastTickTime > 200) {
             gameState.frameIdx = (gameState.frameIdx + 1) % timeline.length;
             lastTickTime = t;
             renderTimeline();
@@ -226,7 +231,7 @@ function runTimelineExample() {
             lastWobbleTime = t;
         }
 
-        update(t - lastFrameTime);
+        update(timeDelta);
         draw(t);
 
         window.requestAnimationFrame(loop);

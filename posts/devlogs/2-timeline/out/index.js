@@ -1123,6 +1123,10 @@ void main() {
     let lastWobbleTime = 0;
     let lastFrameTime = 0;
     window.requestAnimationFrame(function loop(t) {
+      let timeDelta = t - lastFrameTime;
+      if (timeDelta > 500) {
+        timeDelta = 10;
+      }
       if (t - lastTickTime > 200) {
         gameState.frameIdx = (gameState.frameIdx + 1) % timeline.length;
         lastTickTime = t;
@@ -1132,7 +1136,7 @@ void main() {
         gameState.ships[0].frame = (gameState.ships[0].frame + 1) % 2;
         lastWobbleTime = t;
       }
-      update(t - lastFrameTime);
+      update(timeDelta);
       draw(t);
       window.requestAnimationFrame(loop);
       lastFrameTime = t;

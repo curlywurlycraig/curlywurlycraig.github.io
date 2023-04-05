@@ -8,6 +8,7 @@
     width: 400px;
     height: 200px;
     position: relative;
+    overflow: hidden;
 }
 
 canvas#example-timeline-ships {
