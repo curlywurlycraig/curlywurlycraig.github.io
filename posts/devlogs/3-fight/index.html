@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Mimir Devlog 2: Timeline</title>
+    <title>Mimir Devlog 3: Fight Example</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="./style.css">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,21 +14,52 @@
       </a>
     </header>
 
-    <h1>Codename Mimir devlog 2: Timeline</h1>
+    <article>
+      <section>
+        <h1>
+          Mimir Devlog 3: Fight Example
+        </h1>
+      </section>
 
-    <div id="example-timeline-ships-container">
-      <canvas id="example-timeline-ships"></canvas>
-      <div id="example-timeline-ships-gui"></div>
-    </div>
+      <section id="example-fight-container">
+        <canvas id="example-fight"></canvas>
+        <div id="example-fight"></div>
+      </section>
 
-    <br />
-    <hr />
-    <br />
+      <section>
+        <p>
+          Progress is (slowly) being made on the dog fight. I've been busy with
+          other things but I can make small increments occasionally.
+        </p>
+        
+        <p>
+          This next milestone is being able to run a full fight between two ships,
+          and making a slightly more interesting "ship" design. Instead of having
+          thrusters, this potato box fires potatoes in one of four directions and
+          can move around by taking advantage of the knock back.
+        </p>
 
-    <p>
-      TODO: Camera (expandable canvas)
-      TODO: A real fight snippet
-    </p>
+        <p>
+          Such a ship design simplifies navigation code by removing rotation from
+          the equation and decoupling the X and Y axes. It makes a good first ship
+          for new players (who therefore don't need to write
+          <a href="https://en.wikipedia.org/wiki/PID_controller">PID controller</a>
+          code), and also makes it easy for me to write and analyse the correctness
+          of the bot simulation results before moving onto more complicated examples.
+        </p>
+
+        <p>
+          The potato box design is also more quirky than a generic pixel art ship,
+          and opens some more creative ideas for the types of ships that can exist.
+          It sets me off thinking about the type of weird lore that would produce
+          these "monster" ships (why are we writing code for a potato box? Is it an
+          automated production line gone wrong?).
+        </p>
+      </section>
+    </article>
+
+    <!-- TODO Have the fight take up 100% of the initial screen -->
+    <!-- TODO Make mobile display the fight vertically -->
 
     <script src="./out/index.js"></script>
   </body>
