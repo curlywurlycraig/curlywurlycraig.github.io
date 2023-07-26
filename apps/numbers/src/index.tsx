@@ -103,6 +103,11 @@ const Game = () => {
     return <button class={className} click={() => onClickOperator(op)}>{ operatorString[op] }</button>
   });
 
+  let winMessage = null;
+  if (gameState.numberOptions.includes(gameState.target)) {
+    winMessage = 'Hooray!';
+  }
+
   return <div id="game-container">
     <div class="target-container">
       <h1 class="target">{ gameState.target }</h1>
@@ -113,6 +118,7 @@ const Game = () => {
     <div class="operator-buttons-container">
       { operatorButtons }
     </div>
+    {winMessage}
   </div>;
 }
 
