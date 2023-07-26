@@ -8,7 +8,7 @@ enum Operator {
   SUB
 }
 
-const operators = [Operator.DIV, Operator.ADD, Operator.MUL, Operator.SUB];
+const operators = [Operator.ADD, Operator.SUB, Operator.MUL, Operator.DIV];
 const operatorFunctions = {
   [Operator.DIV]: (a, b) => a / b,
   [Operator.ADD]: (a, b) => a + b,
@@ -34,7 +34,14 @@ const easyNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 15, 20];
 const mediumNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 15, 20, 25, 30, 35, 40, 45, 50];
 const hardNumbers = new Array(50).fill(null).map((_, i) => i+1);
 
-const gameState = {
+interface GameState {
+  numberOptions: number[],
+  target: number,
+  selectedOperandIdx: number,
+  selectedOperator: Operator
+}
+
+const gameState: GameState = {
   numberOptions: [],
   target: 0,
   selectedOperandIdx: null,
@@ -43,12 +50,38 @@ const gameState = {
 
 const Game = () => {
   const onClickOption = (optIdx) => {
-    gameState.selectedOperandIdx = optIdx;
+    if (gameState.selectedOperandIdx === optIdx) {
+      gameState.selectedOperandIdx = null;
+    } else if (gameState.selectedOperator !== null && gameState.selectedOperandIdx !== null) {
+      const operandA = gameState.numberOptions[gameState.selectedOperandIdx];
+      const operandB = gameState.numberOptions[optIdx];;
+      if (!operatorValidators[gameState.selectedOperator](operandA, operandB)) {;
+        // TODO Show an error to the user
+        console.error("cannot perform requested operation.");
+        return;
+      }
+
+      const operatorFunc = operatorFunctions[gameState.selectedOperator];
+      gameState.numberOptions[gameState.selectedOperandIdx] = operatorFunc(operandA, operandB);
+      gameState.numberOptions = [
+        ...gameState.numberOptions.slice(0, optIdx),
+        ...gameState.numberOptions.slice(optIdx+1)
+      ];
+      gameState.selectedOperandIdx = null;
+    } else {
+      gameState.selectedOperandIdx = optIdx;
+    }
+
     renderGame();
   };
 
   const onClickOperator = (op) => {
-    gameState.selectedOperator = op;
+    if (gameState.selectedOperator === op) {
+      gameState.selectedOperator = null;
+    } else {
+      gameState.selectedOperator = op;
+    }
+
     renderGame();
   };
 

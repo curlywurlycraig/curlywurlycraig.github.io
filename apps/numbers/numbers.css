@@ -43,7 +43,7 @@ body {
     border-radius: 30px;
     background-color: rgba(0, 0, 0, 0.5);
     color: white;
-    border: 1px dashed #ffffff;
+    border: none;
     margin: 5px;
     cursor: pointer;
 }
@@ -53,4 +53,16 @@ body {
     color: #f0c0a1;
     border-width: 2px;
     background-color: rgb(255 105 0 / 19%);
+    border: 1px solid;
+}
+
+.operator-buttons-container {
+    padding: 10px;
+    margin-top: 20px;
+    border-radius: 5px;
+}
+
+.operator-buttons-container .option-button {
+    width: 40px;
+    height: 40px;
 }

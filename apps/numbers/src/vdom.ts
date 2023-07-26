@@ -82,7 +82,6 @@ const updateAttrs = (el: TaggedElement, attrs: object) => {
         
         const asElement = el as TaggedElement;
         if (asElement.getAttribute(k) !== v) {
-          console.log(el, k, v);
           asElement.setAttribute(k, v);
         }
       }

@@ -64,7 +64,6 @@
         }
         const asElement = el;
         if (asElement.getAttribute(k) !== v) {
-          console.log(el, k, v);
           asElement.setAttribute(k, v);
         }
       }
@@ -135,7 +134,7 @@
   };
 
   // src/index.tsx
-  var operators = [0 /* DIV */, 1 /* ADD */, 2 /* MUL */, 3 /* SUB */];
+  var operators = [1 /* ADD */, 3 /* SUB */, 2 /* MUL */, 0 /* DIV */];
   var operatorFunctions = {
     [0 /* DIV */]: (a, b) => a / b,
     [1 /* ADD */]: (a, b) => a + b,
@@ -164,11 +163,35 @@
   };
   var Game = () => {
     const onClickOption = (optIdx) => {
-      gameState.selectedOperandIdx = optIdx;
+      if (gameState.selectedOperandIdx === optIdx) {
+        gameState.selectedOperandIdx = null;
+      } else if (gameState.selectedOperator !== null && gameState.selectedOperandIdx !== null) {
+        const operandA = gameState.numberOptions[gameState.selectedOperandIdx];
+        const operandB = gameState.numberOptions[optIdx];
+        ;
+        if (!operatorValidators[gameState.selectedOperator](operandA, operandB)) {
+          ;
+          console.error("cannot perform requested operation.");
+          return;
+        }
+        const operatorFunc = operatorFunctions[gameState.selectedOperator];
+        gameState.numberOptions[gameState.selectedOperandIdx] = operatorFunc(operandA, operandB);
+        gameState.numberOptions = [
+          ...gameState.numberOptions.slice(0, optIdx),
+          ...gameState.numberOptions.slice(optIdx + 1)
+        ];
+        gameState.selectedOperandIdx = null;
+      } else {
+        gameState.selectedOperandIdx = optIdx;
+      }
       renderGame();
     };
     const onClickOperator = (op) => {
-      gameState.selectedOperator = op;
+      if (gameState.selectedOperator === op) {
+        gameState.selectedOperator = null;
+      } else {
+        gameState.selectedOperator = op;
+      }
       renderGame();
     };
     const numberButtons = gameState.numberOptions.map((opt, optIdx) => {
