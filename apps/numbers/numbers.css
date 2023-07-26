@@ -47,10 +47,22 @@ button.secondary:disabled {
     width: 100%;
 }
 
-.option-buttons-container {
+.option-buttons-outer-container {
     background-color: rgba(0, 0, 0, 0.1);
     border-radius: 5px;
+    width: 210px;
     padding: 10px;
+}
+
+.option-button.placeholder:disabled {
+    width: 60px;
+    height: 60px;
+    margin: 5px;
+    border: none;
+    border-radius: 30px;
+    background-color: rgba(0, 0, 0, 1.0);
+    cursor: auto;
+    color: #ffffff01;
 }
 
 .option-button {
@@ -58,7 +70,7 @@ button.secondary:disabled {
     width: 60px;
     height: 60px;
     border-radius: 30px;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.4);
     color: white;
     border: none;
     margin: 5px;
@@ -96,4 +108,8 @@ button.secondary:disabled {
 .operator-buttons-container .option-button {
     width: 40px;
     height: 40px;
+}
+
+.extra-buttons-container {
+    margin-top: 50px;
 }

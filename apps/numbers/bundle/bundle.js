@@ -185,16 +185,11 @@
         let newOptions = [
           ...numberOptions
         ];
-        newOptions[gameState.selectedOperandIdx] = operatorFunc(operandA, operandB);
-        newOptions = [
-          ...newOptions.slice(0, optIdx),
-          ...newOptions.slice(optIdx + 1)
-        ];
+        newOptions[optIdx] = operatorFunc(operandA, operandB);
+        newOptions[gameState.selectedOperandIdx] = null;
         gameState.history.push(newOptions);
         gameState.selectedOperator = null;
-        if (optIdx < gameState.selectedOperandIdx) {
-          gameState.selectedOperandIdx--;
-        }
+        gameState.selectedOperandIdx = optIdx;
       } else {
         gameState.selectedOperandIdx = optIdx;
       }
@@ -225,7 +220,18 @@
       if (optIdx === gameState.selectedOperandIdx) {
         className += " selected";
       }
-      return /* @__PURE__ */ hic("button", { class: className, click: () => onClickOption(optIdx) }, opt);
+      if (opt === null) {
+        className += " placeholder";
+      }
+      return /* @__PURE__ */ hic(
+        "button",
+        {
+          disabled: opt === null,
+          class: className,
+          click: () => onClickOption(optIdx)
+        },
+        opt || "0"
+      );
     });
     const operatorButtons = operators.map((op) => {
       let className = "option-button";
@@ -238,7 +244,7 @@
     if (numberOptions.includes(gameState.target)) {
       winMessage = " \u{1F389}";
     }
-    return /* @__PURE__ */ hic("div", { id: "game-container" }, /* @__PURE__ */ hic("div", { class: "target-container" }, /* @__PURE__ */ hic("h1", { class: "target" }, `${gameState.target + winMessage}`)), /* @__PURE__ */ hic("div", { class: "option-buttons-outer-container" }, /* @__PURE__ */ hic("div", { class: "option-buttons-container" }, numberButtons)), /* @__PURE__ */ hic("div", { class: "operator-buttons-container" }, operatorButtons), /* @__PURE__ */ hic("button", { class: "secondary", click: onClickReset }, "Reset"), /* @__PURE__ */ hic("button", { class: "secondary", click: onClickUndo, disabled: gameState.history.length <= 1 }, "Undo"));
+    return /* @__PURE__ */ hic("div", { id: "game-container" }, /* @__PURE__ */ hic("div", { class: "target-container" }, /* @__PURE__ */ hic("h1", { class: "target" }, `${gameState.target + winMessage}`)), /* @__PURE__ */ hic("div", { class: "option-buttons-outer-container" }, /* @__PURE__ */ hic("div", { class: "option-buttons-container" }, numberButtons)), /* @__PURE__ */ hic("div", { class: "operator-buttons-container" }, operatorButtons), /* @__PURE__ */ hic("div", { class: "extra-buttons-container" }, /* @__PURE__ */ hic("button", { class: "secondary", click: onClickReset }, "Reset"), /* @__PURE__ */ hic("button", { class: "secondary", click: onClickUndo, disabled: gameState.history.length <= 1 }, "Undo")));
   };
   var produceTarget = (numberOptions, iterations, rng) => {
     let selectedIndex = rng % numberOptions.length;

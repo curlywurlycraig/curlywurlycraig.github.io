@@ -79,17 +79,12 @@ const Game = () => {
       let newOptions = [
         ...numberOptions,
       ];
-      newOptions[gameState.selectedOperandIdx] = operatorFunc(operandA, operandB);
-      newOptions = [
-        ...newOptions.slice(0, optIdx),
-        ...newOptions.slice(optIdx+1)
-      ];
+      newOptions[optIdx] = operatorFunc(operandA, operandB);
+      newOptions[gameState.selectedOperandIdx] = null;
       gameState.history.push(newOptions);
 
       gameState.selectedOperator = null;
-      if (optIdx < gameState.selectedOperandIdx) {
-        gameState.selectedOperandIdx--;
-      }
+      gameState.selectedOperandIdx = optIdx;
     } else {
       gameState.selectedOperandIdx = optIdx;
     }
@@ -126,8 +121,14 @@ const Game = () => {
     if (optIdx === gameState.selectedOperandIdx) {
       className += " selected";
     }
+    if (opt === null) {
+      className += " placeholder";
+    }
 
-    return <button class={className} click={() => onClickOption(optIdx)}>{ opt }</button>
+    return <button
+      disabled={opt === null}
+      class={className}
+      click={() => onClickOption(optIdx)}>{ opt || "0" }</button>
   });
 
   const operatorButtons = operators.map(op => {
@@ -156,8 +157,10 @@ const Game = () => {
     <div class="operator-buttons-container">
       { operatorButtons }
     </div>
-    <button class="secondary" click={onClickReset}>Reset</button>
-    <button class="secondary" click={onClickUndo} disabled={gameState.history.length <= 1}>Undo</button>
+    <div class="extra-buttons-container">
+      <button class="secondary" click={onClickReset}>Reset</button>
+      <button class="secondary" click={onClickUndo} disabled={gameState.history.length <= 1}>Undo</button>
+    </div>
   </div>;
 }
 
