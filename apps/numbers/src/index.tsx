@@ -16,12 +16,22 @@ const operatorFunctions = {
   [Operator.SUB]: (a, b) => a - b,
 };
 
+// What users are allowed to do.
 const operatorValidators = {
   [Operator.DIV]: (a, b) => a % b === 0,
   [Operator.SUB]: (a, b) => a - b > 0,
   [Operator.ADD]: (a, b) => true,
   [Operator.MUL]: (a, b) => true,
 };
+
+// Guide what sorts of targets can be generated
+const gameCreationOperatorValidators = {
+  [Operator.DIV]: (a, b) => a % b === 0,
+  [Operator.SUB]: (a, b) => a - b > 0,
+  [Operator.ADD]: (a, b) => true,
+  [Operator.MUL]: (a, b) => a * b < 100,
+};
+
 
 const operatorString = {
   [Operator.DIV]: "÷",
@@ -140,7 +150,7 @@ const produceTarget = (numberOptions: number[], iterations: number, rng: number)
     // try each operation in turn
     for (let op = 0; op < 4; op++) {
       const opType = operators[(rng + rng * op) % 4];
-      if (operatorValidators[opType](result, operand)) {
+      if (gameCreationOperatorValidators[opType](result, operand)) {
         console.log('perform:', operatorString[opType], operand);
         result = operatorFunctions[opType](result, operand);
         numberOptions = [

@@ -147,6 +147,12 @@
     [1 /* ADD */]: (a, b) => true,
     [2 /* MUL */]: (a, b) => true
   };
+  var gameCreationOperatorValidators = {
+    [0 /* DIV */]: (a, b) => a % b === 0,
+    [3 /* SUB */]: (a, b) => a - b > 0,
+    [1 /* ADD */]: (a, b) => true,
+    [2 /* MUL */]: (a, b) => a * b < 100
+  };
   var operatorString = {
     [0 /* DIV */]: "\xF7",
     [3 /* SUB */]: "\u2013",
@@ -208,7 +214,11 @@
       }
       return /* @__PURE__ */ hic("button", { class: className, click: () => onClickOperator(op) }, operatorString[op]);
     });
-    return /* @__PURE__ */ hic("div", { id: "game-container" }, /* @__PURE__ */ hic("div", { class: "target-container" }, /* @__PURE__ */ hic("h1", { class: "target" }, gameState.target)), /* @__PURE__ */ hic("div", { class: "option-buttons-container" }, numberButtons), /* @__PURE__ */ hic("div", { class: "operator-buttons-container" }, operatorButtons));
+    let winMessage = null;
+    if (gameState.numberOptions.includes(gameState.target)) {
+      winMessage = "Hooray!";
+    }
+    return /* @__PURE__ */ hic("div", { id: "game-container" }, /* @__PURE__ */ hic("div", { class: "target-container" }, /* @__PURE__ */ hic("h1", { class: "target" }, gameState.target)), /* @__PURE__ */ hic("div", { class: "option-buttons-container" }, numberButtons), /* @__PURE__ */ hic("div", { class: "operator-buttons-container" }, operatorButtons), winMessage);
   };
   var produceTarget = (numberOptions, iterations, rng) => {
     let selectedIndex = rng % numberOptions.length;
@@ -223,7 +233,7 @@
       const operand = numberOptions[selectedIndex2];
       for (let op = 0; op < 4; op++) {
         const opType = operators[(rng + rng * op) % 4];
-        if (operatorValidators[opType](result, operand)) {
+        if (gameCreationOperatorValidators[opType](result, operand)) {
           console.log("perform:", operatorString[opType], operand);
           result = operatorFunctions[opType](result, operand);
           numberOptions = [
