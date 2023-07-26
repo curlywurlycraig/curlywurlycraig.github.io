@@ -64,7 +64,7 @@ const Game = () => {
       gameState.selectedOperandIdx = null;
     } else if (gameState.selectedOperator !== null && gameState.selectedOperandIdx !== null) {
       const operandA = gameState.numberOptions[gameState.selectedOperandIdx];
-      const operandB = gameState.numberOptions[optIdx];;
+      const operandB = gameState.numberOptions[optIdx];
       if (!operatorValidators[gameState.selectedOperator](operandA, operandB)) {;
         // TODO Show an error to the user
         console.error("cannot perform requested operation.");
@@ -77,7 +77,10 @@ const Game = () => {
         ...gameState.numberOptions.slice(0, optIdx),
         ...gameState.numberOptions.slice(optIdx+1)
       ];
-      gameState.selectedOperandIdx = null;
+      if (optIdx < gameState.selectedOperandIdx) {
+        gameState.selectedOperandIdx--;
+      }
+      gameState.selectedOperator = null;
     } else {
       gameState.selectedOperandIdx = optIdx;
     }
@@ -115,12 +118,12 @@ const Game = () => {
 
   let winMessage = null;
   if (gameState.numberOptions.includes(gameState.target)) {
-    winMessage = 'Hooray!';
+    winMessage = '🎉';
   }
 
   return <div id="game-container">
     <div class="target-container">
-      <h1 class="target">{ gameState.target }</h1>
+      <h1 class="target">{ `${gameState.target + winMessage}` }</h1>
     </div>
     <div class="option-buttons-container">
       { numberButtons }
@@ -128,7 +131,6 @@ const Game = () => {
     <div class="operator-buttons-container">
       { operatorButtons }
     </div>
-    {winMessage}
   </div>;
 }
 
