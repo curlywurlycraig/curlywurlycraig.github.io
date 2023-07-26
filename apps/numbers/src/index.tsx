@@ -45,26 +45,30 @@ const mediumNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 15, 20, 25, 30, 35, 40
 const hardNumbers = new Array(50).fill(null).map((_, i) => i+1);
 
 interface GameState {
-  numberOptions: number[],
+  history: number[][],
+  originalNumberOptions: number[],
   target: number,
   selectedOperandIdx: number,
   selectedOperator: Operator
 }
 
 const gameState: GameState = {
-  numberOptions: [],
+  history: [],
+  originalNumberOptions: [],
   target: 0,
   selectedOperandIdx: null,
   selectedOperator: null
 };
 
 const Game = () => {
+  const numberOptions = gameState.history[gameState.history.length - 1];
+
   const onClickOption = (optIdx) => {
     if (gameState.selectedOperandIdx === optIdx) {
       gameState.selectedOperandIdx = null;
     } else if (gameState.selectedOperator !== null && gameState.selectedOperandIdx !== null) {
-      const operandA = gameState.numberOptions[gameState.selectedOperandIdx];
-      const operandB = gameState.numberOptions[optIdx];
+      const operandA = numberOptions[gameState.selectedOperandIdx];
+      const operandB = numberOptions[optIdx];
       if (!operatorValidators[gameState.selectedOperator](operandA, operandB)) {;
         // TODO Show an error to the user
         console.error("cannot perform requested operation.");
@@ -72,15 +76,20 @@ const Game = () => {
       }
 
       const operatorFunc = operatorFunctions[gameState.selectedOperator];
-      gameState.numberOptions[gameState.selectedOperandIdx] = operatorFunc(operandA, operandB);
-      gameState.numberOptions = [
-        ...gameState.numberOptions.slice(0, optIdx),
-        ...gameState.numberOptions.slice(optIdx+1)
+      let newOptions = [
+        ...numberOptions,
       ];
+      newOptions[gameState.selectedOperandIdx] = operatorFunc(operandA, operandB);
+      newOptions = [
+        ...newOptions.slice(0, optIdx),
+        ...newOptions.slice(optIdx+1)
+      ];
+      gameState.history.push(newOptions);
+
+      gameState.selectedOperator = null;
       if (optIdx < gameState.selectedOperandIdx) {
         gameState.selectedOperandIdx--;
       }
-      gameState.selectedOperator = null;
     } else {
       gameState.selectedOperandIdx = optIdx;
     }
@@ -98,7 +107,21 @@ const Game = () => {
     renderGame();
   };
 
-  const numberButtons = gameState.numberOptions.map((opt, optIdx) => {
+  const onClickReset = () => {
+    gameState.history = [gameState.originalNumberOptions];
+    gameState.selectedOperandIdx = null;
+    gameState.selectedOperator = null;
+    renderGame();
+  }
+
+  const onClickUndo = () => {
+    gameState.history.pop();
+    gameState.selectedOperandIdx = null;
+    gameState.selectedOperator = null;
+    renderGame();
+  }
+
+  const numberButtons = numberOptions.map((opt, optIdx) => {
     let className = "option-button";
     if (optIdx === gameState.selectedOperandIdx) {
       className += " selected";
@@ -113,24 +136,28 @@ const Game = () => {
       className += " selected";
     }
 
-    return <button class={className} click={() => onClickOperator(op)}>{ operatorString[op] }</button>
+    return <button disabled={gameState.selectedOperandIdx === null} class={className} click={() => onClickOperator(op)}>{ operatorString[op] }</button>
   });
 
   let winMessage = null;
-  if (gameState.numberOptions.includes(gameState.target)) {
-    winMessage = '🎉';
+  if (numberOptions.includes(gameState.target)) {
+    winMessage = ' 🎉';
   }
 
   return <div id="game-container">
     <div class="target-container">
       <h1 class="target">{ `${gameState.target + winMessage}` }</h1>
     </div>
-    <div class="option-buttons-container">
-      { numberButtons }
+    <div class="option-buttons-outer-container">
+      <div class="option-buttons-container">
+        { numberButtons }
+      </div>
     </div>
     <div class="operator-buttons-container">
       { operatorButtons }
     </div>
+    <button class="secondary" click={onClickReset}>Reset</button>
+    <button class="secondary" click={onClickUndo} disabled={gameState.history.length <= 1}>Undo</button>
   </div>;
 }
 
@@ -165,16 +192,8 @@ const produceTarget = (numberOptions: number[], iterations: number, rng: number)
   }
 
   console.log('result:', result);
-  //    pick an operator at random, and pick a number option (O) at random. Apply the
-  //    operator to R with O.
-  //    note that the random operator and operand must be valid. A subtraction must produce a positive number
-  //    and a division must divide with no remainder
-  // Return R
   return result;
 }
-
-// TODO Remove this. It's just for debugging
-window.produceTarget = produceTarget;
 
 const produceNumberOptions = (rng: number): number[] => {
   const result = [];
@@ -183,9 +202,6 @@ const produceNumberOptions = (rng: number): number[] => {
   }
   return result;
 };
-
-// TODO Remove this. It's just for debugging
-window.produceNumberOptions = produceNumberOptions;
 
 const renderGame = () => {
   const gameContent = document.getElementById("game-container");
@@ -198,9 +214,10 @@ const loadGame = () => {
   console.log("Current date: ", currentDate);
   console.log("PRNG: ", rng);
 
-  gameState.numberOptions = produceNumberOptions(rng);
-  console.log('use:', gameState.numberOptions);
-  gameState.target = produceTarget(gameState.numberOptions, 3, rng);
+  gameState.originalNumberOptions = produceNumberOptions(rng);
+  gameState.history = [gameState.originalNumberOptions];
+  console.log('use:', gameState.originalNumberOptions);
+  gameState.target = produceTarget(gameState.originalNumberOptions, 3, rng);
   console.log(gameState.target);
   renderGame();
 }

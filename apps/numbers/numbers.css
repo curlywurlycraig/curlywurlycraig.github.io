@@ -15,6 +15,23 @@ body {
     justify-content: center;
 }
 
+button.secondary {
+    font-size: 1em;
+    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    margin: 5px;
+    padding: 10px;
+    cursor: pointer;
+    transition: 0.1s all linear;
+}
+
+button.secondary:disabled {
+    cursor: auto;
+    opacity: 0.2;
+}
+
 .target {
     font-size: 3em;
     text-shadow: 4px 4px #1a1a1a7d;
@@ -46,6 +63,20 @@ body {
     border: none;
     margin: 5px;
     cursor: pointer;
+    transition: 0.1s all linear;
+}
+
+.option-button:disabled {
+    opacity: 0.1;
+    font-size: 1.3em;
+    width: 60px;
+    height: 60px;
+    border-radius: 30px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    margin: 5px;
+    cursor: auto;
 }
 
 .option-button.selected {
