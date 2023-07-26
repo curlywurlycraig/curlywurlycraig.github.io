@@ -1,0 +1,56 @@
+html {
+    background-color: #1a72e4;
+    color: rgb(219, 229, 246);
+    font-family: sans-serif, 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+h1 {
+    font-weight: 500;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.target {
+    font-size: 3em;
+    text-shadow: 4px 4px #1a1a1a7d;
+}
+
+.game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.target-container {
+    width: 100%;
+}
+
+.option-buttons-container {
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.option-button {
+    font-size: 1.3em;
+    width: 60px;
+    height: 60px;
+    border-radius: 30px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: 1px dashed #ffffff;
+    margin: 5px;
+    cursor: pointer;
+}
+
+.option-button.selected {
+    border-color: #df5b05;
+    color: #f0c0a1;
+    border-width: 2px;
+    background-color: rgb(255 105 0 / 19%);
+}
