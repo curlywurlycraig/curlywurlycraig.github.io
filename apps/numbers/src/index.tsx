@@ -212,9 +212,14 @@ const renderGame = () => {
 };
 
 const loadGame = () => {
-  const currentDate = new Date().toDateString();
-  const rng = cyrb128(currentDate)[0];
-  console.log("Current date: ", currentDate);
+  const currentDate = new Date();
+
+  // TODO make it possible to navigate to past days
+  // currentDate.setDate(currentDate.getDate()+1);
+
+  const currentDateStr = currentDate.toDateString();
+  const rng = cyrb128(currentDateStr)[0];
+  console.log("Current date: ", currentDateStr);
   console.log("PRNG: ", rng);
 
   gameState.originalNumberOptions = produceNumberOptions(rng);
@@ -226,3 +231,10 @@ const loadGame = () => {
 }
 
 window.onload = loadGame;
+
+// TODO Difficulty selector
+// TODO Store progress in localstorage
+// TODO Explain invalid moves to player
+// TODO Show current date and button to switch between yesterday and today
+// TODO Calendar view?
+// TODO Fix 0 flicker

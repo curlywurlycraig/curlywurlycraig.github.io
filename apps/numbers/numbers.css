@@ -1,5 +1,5 @@
 html {
-    background-color: #1a72e4;
+    background-image: linear-gradient(#1a72e4, #11468b);
     color: rgb(219, 229, 246);
     font-family: sans-serif, 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
@@ -35,6 +35,7 @@ button.secondary:disabled {
 .target {
     font-size: 3em;
     text-shadow: 4px 4px #1a1a1a7d;
+    text-align: center;
 }
 
 .game-container {
@@ -49,7 +50,7 @@ button.secondary:disabled {
 
 .option-buttons-outer-container {
     background-color: rgba(0, 0, 0, 0.1);
-    border-radius: 5px;
+    border-radius: 30px;
     width: 210px;
     padding: 10px;
 }

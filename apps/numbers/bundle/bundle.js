@@ -285,9 +285,10 @@
     apply(render(/* @__PURE__ */ hic(Game, null)), gameContent);
   };
   var loadGame = () => {
-    const currentDate = (/* @__PURE__ */ new Date()).toDateString();
-    const rng = cyrb128(currentDate)[0];
-    console.log("Current date: ", currentDate);
+    const currentDate = /* @__PURE__ */ new Date();
+    const currentDateStr = currentDate.toDateString();
+    const rng = cyrb128(currentDateStr)[0];
+    console.log("Current date: ", currentDateStr);
     console.log("PRNG: ", rng);
     gameState.originalNumberOptions = produceNumberOptions(rng);
     gameState.history = [gameState.originalNumberOptions];
