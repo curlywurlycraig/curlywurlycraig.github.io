@@ -35,7 +35,7 @@ const gameCreationOperatorValidators = {
 
 const operatorString = {
   [Operator.DIV]: "÷",
-  [Operator.SUB]: "–",
+  [Operator.SUB]: "−",
   [Operator.ADD]: "+",
   [Operator.MUL]: "×"
 }
