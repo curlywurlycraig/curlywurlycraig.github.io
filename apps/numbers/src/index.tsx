@@ -1,5 +1,5 @@
-import { cyrb128 } from "./rand";
 import { hic, render, apply } from "./vdom";
+import { cyrb128 } from "./rand";
 
 enum Operator {
   DIV,
@@ -18,10 +18,18 @@ const operatorFunctions = {
 
 // What users are allowed to do.
 const operatorValidators = {
-  [Operator.DIV]: (a, b) => a % b === 0,
-  [Operator.SUB]: (a, b) => a - b > 0,
-  [Operator.ADD]: (a, b) => true,
-  [Operator.MUL]: (a, b) => true,
+  [Operator.DIV]: (a, b) => {
+    if (a % b !== 0) {
+      throw new Error("Division must have no remainder.")
+    }
+  },
+  [Operator.SUB]: (a, b) => {
+    if (a - b <= 0) {
+      throw new Error("Subtraction must not result in a negative number.")
+    }
+  },
+  [Operator.ADD]: (a, b) => {},
+  [Operator.MUL]: (a, b) => {},
 };
 
 // Guide what sorts of targets can be generated
@@ -45,14 +53,16 @@ const mediumNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 15, 20, 25, 30, 35, 40
 const hardNumbers = new Array(50).fill(null).map((_, i) => i+1);
 
 interface GameState {
-  history: number[][],
-  originalNumberOptions: number[],
+  error: string | null,
+  history: (number | null)[][],
+  originalNumberOptions: (number | null)[],
   target: number,
-  selectedOperandIdx: number,
-  selectedOperator: Operator
+  selectedOperandIdx: number | null,
+  selectedOperator: Operator | null
 }
 
 const gameState: GameState = {
+  error: null,
   history: [],
   originalNumberOptions: [],
   target: 0,
@@ -69,22 +79,23 @@ const Game = () => {
     } else if (gameState.selectedOperator !== null && gameState.selectedOperandIdx !== null) {
       const operandA = numberOptions[gameState.selectedOperandIdx];
       const operandB = numberOptions[optIdx];
-      if (!operatorValidators[gameState.selectedOperator](operandA, operandB)) {;
-        // TODO Show an error to the user
-        console.error("cannot perform requested operation.");
-        return;
+      try {
+        operatorValidators[gameState.selectedOperator](operandA, operandB);
+        gameState.error = null;
+
+        const operatorFunc = operatorFunctions[gameState.selectedOperator];
+        let newOptions = [
+          ...numberOptions,
+        ];
+        newOptions[optIdx] = operatorFunc(operandA, operandB);
+        newOptions[gameState.selectedOperandIdx] = null;
+        gameState.history.push(newOptions);
+
+        gameState.selectedOperator = null;
+        gameState.selectedOperandIdx = optIdx;
+      } catch (e) {
+        gameState.error = e.toString().slice("Error: ".length);
       }
-
-      const operatorFunc = operatorFunctions[gameState.selectedOperator];
-      let newOptions = [
-        ...numberOptions,
-      ];
-      newOptions[optIdx] = operatorFunc(operandA, operandB);
-      newOptions[gameState.selectedOperandIdx] = null;
-      gameState.history.push(newOptions);
-
-      gameState.selectedOperator = null;
-      gameState.selectedOperandIdx = optIdx;
     } else {
       gameState.selectedOperandIdx = optIdx;
     }
@@ -140,14 +151,14 @@ const Game = () => {
     return <button disabled={gameState.selectedOperandIdx === null} class={className} click={() => onClickOperator(op)}>{ operatorString[op] }</button>
   });
 
-  let winMessage = null;
+  let winMessage: string | null = null;
   if (numberOptions.includes(gameState.target)) {
     winMessage = ' 🎉';
   }
 
   return <div id="game-container">
     <div class="target-container">
-      <h1 class="target">{ `${gameState.target + winMessage}` }</h1>
+      <h1 class="target">{ `${gameState.target + (winMessage || "")}` }</h1>
     </div>
     <div class="option-buttons-outer-container">
       <div class="option-buttons-container">
@@ -157,6 +168,9 @@ const Game = () => {
     <div class="operator-buttons-container">
       { operatorButtons }
     </div>
+    <div class="errors-container">
+      { gameState.error ? <p>{ gameState.error }</p> : null }
+    </div>
     <div class="extra-buttons-container">
       <button class="secondary" click={onClickReset}>Reset</button>
       <button class="secondary" click={onClickUndo} disabled={gameState.history.length <= 1}>Undo</button>
@@ -164,7 +178,7 @@ const Game = () => {
   </div>;
 }
 
-const produceTarget = (numberOptions: number[], iterations: number, rng: number): number => {
+const produceTarget = (numberOptions: (number | null)[], iterations: number, rng: number): number => {
   // Pick one of the number options and set it as result R.
   let selectedIndex = rng % numberOptions.length;
   let result = numberOptions[selectedIndex];
@@ -199,7 +213,7 @@ const produceTarget = (numberOptions: number[], iterations: number, rng: number)
 }
 
 const produceNumberOptions = (rng: number): number[] => {
-  const result = [];
+  const result: number[] = [];
   for (let i = 0; i < 6; i++) {
     result.push(easyNumbers[(rng + rng * i) % easyNumbers.length]);
   }
@@ -234,7 +248,8 @@ window.onload = loadGame;
 
 // TODO Difficulty selector
 // TODO Store progress in localstorage
-// TODO Explain invalid moves to player
 // TODO Show current date and button to switch between yesterday and today
 // TODO Calendar view?
+// TODO Explain invalid moves to player
+// TODO Show move history
 // TODO Fix 0 flicker

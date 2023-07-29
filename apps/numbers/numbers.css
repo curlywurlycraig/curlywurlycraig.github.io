@@ -36,10 +36,11 @@ button.secondary:disabled {
     text-align: center;
 }
 
-.game-container {
+#game-container {
     display: flex;
     flex-direction: column;
     align-items: center;
+    max-width: 250px;
 }
 
 .target-container {
@@ -111,4 +112,27 @@ button.secondary:disabled {
 
 .extra-buttons-container {
     margin-top: 50px;
+}
+
+@keyframes error-color-fade {
+    from {
+        color: transparent;
+    }
+    to {
+        color: rgb(214, 118, 132);
+    }
+}
+
+@keyframes error-wobble {
+    0% { transform: translateX(0%); } 
+   25% { transform: translateX(-15%) } 
+   50% { transform: translateX(10%) } 
+   75% { transform: translateX(-5%) } 
+   100% { transform: translateX(0%); } 
+}
+
+.errors-container > p {
+    animation: error-wobble 0.3s linear,
+               error-color-fade 0.3s linear;
+    color: rgb(214, 118, 132);
 }
