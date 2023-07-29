@@ -244,12 +244,15 @@ const loadGame = () => {
   renderGame();
 }
 
+const winGame = (date: Date, difficultyIndex: number) => {
+  
+};
+
 window.onload = loadGame;
 
 // TODO Difficulty selector
 // TODO Store progress in localstorage
 // TODO Show current date and button to switch between yesterday and today
 // TODO Calendar view?
-// TODO Explain invalid moves to player
 // TODO Show move history
 // TODO Fix 0 flicker
