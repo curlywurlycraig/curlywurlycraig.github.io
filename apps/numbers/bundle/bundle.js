@@ -133,6 +133,38 @@
     return [(h1 ^ h2 ^ h3 ^ h4) >>> 0, (h2 ^ h1) >>> 0, (h3 ^ h1) >>> 0, (h4 ^ h1) >>> 0];
   }
 
+  // src/storage.ts
+  function saveProgress(save) {
+    localStorage.setItem("progress", JSON.stringify(save));
+  }
+  function loadProgress() {
+    const loadedProgress = localStorage.getItem("progress");
+    if (!loadedProgress) {
+      return {
+        stars: {}
+      };
+    }
+    return JSON.parse(loadedProgress);
+  }
+  function winDate(date, difficultyIndex) {
+    const save = loadProgress();
+    const dateString = date.toDateString();
+    if (!save.stars[dateString]) {
+      save.stars[dateString] = [false, false];
+    }
+    save.stars[dateString][difficultyIndex] = true;
+    saveProgress(save);
+  }
+  function getWins(date) {
+    const save = loadProgress();
+    if (save === null) {
+      return [false, false];
+    }
+    const dateString = date.toDateString();
+    console.log(save.stars[dateString], dateString);
+    return save.stars[dateString] || [false, false];
+  }
+
   // src/index.tsx
   var operators = [1 /* ADD */, 3 /* SUB */, 2 /* MUL */, 0 /* DIV */];
   var operatorFunctions = {
@@ -177,10 +209,15 @@
     originalNumberOptions: [],
     target: 0,
     selectedOperandIdx: null,
-    selectedOperator: null
+    selectedOperator: null,
+    currentDate: null,
+    wins: [false, false]
+  };
+  var getCurrentNumberOptions = () => {
+    return gameState.history[gameState.history.length - 1];
   };
   var Game = () => {
-    const numberOptions = gameState.history[gameState.history.length - 1];
+    const numberOptions = getCurrentNumberOptions();
     const onClickOption = (optIdx) => {
       if (gameState.selectedOperandIdx === optIdx) {
         gameState.selectedOperandIdx = null;
@@ -204,6 +241,9 @@
         }
       } else {
         gameState.selectedOperandIdx = optIdx;
+      }
+      if (getCurrentNumberOptions().includes(gameState.target)) {
+        winGame(gameState.currentDate, 0);
       }
       renderGame();
     };
@@ -256,7 +296,7 @@
     if (numberOptions.includes(gameState.target)) {
       winMessage = " \u{1F389}";
     }
-    return /* @__PURE__ */ hic("div", { id: "game-container" }, /* @__PURE__ */ hic("div", { class: "target-container" }, /* @__PURE__ */ hic("h1", { class: "target" }, `${gameState.target + (winMessage || "")}`)), /* @__PURE__ */ hic("div", { class: "option-buttons-outer-container" }, /* @__PURE__ */ hic("div", { class: "option-buttons-container" }, numberButtons)), /* @__PURE__ */ hic("div", { class: "operator-buttons-container" }, operatorButtons), /* @__PURE__ */ hic("div", { class: "errors-container" }, gameState.error ? /* @__PURE__ */ hic("p", null, gameState.error) : null), /* @__PURE__ */ hic("div", { class: "extra-buttons-container" }, /* @__PURE__ */ hic("button", { class: "secondary", click: onClickReset }, "Reset"), /* @__PURE__ */ hic("button", { class: "secondary", click: onClickUndo, disabled: gameState.history.length <= 1 }, "Undo")));
+    return /* @__PURE__ */ hic("div", { id: "game-container" }, /* @__PURE__ */ hic("div", { class: "day-container" }, gameState.wins), /* @__PURE__ */ hic("div", { class: "target-container" }, /* @__PURE__ */ hic("h1", { class: "target" }, `${gameState.target + (winMessage || "")}`)), /* @__PURE__ */ hic("div", { class: "option-buttons-outer-container" }, /* @__PURE__ */ hic("div", { class: "option-buttons-container" }, numberButtons)), /* @__PURE__ */ hic("div", { class: "operator-buttons-container" }, operatorButtons), /* @__PURE__ */ hic("div", { class: "errors-container" }, gameState.error ? /* @__PURE__ */ hic("p", null, gameState.error) : null), /* @__PURE__ */ hic("div", { class: "extra-buttons-container" }, /* @__PURE__ */ hic("button", { class: "secondary", click: onClickReset }, "Reset"), /* @__PURE__ */ hic("button", { class: "secondary", click: onClickUndo, disabled: gameState.history.length <= 1 }, "Undo")));
   };
   var produceTarget = (numberOptions, iterations, rng) => {
     let selectedIndex = rng % numberOptions.length;
@@ -307,6 +347,15 @@
     console.log("use:", gameState.originalNumberOptions);
     gameState.target = produceTarget(gameState.originalNumberOptions, 3, rng);
     console.log(gameState.target);
+    gameState.currentDate = currentDate;
+    gameState.wins = getWins(currentDate);
+    console.log(gameState);
+    renderGame();
+  };
+  var winGame = (date, difficultyIndex) => {
+    winDate(date, difficultyIndex);
+    gameState.wins = getWins(date);
+    console.log(gameState);
     renderGame();
   };
   window.onload = loadGame;

@@ -1,5 +1,6 @@
 import { hic, render, apply } from "./vdom";
 import { cyrb128 } from "./rand";
+import { getWins, winDate } from "./storage";
 
 enum Operator {
   DIV,
@@ -58,7 +59,9 @@ interface GameState {
   originalNumberOptions: (number | null)[],
   target: number,
   selectedOperandIdx: number | null,
-  selectedOperator: Operator | null
+  selectedOperator: Operator | null,
+  currentDate: Date | null,
+  wins: [boolean, boolean]
 }
 
 const gameState: GameState = {
@@ -67,11 +70,17 @@ const gameState: GameState = {
   originalNumberOptions: [],
   target: 0,
   selectedOperandIdx: null,
-  selectedOperator: null
+  selectedOperator: null,
+  currentDate: null,
+  wins: [false, false]
 };
 
+const getCurrentNumberOptions = () => {
+  return gameState.history[gameState.history.length - 1];
+}
+
 const Game = () => {
-  const numberOptions = gameState.history[gameState.history.length - 1];
+  const numberOptions = getCurrentNumberOptions();
 
   const onClickOption = (optIdx) => {
     if (gameState.selectedOperandIdx === optIdx) {
@@ -98,6 +107,10 @@ const Game = () => {
       }
     } else {
       gameState.selectedOperandIdx = optIdx;
+    }
+
+    if (getCurrentNumberOptions().includes(gameState.target)) {
+      winGame(gameState.currentDate!!, 0);
     }
 
     renderGame();
@@ -157,6 +170,9 @@ const Game = () => {
   }
 
   return <div id="game-container">
+    <div class="day-container">
+      { gameState.wins }
+    </div>
     <div class="target-container">
       <h1 class="target">{ `${gameState.target + (winMessage || "")}` }</h1>
     </div>
@@ -241,17 +257,20 @@ const loadGame = () => {
   console.log('use:', gameState.originalNumberOptions);
   gameState.target = produceTarget(gameState.originalNumberOptions, 3, rng);
   console.log(gameState.target);
+  gameState.currentDate = currentDate;
+  gameState.wins = getWins(currentDate);
   renderGame();
 }
 
 const winGame = (date: Date, difficultyIndex: number) => {
-  
+  winDate(date, difficultyIndex);
+  gameState.wins = getWins(date);
+  renderGame();
 };
 
 window.onload = loadGame;
 
 // TODO Difficulty selector
-// TODO Store progress in localstorage
 // TODO Show current date and button to switch between yesterday and today
 // TODO Calendar view?
 // TODO Show move history
