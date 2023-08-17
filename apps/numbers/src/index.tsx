@@ -1,6 +1,7 @@
 import { hic, render, apply } from "./vdom";
 import { cyrb128 } from "./rand";
 import { getWins, winDate } from "./storage";
+import { Day } from "./components/day";
 
 enum Operator {
   DIV,
@@ -170,9 +171,7 @@ const Game = () => {
   }
 
   return <div id="game-container">
-    <div class="day-container">
-      { gameState.wins }
-    </div>
+    <Day date={gameState.currentDate} wins={gameState.wins} onSelectDifficulty={(i) => console.log("new difficulty is ", i)}/>
     <div class="target-container">
       <h1 class="target">{ `${gameState.target + (winMessage || "")}` }</h1>
     </div>

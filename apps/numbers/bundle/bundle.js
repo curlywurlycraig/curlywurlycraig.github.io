@@ -161,9 +161,19 @@
       return [false, false];
     }
     const dateString = date.toDateString();
-    console.log(save.stars[dateString], dateString);
     return save.stars[dateString] || [false, false];
   }
+
+  // src/components/day.tsx
+  var Star = (props) => {
+    const { id, isWin } = props;
+    const winClass = isWin ? "win-marker win" : "win-marker not-win";
+    return /* @__PURE__ */ hic("span", { id, class: winClass }, "\u2605");
+  };
+  var Day = (props) => {
+    const { date, wins, onSelectDifficulty } = props;
+    return /* @__PURE__ */ hic("div", { class: "day-container" }, /* @__PURE__ */ hic("p", { class: "day-date" }, date.toDateString(), /* @__PURE__ */ hic(Star, { id: "day-win-0", isWin: wins[0] }, "\u2605"), /* @__PURE__ */ hic(Star, { id: "day-win-1", isWin: wins[1] }, "\u2605")), /* @__PURE__ */ hic("div", { class: "day-container-difficulty-selector-container" }, /* @__PURE__ */ hic("button", { class: "difficulty-selector", click: () => onSelectDifficulty(0) }, "Easy", /* @__PURE__ */ hic(Star, { id: "day-win-0", isWin: wins[0] }, "\u2605")), /* @__PURE__ */ hic("button", { class: "difficulty-selector", click: () => onSelectDifficulty(1) }, "Hard", /* @__PURE__ */ hic(Star, { id: "day-win-1", isWin: wins[0] }, "\u2605"))));
+  };
 
   // src/index.tsx
   var operators = [1 /* ADD */, 3 /* SUB */, 2 /* MUL */, 0 /* DIV */];
@@ -296,7 +306,7 @@
     if (numberOptions.includes(gameState.target)) {
       winMessage = " \u{1F389}";
     }
-    return /* @__PURE__ */ hic("div", { id: "game-container" }, /* @__PURE__ */ hic("div", { class: "day-container" }, gameState.wins), /* @__PURE__ */ hic("div", { class: "target-container" }, /* @__PURE__ */ hic("h1", { class: "target" }, `${gameState.target + (winMessage || "")}`)), /* @__PURE__ */ hic("div", { class: "option-buttons-outer-container" }, /* @__PURE__ */ hic("div", { class: "option-buttons-container" }, numberButtons)), /* @__PURE__ */ hic("div", { class: "operator-buttons-container" }, operatorButtons), /* @__PURE__ */ hic("div", { class: "errors-container" }, gameState.error ? /* @__PURE__ */ hic("p", null, gameState.error) : null), /* @__PURE__ */ hic("div", { class: "extra-buttons-container" }, /* @__PURE__ */ hic("button", { class: "secondary", click: onClickReset }, "Reset"), /* @__PURE__ */ hic("button", { class: "secondary", click: onClickUndo, disabled: gameState.history.length <= 1 }, "Undo")));
+    return /* @__PURE__ */ hic("div", { id: "game-container" }, /* @__PURE__ */ hic(Day, { date: gameState.currentDate, wins: gameState.wins, onSelectDifficulty: (i) => console.log("new difficulty is ", i) }), /* @__PURE__ */ hic("div", { class: "target-container" }, /* @__PURE__ */ hic("h1", { class: "target" }, `${gameState.target + (winMessage || "")}`)), /* @__PURE__ */ hic("div", { class: "option-buttons-outer-container" }, /* @__PURE__ */ hic("div", { class: "option-buttons-container" }, numberButtons)), /* @__PURE__ */ hic("div", { class: "operator-buttons-container" }, operatorButtons), /* @__PURE__ */ hic("div", { class: "errors-container" }, gameState.error ? /* @__PURE__ */ hic("p", null, gameState.error) : null), /* @__PURE__ */ hic("div", { class: "extra-buttons-container" }, /* @__PURE__ */ hic("button", { class: "secondary", click: onClickReset }, "Reset"), /* @__PURE__ */ hic("button", { class: "secondary", click: onClickUndo, disabled: gameState.history.length <= 1 }, "Undo")));
   };
   var produceTarget = (numberOptions, iterations, rng) => {
     let selectedIndex = rng % numberOptions.length;
@@ -349,13 +359,11 @@
     console.log(gameState.target);
     gameState.currentDate = currentDate;
     gameState.wins = getWins(currentDate);
-    console.log(gameState);
     renderGame();
   };
   var winGame = (date, difficultyIndex) => {
     winDate(date, difficultyIndex);
     gameState.wins = getWins(date);
-    console.log(gameState);
     renderGame();
   };
   window.onload = loadGame;
