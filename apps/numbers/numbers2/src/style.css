@@ -145,7 +145,7 @@ button.secondary:disabled {
 }
 
 .day-date {
-    line-height: 0;
+    line-height: 1;
     color: rgb(185, 196, 238);
 }
 
@@ -162,14 +162,14 @@ button.secondary:disabled {
     top: 0;
     content: "★";
     color: #e2d64a;
-    transform: scale(0) translateY(50%);
+    transform: scale(0);
     transition: transform 0.3s cubic-bezier(0.08, 1.59, 0.36, 1.07);
     z-index: -1;
 }
 
 .win-marker.win::before {
     color: #e2d64a;
-    transform: scale(1) translateY(50%);
+    transform: scale(1);
     z-index: 1;
 }
 
