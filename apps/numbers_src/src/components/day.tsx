@@ -1,4 +1,5 @@
 import { h } from "preact";
+import { Difficulty } from "../game";
 
 interface StarProps {
     id: string,
@@ -26,11 +27,11 @@ export const Day = (props: DayProps) => {
             <Star id="day-win-1" isWin={wins[1]}>★</Star>
         </p>
         <div class="day-container-difficulty-selector-container">
-            <button class="difficulty-selector" onClick={() => onSelectDifficulty(0)}>
+            <button class="difficulty-selector" onClick={() => onSelectDifficulty(Difficulty.EASY)}>
                 Easy
                 <Star id="day-win-0" isWin={wins[0]}>★</Star>
             </button>
-            <button class="difficulty-selector" onClick={() => onSelectDifficulty(1)}>
+            <button class="difficulty-selector" onClick={() => onSelectDifficulty(Difficulty.HARD)}>
                 Hard
                 <Star id="day-win-1" isWin={wins[1]}>★</Star>
             </button>

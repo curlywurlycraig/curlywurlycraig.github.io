@@ -1,6 +1,11 @@
 import { cyrb128 } from "./rand";
 import { getWins } from "./storage";
 
+export enum Difficulty {
+    EASY,
+    HARD
+}
+
 export enum Operator {
     DIV,
     ADD,
@@ -40,6 +45,12 @@ export const gameCreationOperatorValidators = {
     [Operator.MUL]: (a, b) => a * b < 100,
 };
 
+export const hardGameCreationOperatorValidators = {
+    [Operator.DIV]: (a, b) => a % b === 0,
+    [Operator.SUB]: (a, b) => a - b > 0,
+    [Operator.ADD]: (a, b) => true,
+    [Operator.MUL]: (a, b) => a * b < 500,
+};
 
 export const operatorString = {
     [Operator.DIV]: "÷",
@@ -64,7 +75,7 @@ export interface GameState {
     wins: [boolean, boolean]
 }
 
-const produceTarget = (numberOptions: (number | null)[], iterations: number, rng: number): number => {
+const produceTarget = (numberOptions: (number | null)[], rng: number, difficulty: Difficulty): number => {
 	// Pick one of the number options and set it as result R.
 	let selectedIndex = rng % numberOptions.length;
 	let result = numberOptions[selectedIndex];
@@ -72,6 +83,9 @@ const produceTarget = (numberOptions: (number | null)[], iterations: number, rng
 		...numberOptions.slice(0, selectedIndex),
 		...numberOptions.slice(selectedIndex + 1)
 	];
+
+    const iterations = difficulty === Difficulty.EASY ? 3 : 5;
+    const difficultyAdjustedValidators = difficulty === Difficulty.EASY ? gameCreationOperatorValidators : hardGameCreationOperatorValidators;
 
 	console.log('start with:', result);
 
@@ -81,8 +95,8 @@ const produceTarget = (numberOptions: (number | null)[], iterations: number, rng
 		const operand = numberOptions[selectedIndex];
 		// try each operation in turn
 		for (let op = 0; op < 4; op++) {
-			const opType = operators[(rng + rng * op) % 4];
-			if (gameCreationOperatorValidators[opType](result, operand)) {
+			const opType = operators[(rng + (rng * 3) * op) % 4];
+			if (difficultyAdjustedValidators[opType](result, operand)) {
 				console.log('perform:', operatorString[opType], operand);
 				result = operatorFunctions[opType](result, operand);
 				numberOptions = [
@@ -98,15 +112,16 @@ const produceTarget = (numberOptions: (number | null)[], iterations: number, rng
 	return result;
 }
 
-const produceNumberOptions = (rng: number): number[] => {
+const produceNumberOptions = (rng: number, difficulty: Difficulty): number[] => {
 	const result: number[] = [];
+    const numbers = difficulty === Difficulty.EASY ? easyNumbers : mediumNumbers;
 	for (let i = 0; i < 6; i++) {
-		result.push(easyNumbers[(rng + rng * i) % easyNumbers.length]);
+		result.push(numbers[(rng + (rng * 3) * i) % numbers.length]);
 	}
 	return result;
 };
 
-export const newGame = (difficulty: number): GameState => {
+export const newGame = (difficulty: Difficulty): GameState => {
 	const currentDate = new Date();
 
 	// TODO make it possible to navigate to past days
@@ -117,9 +132,9 @@ export const newGame = (difficulty: number): GameState => {
 	console.log("Current date: ", currentDateStr);
 	console.log("PRNG: ", rng);
 
-    const numberOptions = produceNumberOptions(rng);
+    const numberOptions = produceNumberOptions(rng, difficulty);
 	console.log('use:', numberOptions);
-	const target = produceTarget(numberOptions, 3, rng);
+	const target = produceTarget(numberOptions, rng, difficulty);
 	const wins = getWins(currentDate);
 
     return {

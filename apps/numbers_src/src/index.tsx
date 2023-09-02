@@ -3,16 +3,25 @@ import { getWins, winDate } from "./storage";
 import { Day } from "./components/day";
 import './style.css';
 import { useState } from 'preact/hooks';
-import { GameState, newGame, operatorFunctions, operatorString, operatorValidators, operators } from './game';
+import { Difficulty, GameState, newGame, operatorFunctions, operatorString, operatorValidators, operators } from './game';
 
-const initialDifficulty = 0;
+const initialDifficulty = Difficulty.EASY;
 const initialGame = newGame(initialDifficulty);
 
 const Game = () => {
 	const [gameState, setGameState] = useState<GameState>(initialGame);
-	const [difficulty, setDifficulty] = useState<number>(initialDifficulty);
+	const [difficulty, setDifficulty] = useState<Difficulty>(initialDifficulty);
 
 	const numberOptions = gameState.history[gameState.history.length - 1];
+
+	const onSelectDifficulty = (newDifficulty: Difficulty) => {
+		if (newDifficulty === difficulty) {
+			return;
+		}
+
+		setDifficulty(newDifficulty);
+		setGameState(newGame(newDifficulty));
+	}
 
 	const onClickOption = (optIdx) => {
 		if (gameState.selectedOperandIdx === optIdx) {
@@ -35,7 +44,7 @@ const Game = () => {
 
 				let wins = gameState.wins;
 				if (newOptions.includes(gameState.target)) {
-					winDate(gameState.currentDate, 0); // TODO handle other difficulties
+					winDate(gameState.currentDate, difficulty);
 					wins = getWins(gameState.currentDate);
 				}
 
@@ -134,7 +143,7 @@ const Game = () => {
 		<Day
 			date={gameState.currentDate}
 			wins={gameState.wins}
-			onSelectDifficulty={(i) => setDifficulty(i)}
+			onSelectDifficulty={onSelectDifficulty}
 		/>
 		<div class="target-container">
 			<h1 class="target">{`${gameState.target + (winMessage || "")}`}</h1>
