@@ -6,11 +6,12 @@ import { useState } from 'preact/hooks';
 import { Difficulty, GameState, newGame, operatorFunctions, operatorString, operatorValidators, operators } from './game';
 
 const initialDifficulty = Difficulty.EASY;
-const initialGame = newGame(initialDifficulty);
+const initialGame = newGame(initialDifficulty, new Date());
 
 const Game = () => {
 	const [gameState, setGameState] = useState<GameState>(initialGame);
 	const [difficulty, setDifficulty] = useState<Difficulty>(initialDifficulty);
+    const [currentDate, setCurrentDate] = useState<Date>(new Date());
 
 	const numberOptions = gameState.history[gameState.history.length - 1];
 
@@ -20,8 +21,8 @@ const Game = () => {
 		}
 
 		setDifficulty(newDifficulty);
-		setGameState(newGame(newDifficulty));
-	}
+		setGameState(newGame(newDifficulty, currentDate));
+	};
 
 	const onClickOption = (optIdx) => {
 		if (gameState.selectedOperandIdx === optIdx) {

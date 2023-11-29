@@ -1,4 +1,4 @@
-import { cyrb128 } from "./rand";
+import { RNG, cyrb128, mulberry32 } from "./rand";
 import { getWins } from "./storage";
 
 export enum Difficulty {
@@ -75,9 +75,9 @@ export interface GameState {
     wins: [boolean, boolean]
 }
 
-const produceTarget = (numberOptions: (number | null)[], rng: number, difficulty: Difficulty): number => {
+const produceTarget = (numberOptions: (number | null)[], rng: RNG, difficulty: Difficulty): number => {
 	// Pick one of the number options and set it as result R.
-	let selectedIndex = rng % numberOptions.length;
+	let selectedIndex = Math.floor(rng() * numberOptions.length);
 	let result = numberOptions[selectedIndex];
 	numberOptions = [
 		...numberOptions.slice(0, selectedIndex),
@@ -91,13 +91,13 @@ const produceTarget = (numberOptions: (number | null)[], rng: number, difficulty
 
 	// Iterate N times:
 	for (let i = 0; i < iterations; i++) {
-		let selectedIndex = (rng + rng * (i + 1)) % numberOptions.length;
+		let selectedIndex = Math.floor(rng() * numberOptions.length);
 		const operand = numberOptions[selectedIndex];
 		// try each operation in turn
 		for (let op = 0; op < 4; op++) {
-			const opType = operators[(rng + (rng * 3) * op) % 4];
+            const chosenIdx = Math.floor(rng() * 4);
+			const opType = operators[chosenIdx];
 			if (difficultyAdjustedValidators[opType](result, operand)) {
-				console.log('perform:', operatorString[opType], operand);
 				result = operatorFunctions[opType](result, operand);
 				numberOptions = [
 					...numberOptions.slice(0, selectedIndex),
@@ -112,25 +112,25 @@ const produceTarget = (numberOptions: (number | null)[], rng: number, difficulty
 	return result;
 }
 
-const produceNumberOptions = (rng: number, difficulty: Difficulty): number[] => {
+const produceNumberOptions = (rng: RNG, difficulty: Difficulty): number[] => {
 	const result: number[] = [];
     const numbers = difficulty === Difficulty.EASY ? easyNumbers : mediumNumbers;
 	for (let i = 0; i < 6; i++) {
-		result.push(numbers[(rng + (rng * 3) * i) % numbers.length]);
+        const chosenIdx = Math.floor(rng() * numbers.length);
+		result.push(numbers[chosenIdx]);
 	}
 	return result;
 };
 
-export const newGame = (difficulty: Difficulty): GameState => {
-	const currentDate = new Date();
-
+export const newGame = (difficulty: Difficulty, currentDate: Date): GameState => {
 	// TODO make it possible to navigate to past days
 	// currentDate.setDate(currentDate.getDate()+1);
 
 	const currentDateStr = currentDate.toDateString();
-	const rng = cyrb128(currentDateStr)[0];
+    const rngSeed = cyrb128(currentDateStr)[0];
+    const rng = mulberry32(rngSeed);
 	console.log("Current date: ", currentDateStr);
-	console.log("PRNG: ", rng);
+	console.log("PRNG: ", rngSeed);
 
     const numberOptions = produceNumberOptions(rng, difficulty);
 	console.log('use:', numberOptions);
