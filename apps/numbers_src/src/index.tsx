@@ -24,6 +24,13 @@ const Game = () => {
 		setGameState(newGame(newDifficulty, currentDate));
 	};
 
+    const advanceDate = () => {
+        const newDate = new Date(currentDate);
+        newDate.setDate(newDate.getDate()+1);
+        setCurrentDate(newDate);
+        setGameState(newGame(difficulty, currentDate));
+    }
+
 	const onClickOption = (optIdx) => {
 		if (gameState.selectedOperandIdx === optIdx) {
 			setGameState({

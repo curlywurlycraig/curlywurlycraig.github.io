@@ -75,7 +75,11 @@ export interface GameState {
     wins: [boolean, boolean]
 }
 
-const produceTarget = (numberOptions: (number | null)[], rng: RNG, difficulty: Difficulty): number => {
+// Returns null if failed to produce a target that is not in the given number options.
+// Basically this indicates that this RNG is useless, try another one.
+const produceTarget = (numberOptions: (number | null)[], rng: RNG, difficulty: Difficulty): (number | null) => {
+    const originalNumberOptions = numberOptions.slice();
+    
 	// Pick one of the number options and set it as result R.
 	let selectedIndex = Math.floor(rng() * numberOptions.length);
 	let result = numberOptions[selectedIndex];
@@ -86,8 +90,6 @@ const produceTarget = (numberOptions: (number | null)[], rng: RNG, difficulty: D
 
     const iterations = difficulty === Difficulty.EASY ? 3 : 5;
     const difficultyAdjustedValidators = difficulty === Difficulty.EASY ? gameCreationOperatorValidators : hardGameCreationOperatorValidators;
-
-	console.log('start with:', result);
 
 	// Iterate N times:
 	for (let i = 0; i < iterations; i++) {
@@ -108,6 +110,10 @@ const produceTarget = (numberOptions: (number | null)[], rng: RNG, difficulty: D
 		}
 	}
 
+    if (originalNumberOptions.includes(result)) {
+        return null;
+    }
+
 	console.log('result:', result);
 	return result;
 }
@@ -123,28 +129,36 @@ const produceNumberOptions = (rng: RNG, difficulty: Difficulty): number[] => {
 };
 
 export const newGame = (difficulty: Difficulty, currentDate: Date): GameState => {
-	// TODO make it possible to navigate to past days
-	// currentDate.setDate(currentDate.getDate()+1);
+    // A target may be one of the number options. In that case, it is not valid and we should try again with a different RNG.
+    let targetFindAttempts = 0;
+    while (true) {
+        const currentDateStr = currentDate.toDateString();
+        const rngSeed = cyrb128(`${currentDateStr}-${targetFindAttempts}`)[0];
+        const rng = mulberry32(rngSeed);
 
-	const currentDateStr = currentDate.toDateString();
-    const rngSeed = cyrb128(currentDateStr)[0];
-    const rng = mulberry32(rngSeed);
-	console.log("Current date: ", currentDateStr);
-	console.log("PRNG: ", rngSeed);
+        const numberOptions = produceNumberOptions(rng, difficulty);
+        const target = produceTarget(numberOptions, rng, difficulty);
 
-    const numberOptions = produceNumberOptions(rng, difficulty);
-	console.log('use:', numberOptions);
-	const target = produceTarget(numberOptions, rng, difficulty);
-	const wins = getWins(currentDate);
+        if (target === null) {
+            targetFindAttempts++;
+            continue;
+        }
 
-    return {
-        error: null,
-        history: [numberOptions],
-        originalNumberOptions: numberOptions,
-        target: target,
-        selectedOperandIdx: null,
-        selectedOperator: null,
-        currentDate: currentDate,
-        wins,
-    };
+        console.log("Using PRNG: ", rngSeed);
+        console.log("Using number options: ", numberOptions);
+        console.log("Using target: ", target);
+
+        const wins = getWins(currentDate);
+
+        return {
+            error: null,
+            history: [numberOptions],
+            originalNumberOptions: numberOptions,
+            target: target,
+            selectedOperandIdx: null,
+            selectedOperator: null,
+            currentDate: currentDate,
+            wins,
+        };
+    }
 }
