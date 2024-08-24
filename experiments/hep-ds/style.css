@@ -19,9 +19,14 @@
   src: url(https://cdn.jsdelivr.net/gh/githubnext/monaspace@v1.000/fonts/webfonts/MonaspaceNeon-Regular.woff) format(woff2);
 }
 
+@font-face {
+  font-family: 'Monaspace Argon';
+  src: url(https://cdn.jsdelivr.net/gh/githubnext/monaspace@v1.000/fonts/webfonts/MonaspaceArgon-Regular.woff) format(woff2);
+}
+
 html {
-    background-color: #AAA;
-    color: #333;
+    background-color: #222;
+    color: #AAA;
 }
 
 body {
@@ -29,16 +34,16 @@ body {
 }
 
 .visual-grid {
-    background-image: radial-gradient(circle, #777 1px, transparent 1px);
+    background-image: radial-gradient(circle, #444, 1px, transparent 1px);
     background-size: 1rem 1rem; /* Adjust the size of the dots and spacing */
 }
 
 .red {
-    color: #C52020;
+    color: #C44;
 }
 
 .blue {
-    color: #2059C5;
+    color: #44C;
 }
 
 h1 {
@@ -49,17 +54,16 @@ h1 {
 p, li {
     font-size: 1rem;
     line-height: 2rem;
-    background-color: #AAA;
 }
 
 p, h1, h2, h3, h4, h5, h6, li {
-  font-family: 'Monaspace Neon', monospace;
+  font-family: 'Monaspace Argon', monospace;
 }
 
 
 /* Buttons */
 button {
-    font-family: 'Monaspace Neon', monospace;
+    font-family: 'Monaspace Argon', monospace;
     font-size: 1rem;
     line-height: 1rem;
     height: 3rem;
@@ -67,9 +71,9 @@ button {
     cursor: pointer;
 
     border-radius: 0.25rem;
-    border: 2px solid #888;
-    color: #333;
-    background: linear-gradient(#AAA, #999);
+    border: 1px solid #444;
+    color: #AAA;
+    background: linear-gradient(#222, #1b1b1b);
 }
 
 button:focus {
@@ -78,18 +82,49 @@ button:focus {
 
 /* Inputs */
 input {
-    font-family: 'Monaspace Neon', monospace;
+    font-family: 'Monaspace Argon', monospace;
     font-size: 1rem;
     line-height: 1rem;
     height: 3rem;
     padding: 0 1rem;
 
     border-radius: 0.25rem;
-    border: 2px solid #888;
-    color: #333;
-    background-color: #AAA;
+    border: 1px solid #444;
+    color: #AAA;
+    background-color: #222;
 }
 
 input:focus {
     outline: 2px solid #F88;
+}
+
+/* Alerts */
+.alert-container {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+
+    font-size: 1rem;
+    line-height: 2rem;
+    border: 1px solid #444;
+    border-radius: 0.25rem;
+    background-color: #222;
+    padding: 0.5rem 1rem;
+    width: fit-content;
+}
+
+.alert-container svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    transform: translate(-75%, -75%);
+}
+
+.alert-container.filled {
+    background-color: #AAA;
+    color: #222;
+    border-color: #AAA;
 }

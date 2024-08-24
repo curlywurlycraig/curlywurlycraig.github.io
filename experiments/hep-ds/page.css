@@ -4,10 +4,27 @@
     padding: 1.5rem;
 }
 
-.buttons-example-container {
+.section {
     margin-top: 3rem;
 }
 
-.text-input-example-container {
-    margin-top: 3rem;
+.alert-example-outer-container .alert-container {
+    margin-top: 1rem;
 }
+
+.intro-text {
+    max-width: 800px;
+    background-color;
+    border-radius: 0.25rem;
+    background-color: #222;
+}
+
+.map-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+}
+
