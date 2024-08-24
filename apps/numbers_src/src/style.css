@@ -193,3 +193,8 @@ button.secondary:disabled {
     margin-right: 5px;
     margin-bottom: 5px;
 }
+
+.dedication {
+    margin-top: 20px;
+    font-style: italic;
+}

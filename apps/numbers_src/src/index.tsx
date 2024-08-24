@@ -171,6 +171,10 @@ const Game = () => {
 			<button class="secondary" onClick={onClickReset}>Reset</button>
 			<button class="secondary" onClick={onClickUndo} disabled={gameState.history.length <= 1}>Undo</button>
 		</div>
+
+        <div class="dedication">
+            <p>For Meg</p>
+        </div>
 	</div>;
 }
 

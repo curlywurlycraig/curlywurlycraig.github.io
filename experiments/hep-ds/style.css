@@ -1,0 +1,95 @@
+/*
+ * Main CSS for the Hepthal design system. By Craig Wilkinson.
+ *
+ * Everything is nicely aligned to 1rem. Alignment is important for a sense of
+ * snappiness and order, which is appropriate and even essential for the
+ * tactical and utilitarian feel of the design system.
+ *
+ * Animations are fast and snappy, rather than bouncy and loose.
+ *
+ * The visual grid helps to emphasise the neatness and attention to detail for
+ * order. Note that all elements align on the grid in 1rem increments. Using
+ * the root size in this manner helps the designer to anchor to a common size
+ * unit. One knows that the space between dots of the visual grid is exactly 1
+ * rem.
+ */
+
+@font-face {
+  font-family: 'Monaspace Neon';
+  src: url(https://cdn.jsdelivr.net/gh/githubnext/monaspace@v1.000/fonts/webfonts/MonaspaceNeon-Regular.woff) format(woff2);
+}
+
+html {
+    background-color: #AAA;
+    color: #333;
+}
+
+body {
+    line-height: 2rem;
+}
+
+.visual-grid {
+    background-image: radial-gradient(circle, #777 1px, transparent 1px);
+    background-size: 1rem 1rem; /* Adjust the size of the dots and spacing */
+}
+
+.red {
+    color: #C52020;
+}
+
+.blue {
+    color: #2059C5;
+}
+
+h1 {
+    font-size: 5rem;
+    line-height: 6rem;
+}
+
+p, li {
+    font-size: 1rem;
+    line-height: 2rem;
+    background-color: #AAA;
+}
+
+p, h1, h2, h3, h4, h5, h6, li {
+  font-family: 'Monaspace Neon', monospace;
+}
+
+
+/* Buttons */
+button {
+    font-family: 'Monaspace Neon', monospace;
+    font-size: 1rem;
+    line-height: 1rem;
+    height: 3rem;
+    padding: 0 1rem;
+    cursor: pointer;
+
+    border-radius: 0.25rem;
+    border: 2px solid #888;
+    color: #333;
+    background: linear-gradient(#AAA, #999);
+}
+
+button:focus {
+    outline: 2px solid #F88;
+}
+
+/* Inputs */
+input {
+    font-family: 'Monaspace Neon', monospace;
+    font-size: 1rem;
+    line-height: 1rem;
+    height: 3rem;
+    padding: 0 1rem;
+
+    border-radius: 0.25rem;
+    border: 2px solid #888;
+    color: #333;
+    background-color: #AAA;
+}
+
+input:focus {
+    outline: 2px solid #F88;
+}
