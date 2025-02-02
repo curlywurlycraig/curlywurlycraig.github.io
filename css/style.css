@@ -25,7 +25,6 @@ html {
 }
 
 h1 {
-  font-family: sans-serif;
   margin-top: 40px;
   margin-bottom: 40px;
   font-size: 1.8rem;
@@ -33,7 +32,6 @@ h1 {
 }
 
 h2 {
-  font-family: sans-serif;
   margin-bottom: 20px;
   margin-top: 40px;
   font-size: 1.4rem;
@@ -93,7 +91,7 @@ hr {
 }
 
 p {
-  line-height: 150%;
+  line-height: 180%;
 }
 
 a {

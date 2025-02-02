@@ -1,0 +1,10 @@
+.digression {
+    padding: 5px 15px;
+    background-color: #0b1021;
+    border-radius: 10px;
+}
+
+.digression > p {
+    font-size: 0.9em;
+    opacity: 0.9;
+}
