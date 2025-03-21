@@ -18,6 +18,16 @@ a.mail-link {
     color: blanchedalmond;
 }
 
+a.mail-link:hover, a.mail-link:focus {
+    outline: none;
+    color: black;
+    padding: 3px;
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    background-color: blanchedalmond;
+}
+
 a.mail-link:hover {
     color: black;
     padding: 3px;
