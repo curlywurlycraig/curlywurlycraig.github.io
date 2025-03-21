@@ -8,6 +8,11 @@ body {
     overflow: hidden;
 }
 
+div.geordi {
+    display: flex;
+    justify-content: center;
+}
+
 a.mail-link {
     border: 1px dotted blanchedalmond;
     background-color: black;
