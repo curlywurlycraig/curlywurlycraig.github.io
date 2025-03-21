@@ -1,27 +1,28 @@
-.bio-container {
-  margin-bottom: 80px;
+html {
+    background-color: black;
+    color: blanchedalmond;
 }
 
-.posts-container {
-  margin-top: 80px;
+body {
+    height: 100vh;
+    overflow: hidden;
 }
 
-.publish-date {
-  color: #555c80;
-  width: 130px;
-  display: inline-block;
-  margin: 0;
+a.mail-link {
+    border: 1px dotted blanchedalmond;
+    background-color: black;
+    padding: 3px;
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    color: blanchedalmond;
 }
 
-.post-link {
-  padding: 0;
-  margin: 0;
-}
-
-.summary {
-  margin-top: 10px;
-}
-
-.post {
-  margin-bottom: 50px;
+a.mail-link:hover {
+    color: black;
+    padding: 3px;
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    background-color: blanchedalmond;
 }
