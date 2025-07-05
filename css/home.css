@@ -1,16 +1,14 @@
 html {
     background-color: blanchedalmond;
     color: black;
+    background-image: url("/resources/geordi_dither_3.gif");
+    background-position: -200px 0;
 }
 
 body {
     height: 100vh;
     overflow: hidden;
-}
-
-div.geordi {
-    display: flex;
-    justify-content: center;
+    padding: 1em;
 }
 
 a.mail-link {
@@ -40,4 +38,17 @@ a.mail-link:hover {
     bottom: 30px;
     left: 30px;
     background-color: blanchedalmond;
+}
+
+.content {
+    background-color: blanchedalmond;
+    border: 1px solid black;
+    padding: 0.5em 1em;
+    max-width: 800px;
+}
+
+.code {
+    background-color: rgba(150, 0, 100, 0.3);
+    border-radius: 3px;
+    padding: 0 0.25em;
 }
