@@ -101,7 +101,7 @@ const theta1 = Math.PI / 1.1;
 const theta2 = 0;
 const dtheta1 = 0;
 const dtheta2 = 0;
-const dtPerFrame = 1 / 2; // TODO: Don't assume FPS, this will move slowly on slow systems
+const dtPerFrame = 1 / 20; // TODO: Don't assume FPS, this will move slowly on slow systems
 const L1 = 50;
 const L2 = 50;
 const m1 = 1;
@@ -134,7 +134,7 @@ function calculateEnergy(state) {
 function nsteps(state, n, stepFunction = rk4Step) {
     let result = state;
     for (let i = 0; i < n; i++) {
-        result = stepFunction(state, dtPerFrame);
+        result = stepFunction(result, dtPerFrame);
     }
     return result;
 }
@@ -149,9 +149,12 @@ angular velocities.
 function calculateDivergenceDelta(state1, state2, steps) {
     const state1n = nsteps(state1, steps);
     const state2n = nsteps(state2, steps);
-    const xdiff = state1n[1] - state2n[1];
-    const ydiff = state1n[3] - state2n[3];
-    return Math.sqrt(xdiff ** 2 + ydiff ** 2);
+    const dtheta1 = state1n[0] - state2n[0];
+    const domega1 = state1n[1] - state2n[1];
+    const dtheta2 = state1n[2] - state2n[2];
+    const domega2 = state1n[3] - state2n[3];
+
+    return Math.sqrt(dtheta1**2 + domega1**2 + dtheta2**2 + domega2**2);
 }
 
 function drawPendulum(canvas, ctx, state) {
@@ -184,11 +187,11 @@ function drawPendulum(canvas, ctx, state) {
     ctx.fill();
 }
 
-const leftRads = -Math.PI;
-const rightRads = Math.PI;
-const topRads = -Math.PI;
-const bottomRads = Math.PI;
-const radsDelta = 0.00001;
+const leftRads = -1.4*Math.PI;
+const rightRads = 1.4*Math.PI;
+const topRads = 1.4*Math.PI;
+const bottomRads = -1.4*Math.PI;
+const radsDelta = 0.01;
 
 function drawPendulumFractal(canvas, ctx) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -197,8 +200,10 @@ function drawPendulumFractal(canvas, ctx) {
         for (let x = 0; x < canvas.width; x++) {
             const xRads = leftRads + (x / canvas.width) * (rightRads - leftRads);
             const yRads = topRads + (y / canvas.height) * (bottomRads - topRads);
-            const divergenceDelta = calculateDivergenceDelta([xRads, 0, yRads, 0], [xRads + radsDelta, 0, yRads + radsDelta, 0], 400);
-            ctx.fillStyle = `rgba(1, 1, 1, ${divergenceDelta*10000})`;
+            const divergenceDelta = calculateDivergenceDelta([xRads, 0, yRads, 0], [xRads + radsDelta, 0, yRads + radsDelta, 0], 50);
+            const scaled = Math.log10(divergenceDelta + 1e-10);
+            const hue = 240 - Math.min(240, scaled * 40);
+            ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
             ctx.fillRect(x, y, 1, 1);
         }
     }
