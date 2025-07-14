@@ -1,54 +1,27 @@
-html {
-    background-color: blanchedalmond;
-    color: black;
-    background-image: url("/resources/geordi_dither_3.gif");
-    background-position: -200px 0;
+.bio-container {
+  margin-bottom: 80px;
 }
 
-body {
-    height: 100vh;
-    overflow: hidden;
-    padding: 1em;
+.posts-container {
+  margin-top: 80px;
 }
 
-a.mail-link {
-    border: 1px dotted blanchedalmond;
-    background-color: black;
-    padding: 3px;
-    position: fixed;
-    bottom: 30px;
-    left: 30px;
-    color: blanchedalmond;
+.publish-date {
+  color: #555c80;
+  width: 130px;
+  display: inline-block;
+  margin: 0;
 }
 
-a.mail-link:hover, a.mail-link:focus {
-    outline: none;
-    color: black;
-    padding: 3px;
-    position: fixed;
-    bottom: 30px;
-    left: 30px;
-    background-color: blanchedalmond;
+.post-link {
+  padding: 0;
+  margin: 0;
 }
 
-a.mail-link:hover {
-    color: black;
-    padding: 3px;
-    position: fixed;
-    bottom: 30px;
-    left: 30px;
-    background-color: blanchedalmond;
+.summary {
+  margin-top: 10px;
 }
 
-.content {
-    background-color: blanchedalmond;
-    border: 1px solid black;
-    padding: 0.5em 1em;
-    max-width: 800px;
-}
-
-.code {
-    background-color: rgba(150, 0, 100, 0.3);
-    border-radius: 3px;
-    padding: 0 0.25em;
+.post {
+  margin-bottom: 50px;
 }
