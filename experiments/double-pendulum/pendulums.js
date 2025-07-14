@@ -1,5 +1,6 @@
 const jsNoteContainerId = "js-note-container";
 const mainCanvasId = "main-canvas";
+const energyValId = "energy-val";
 
 /*
 
@@ -74,63 +75,158 @@ function eulerStep(state, dt) {
     return state.map((v, i) => v + dt * derivatives[i]);
 }
 
+/*
+
+RK4 is another approximation of the integral, called Runge-Kutta. It is
+generally a better approximation.
+
+https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods
+*/
+function rk4Step(state, dt) {
+    const k1 = getDerivatives(state);
+    const k2 = getDerivatives(state.map((v, i) => v + 0.5 * dt * k1[i]));
+    const k3 = getDerivatives(state.map((v, i) => v + 0.5 * dt * k2[i]));
+    const k4 = getDerivatives(state.map((v, i) => v + dt * k3[i]));
+
+    return state.map((v, i) =>
+        v + (dt / 6) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i])
+    );
+}
+
 var canvas;
+var energyValContainer;
 var ctx;
-const theta1 = Math.PI / 2.0;
+
+const theta1 = Math.PI / 1.1;
 const theta2 = 0;
 const dtheta1 = 0;
 const dtheta2 = 0;
-const dtPerFrame = 1 / 60; // TODO: Don't assume 60 FPS, this will move slowly on slow systems
+const dtPerFrame = 1 / 2; // TODO: Don't assume FPS, this will move slowly on slow systems
+const L1 = 50;
+const L2 = 50;
+const m1 = 1;
+const m2 = 1;
+const g = 9.81;
 var state = [theta1, dtheta1, theta2, dtheta2];
 
-function draw(canvas, ctx, state) {
-  const [theta1, , theta2, ] = state;
-  const originX = canvas.width / 2;
-  const originY = canvas.height / 2;
-  const L1 = 50;
-  const L2 = 50;
+/*
 
-  const x1 = originX + L1 * Math.sin(theta1);
-  const y1 = originY + L1 * Math.cos(theta1);
+Calculating the total energy is useful for analyzing the integral approximation.
 
-  const x2 = x1 + L2 * Math.sin(theta2);
-  const y2 = y1 + L2 * Math.cos(theta2);
+*/
+function calculateEnergy(state) {
+    const [theta1, omega1, theta2, omega2] = state;
 
-  ctx.fillStyle = "#FFA500";
-  ctx.strokeStyle = "#FFA500";
+    const y1 = L1 * Math.cos(theta1);
+    const y2 = y1 + L2 * Math.cos(theta2);
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.beginPath();
-  ctx.moveTo(originX, originY);
-  ctx.lineTo(x1, y1);
-  ctx.lineTo(x2, y2);
-  ctx.stroke();
+    const vx1 = L1 * omega1 * Math.cos(theta1);
+    const vy1 = L1 * omega1 * Math.sin(theta1);
 
-  ctx.beginPath();
-  ctx.arc(x1, y1, 2, 0, Math.PI * 2);
-  ctx.fill();
+    const vx2 = vx1 + L2 * omega2 * Math.cos(theta2);
+    const vy2 = vy1 + L2 * omega2 * Math.sin(theta2);
 
-  ctx.beginPath();
-  ctx.arc(x2, y2, 2, 0, Math.PI * 2);
-  ctx.fill();
+    const T = 0.5 * m1 * (vx1 ** 2 + vy1 ** 2) + 0.5 * m2 * (vx2 ** 2 + vy2 ** 2);
+    const V = m1 * g * y1 + m2 * g * y2;
+    return T + V;
+}
+
+function nsteps(state, n, stepFunction = rk4Step) {
+    let result = state;
+    for (let i = 0; i < n; i++) {
+        result = stepFunction(state, dtPerFrame);
+    }
+    return result;
+}
+
+/*
+
+Perform a number of steps on two states, and compute their divergence.
+The divergence is computed as the euclidian distance between the two states
+angular velocities.
+
+*/
+function calculateDivergenceDelta(state1, state2, steps) {
+    const state1n = nsteps(state1, steps);
+    const state2n = nsteps(state2, steps);
+    const xdiff = state1n[1] - state2n[1];
+    const ydiff = state1n[3] - state2n[3];
+    return Math.sqrt(xdiff ** 2 + ydiff ** 2);
+}
+
+function drawPendulum(canvas, ctx, state) {
+    const [theta1, , theta2,] = state;
+    const originX = canvas.width / 2;
+    const originY = canvas.height / 2;
+
+    const x1 = originX + L1 * Math.sin(theta1);
+    const y1 = originY + L1 * Math.cos(theta1);
+
+    const x2 = x1 + L2 * Math.sin(theta2);
+    const y2 = y1 + L2 * Math.cos(theta2);
+
+    ctx.fillStyle = "#FFA500";
+    ctx.strokeStyle = "#FFA500";
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.beginPath();
+    ctx.moveTo(originX, originY);
+    ctx.lineTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(x1, y1, 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(x2, y2, 2, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+const leftRads = -Math.PI;
+const rightRads = Math.PI;
+const topRads = -Math.PI;
+const bottomRads = Math.PI;
+const radsDelta = 0.00001;
+
+function drawPendulumFractal(canvas, ctx) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (let y = 0; y < canvas.height; y++) {
+        for (let x = 0; x < canvas.width; x++) {
+            const xRads = leftRads + (x / canvas.width) * (rightRads - leftRads);
+            const yRads = topRads + (y / canvas.height) * (bottomRads - topRads);
+            const divergenceDelta = calculateDivergenceDelta([xRads, 0, yRads, 0], [xRads + radsDelta, 0, yRads + radsDelta, 0], 400);
+            ctx.fillStyle = `rgba(1, 1, 1, ${divergenceDelta*10000})`;
+            ctx.fillRect(x, y, 1, 1);
+        }
+    }
 }
 
 
 function runFrame() {
-    draw(canvas, ctx, state);
-    state = eulerStep(state, dtPerFrame);
+    drawPendulum(canvas, ctx, state);
+    energyValContainer.innerHTML = calculateEnergy(state);
+
+    state = rk4Step(state, dtPerFrame);
 
     window.requestAnimationFrame(runFrame);
 }
 
 function runMainLoop() {
+    window.requestAnimationFrame(runFrame);
+}
+
+function main() {
+    energyValContainer = document.getElementById(energyValId);
     const jsNote = document.getElementById(jsNoteContainerId);
     jsNote.remove();
 
     canvas = document.getElementById(mainCanvasId);
     ctx = canvas.getContext("2d");
 
-    window.requestAnimationFrame(runFrame);
+    drawPendulumFractal(canvas, ctx);
 }
 
-window.onload = runMainLoop;
+window.onload = main;
