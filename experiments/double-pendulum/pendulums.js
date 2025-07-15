@@ -1,5 +1,6 @@
 const jsNoteContainerId = "js-note-container";
 const mainCanvasId = "main-canvas";
+const pendulumCanvasId = "pendulum-canvas";
 const energyValId = "energy-val";
 
 /*
@@ -93,15 +94,18 @@ function rk4Step(state, dt) {
     );
 }
 
-var canvas;
+var mainCanvas;
+var mainCtx;
+var pendulumCanvas;
+var pendulumCtx;
 var energyValContainer;
-var ctx;
 
 const theta1 = Math.PI / 1.1;
 const theta2 = 0;
 const dtheta1 = 0;
 const dtheta2 = 0;
-const dtPerFrame = 1 / 20; // TODO: Don't assume FPS, this will move slowly on slow systems
+const dtPerFrame = 1 / 120; // TODO: Don't assume FPS, this will move slowly on slow systems
+const dtPerStep = 1 / 20;
 const L1 = 50;
 const L2 = 50;
 const m1 = 1;
@@ -134,7 +138,7 @@ function calculateEnergy(state) {
 function nsteps(state, n, stepFunction = rk4Step) {
     let result = state;
     for (let i = 0; i < n; i++) {
-        result = stepFunction(result, dtPerFrame);
+        result = stepFunction(result, dtPerStep);
     }
     return result;
 }
@@ -149,6 +153,7 @@ angular velocities.
 function calculateDivergenceDelta(state1, state2, steps) {
     const state1n = nsteps(state1, steps);
     const state2n = nsteps(state2, steps);
+
     const dtheta1 = state1n[0] - state2n[0];
     const domega1 = state1n[1] - state2n[1];
     const dtheta2 = state1n[2] - state2n[2];
@@ -156,6 +161,41 @@ function calculateDivergenceDelta(state1, state2, steps) {
 
     return Math.sqrt(dtheta1**2 + domega1**2 + dtheta2**2 + domega2**2);
 }
+
+/*
+
+As an alternative, we can compute the number of iterations it takes before the
+pendulums diverge. We can even use a simpler divergence calculation like the
+difference of the sum of the angles.
+
+I originally tried to calculate divergence using all state parameters because
+the position may technically be the same but the velocity could be different (as
+an extreme example, moving in the opposite direction), but to get to that point
+the rods would have to have diverged far more than necessary for detection
+anyway.
+
+This lacks the details, visually, of the divergence delta calculation. It is
+also not as performant as I'd hoped, relatively. I'd hoped that the possible
+early termination for chaotic regions would save a lot of time, but it doesn't
+seem to make a huge difference, and you lose the nice continuous variation in
+more stable regions.
+
+*/
+function iterationsUntilDivergence(state1, state2, maxIterations = 200, threshold = 0.1, stepFunction = rk4Step) {
+    let result1 = state1;
+    let result2 = state2;
+    for (let i = 0; i < maxIterations; i++) {
+        result1 = stepFunction(result1, dtPerStep);
+        result2 = stepFunction(result2, dtPerStep);
+        const firstTotal = result1[0] + result1[2];
+        const secondTotal = result2[0] + result2[2];
+        if (secondTotal - firstTotal > threshold) {
+            return i;
+        }
+    }
+    return maxIterations;
+}
+
 
 function drawPendulum(canvas, ctx, state) {
     const [theta1, , theta2,] = state;
@@ -191,7 +231,8 @@ const leftRads = -1.4*Math.PI;
 const rightRads = 1.4*Math.PI;
 const topRads = 1.4*Math.PI;
 const bottomRads = -1.4*Math.PI;
-const radsDelta = 0.01;
+const maxIterations = 200;
+const radsDelta = 0.005;
 
 function drawPendulumFractal(canvas, ctx) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -200,18 +241,20 @@ function drawPendulumFractal(canvas, ctx) {
         for (let x = 0; x < canvas.width; x++) {
             const xRads = leftRads + (x / canvas.width) * (rightRads - leftRads);
             const yRads = topRads + (y / canvas.height) * (bottomRads - topRads);
-            const divergenceDelta = calculateDivergenceDelta([xRads, 0, yRads, 0], [xRads + radsDelta, 0, yRads + radsDelta, 0], 50);
+            const mainState = [xRads, 0, yRads, 0];
+            const deltaState = [xRads + radsDelta, 0, yRads + radsDelta, 0];
+            const divergenceDelta = calculateDivergenceDelta(mainState, deltaState, 100);
+
             const scaled = Math.log10(divergenceDelta + 1e-10);
-            const hue = 240 - Math.min(240, scaled * 40);
+            const hue = 120 - Math.min(120, scaled * 120);
             ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
             ctx.fillRect(x, y, 1, 1);
         }
     }
 }
 
-
 function runFrame() {
-    drawPendulum(canvas, ctx, state);
+    drawPendulum(pendulumCanvas, pendulumCtx, state);
     energyValContainer.innerHTML = calculateEnergy(state);
 
     state = rk4Step(state, dtPerFrame);
@@ -228,10 +271,24 @@ function main() {
     const jsNote = document.getElementById(jsNoteContainerId);
     jsNote.remove();
 
-    canvas = document.getElementById(mainCanvasId);
-    ctx = canvas.getContext("2d");
+    mainCanvas = document.getElementById(mainCanvasId);
+    mainCtx = mainCanvas.getContext("2d");
+    pendulumCanvas = document.getElementById(pendulumCanvasId);
+    pendulumCtx = pendulumCanvas.getContext("2d");
 
-    drawPendulumFractal(canvas, ctx);
+    drawPendulumFractal(mainCanvas, mainCtx);
+    runMainLoop();
 }
 
 window.onload = main;
+
+
+/*
+
+TODO: Identify best constants for beauty
+TODO: Add hover feature -- Show the pendulum for the hovered area
+TODO: Periodicity view? Somehow show attractors
+TODO: Progressive loading of results
+TODO: Don't use the main thread: do this stuff in a worker
+
+*/
