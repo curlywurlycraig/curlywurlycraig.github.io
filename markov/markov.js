@@ -23,7 +23,6 @@ async function prepareMarkov() {
     text += "\n" + await textFetch.text();
 
     let processedText = tokenize(normalizeText(text));
-    console.log('done.')
     return buildMarkov(processedText, 1);
 }
 
@@ -97,10 +96,7 @@ function generate(markov, prompt) {
     const promptTokens = tokenize(normalizeText(prompt));
     let result = promptTokens;
     for (let i = 0; i < MAX_RESPONSE_SIZE; i++) {
-        console.log(result)
         const availableNext = markov[result[result.length - 1]];
-        console.log(availableNext)
-        console.log(markov)
         const totalTokenSamples = Object.values(availableNext).reduce((acc, curr) => acc + curr);
         let randomRoll = Math.floor(Math.random() * totalTokenSamples);
         let next = null;
