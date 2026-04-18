@@ -25,3 +25,46 @@
 .post {
   margin-bottom: 50px;
 }
+
+.blue {
+  color: #3c2bd0;
+}
+
+.teal {
+  color: #2aadab;
+}
+
+.purple {
+  color: #d02b5a;
+}
+
+.marquee {
+  position: fixed;
+  overflow: hidden;
+  background: #756db7;
+  width: 100vw;
+  left: 0;
+  bottom: 20vh;
+}
+
+.track {
+  display: inline-block;
+  white-space: nowrap;
+  animation: scroll 15s linear infinite;
+}
+
+.marquee p {
+  display: inline-block;
+  text-transform: uppercase;
+  font-size: 3em;
+  margin: 0 2rem 0 0; /* spacing between phrases */
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.33333%);
+  }
+}
