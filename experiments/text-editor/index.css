@@ -1,3 +1,9 @@
+.nudge {
+    background-color: #00000044;
+    padding: 1em;
+    border-radius: 8px;
+}
+
 .editor_container {
     position: relative;
     margin: 40px 0;

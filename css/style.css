@@ -8,7 +8,7 @@ body {
   padding: 10px;
   padding-top: 50px;
   padding-bottom: 80px;
-  background-color: #09152b;
+  background-color: #222034;
   margin: auto;
   max-width: 700px;
   font-size: 1rem;
@@ -29,7 +29,7 @@ header {
 }
 
 html {
-  color: #dee3f0;
+  color: #e3d2ed;
   font-family: 'Vercetti', sans-serif;
 }
 
@@ -121,4 +121,8 @@ a:visited {
 .silent-iframe {
   overflow: hidden;
   border: none;
+}
+
+.noblur {
+  image-rendering: pixelated;
 }
