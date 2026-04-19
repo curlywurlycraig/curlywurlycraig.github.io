@@ -25,25 +25,25 @@
   margin-bottom: 50px;
 }
 
-.blue {
-  color: #3c2bd0;
+.value_1 {
+  color: #a4a0ca;
 }
 
-.teal {
-  color: #2aadab;
+.value_2 {
+  color: #4c41b5;
 }
 
-.purple {
-  color: #d02b5a;
+.value_3 {
+  color: #3b309a;
 }
 
 .marquee {
+  top: 0;
   position: fixed;
   overflow: hidden;
   background: #756db7;
   width: 100vw;
   left: 0;
-  bottom: 20vh;
 }
 
 .track {
@@ -55,7 +55,7 @@
 .marquee p {
   display: inline-block;
   text-transform: uppercase;
-  font-size: 3em;
+  font-size: 2em;
   margin: 0 2rem 0 0; /* spacing between phrases */
 }
 

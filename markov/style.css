@@ -1,0 +1,40 @@
+.chat-container {
+    width: 100%
+}
+
+.messages-container {
+
+}
+
+.message {
+
+}
+
+.input-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.input-container input {
+    background-color: #00000033;
+    color: #a4a0ca;
+    border: none;
+    border-radius: 3px;
+    padding: 10px;
+    outline: none;
+}
+
+.input-container input:focus {
+    outline: 1px solid #a4a0ca;
+    border: none;
+}
+
+.input-container .text-input {
+    flex: 2;
+    margin-right: 5px;
+}
+
+.input-container .submit-button {
+    width: 80px;
+}

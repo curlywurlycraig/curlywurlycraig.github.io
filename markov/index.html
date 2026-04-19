@@ -7,6 +7,7 @@
     <meta name="author" content="Craig Wilkinson">
 
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="./style.css">
     <link rel="stylesheet" href="/css/home.css">
     <link rel="icon" href="/favicon.ico" type="image/x-icon"/>
     <title>strange attractor</title>
@@ -19,7 +20,21 @@
       </a>
     </header>
 
-    <p>Hello.</p>
+    <div class="chat-container">
+        <div class="messages-container">
+
+        </div>
+
+        <form id="chat-form">
+            <div class="input-container">
+                <input class="text-input" id="text-input" placeholder="tell me your woes" type="text" />
+                <input class="submit-button" type="submit" value="Send" />
+            </div>
+        </form>
+    </div>
+
+
+
   </body>
 
   <script src="markov.js">

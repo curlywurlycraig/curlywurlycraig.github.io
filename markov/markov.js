@@ -66,7 +66,13 @@ function tokenize(inputText) {
 }
 
 function render(tokens) {
-    return tokens.join(" ");
+    return tokens.reduce((acc, curr) => {
+        if ([",", ".", "\"", "\'", "!", "?"].includes(curr)) {
+            return acc + curr;
+        }
+
+        return acc + " " + curr;
+    });
 }
 
 function buildMarkov(tokens, order = 1) {
@@ -109,6 +115,11 @@ function generate(markov, prompt) {
             randomRoll -= availableNext[key];
         }
         result.push(next);
+
+        if (next === ".") {
+            console.log("ope.")
+            return result;
+        }
     }
 
     return result;
@@ -117,8 +128,23 @@ function generate(markov, prompt) {
 function reply(markov, input) {
     const inputTokens = tokenize(normalizeText(input));
     for (word of inputTokens) {
+        // TODO: Implement this heuristic:
+        // Is the user asking a question? Somehow answer with a definitive.
+        // Does the user say an interesting word that has an entry in the chain?
+        // Otherwise, just ramble or pick from a set of phrases.
+
+        // Also sometimes do short, sometimes do 
+
         if (isInterestingWord(word) && markov[word]) {
-            return render([word, "?"].concat(generate(markov, word)))
+            // TODO We can dispatch this to multiple different possible options. e.g.,
+            // we don't have to start with repeating and the question mark. We could say, "well... ${result}"
+
+            const result = render([word, "?"].concat(generate(markov, word)))
+            if (![".", "?", "!"].includes(result[result.length-1])) {
+                return result + "..."
+            } else {
+                return result;
+            }
         }
     }
 }
@@ -126,4 +152,14 @@ function reply(markov, input) {
 let markov = null;
 prepareMarkov().then(m => {
     markov = m
+});
+
+
+/* html bits */
+
+document.getElementById("chat-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const text = document.getElementById("text-input").value;
+    console.log(reply(markov, text));
 });
