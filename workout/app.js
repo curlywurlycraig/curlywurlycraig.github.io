@@ -11,6 +11,8 @@ let activeDate = dateKey(new Date());
 let selectedExercise = 'bench';
 let importPayload = null;
 let draft = null;
+let waitingWorker = null;
+let reloadingForUpdate = false;
 
 const escape = (value = '') => String(value).replace(/[&<>'"]/g, character => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' })[character]);
 const localDate = (key) => new Date(`${key}T12:00:00`);
@@ -32,7 +34,7 @@ function dayWorkout(date) { return workouts.find(workout => workout.date === dat
 function freshWorkout(date, day) {
   return { id:id(), date, day, notes:'', createdAt:new Date().toISOString(), lifts:Object.fromEntries(ROUTINE.days[day].map(exercise => [exercise.exercise, { weightLb:recommendation(exercise.exercise, workouts).weight, reps:Array(setsFor(exercise.scheme)).fill(null), status:'pending', note:'' }])) };
 }
-function nav() { return `<nav class="bottom-nav"><button class="tab ${view === 'today' ? 'active':''}" data-action="view" data-view="today"><span class="nav-icon">◉</span>Workout</button><button class="tab ${view === 'calendar' ? 'active':''}" data-action="view" data-view="calendar"><span class="nav-icon">▦</span>Calendar</button><button class="tab ${view === 'progress' ? 'active':''}" data-action="view" data-view="progress"><span class="nav-icon">⌁</span>Progress</button></nav>`; }
+function nav() { return `<nav class="bottom-nav"><button class="tab ${view === 'today' || view === 'edit' ? 'active':''}" data-action="view" data-view="today"><span class="nav-icon">◉</span>Workout</button><button class="tab ${view === 'calendar' ? 'active':''}" data-action="view" data-view="calendar"><span class="nav-icon">▦</span>Calendar</button><button class="tab ${view === 'progress' ? 'active':''}" data-action="view" data-view="progress"><span class="nav-icon">⌁</span>Progress</button></nav>`; }
 function topbar() { return `<div class="topbar"><div class="wordmark"><i class="mark"></i>Plates</div><button class="icon-button" aria-label="Backup and import" data-action="tools">⋯</button></div>`; }
 
 function plateMarkup(weight) {
@@ -43,7 +45,7 @@ function plateMarkup(weight) {
   return `<div class="plate-rack"><div class="plates"><span class="bar"></span>${load.plates.map(plate => `<span class="plate" style="--plate:${colors[plate]};--size:${sizes[plate]}px">${plate}</span>`).join('') || '<span class="plate-note">bar only</span>'}</div><div class="plate-note">${formatWeight(load.perSide)} each side · 45 lb bar</div></div>`;
 }
 function liftMarkup(exercise, lift, readonly = false) {
-  const sets = setsFor(exercise.scheme); const target = targetFor(exercise.scheme); const recommended = recommendation(exercise.exercise, workouts);
+  const sets = setsFor(exercise.scheme); const target = targetFor(exercise.scheme); const recommended = recommendation(exercise.exercise, workouts) || { weight:lift.weightLb, reason:'recorded working weight' };
   const reps = lift.reps || [];
   if (readonly) return `<article class="lift ${lift.status === 'skipped' ? 'skipped':''}"><div class="lift-top"><div><h2>${escape(exercise.name)}</h2><p class="scheme">${exercise.scheme}</p></div><strong>${formatWeight(lift.weightLb)}${exercise.kind === 'dumbbell' ? ' each' : ''}</strong></div>${exercise.kind === 'barbell' ? plateMarkup(lift.weightLb) : ''}<p class="reps-readout">${reps.length ? `Sets: ${reps.map(rep => rep ?? '—').join(' · ')}` : lift.legacyRepNote ? `Legacy note: ${lift.legacyRepNote} reps` : 'No set-by-set reps recorded'}</p><p class="status-readout">${lift.status || 'unknown'}${lift.substitute ? ` · substituted with ${escape(lift.substitute.exercise)} at ${formatWeight(lift.substitute.weightLb)}` : ''}</p>${lift.note ? `<p class="history-note">${escape(lift.note)}</p>` : ''}</article>`;
   return `<article class="lift ${lift.status === 'skipped' ? 'skipped':''}" data-exercise="${exercise.exercise}"><div class="lift-top"><div><h2>${escape(exercise.name)}</h2><p class="scheme">${exercise.scheme}</p></div><span class="weight-type">${exercise.kind === 'dumbbell' ? 'per dumbbell' : 'working weight'}</span></div><p class="recommendation"><strong>Suggested ${formatWeight(recommended.weight)}</strong> · ${recommended.reason}</p><div class="weight-row"><div class="weight-control"><button aria-label="Decrease weight" data-action="weight" data-delta="-${exercise.kind === 'barbell' ? 2.5 : 1.25}">−</button><input aria-label="${escape(exercise.name)} weight" data-action="weight-input" inputmode="decimal" step="1.25" type="number" value="${lift.weightLb}"><span class="unit">lb</span><button aria-label="Increase weight" data-action="weight" data-delta="${exercise.kind === 'barbell' ? 2.5 : 1.25}">+</button></div></div>${exercise.kind === 'barbell' ? plateMarkup(lift.weightLb) : ''}<div class="sets">${Array.from({length:sets}, (_, index) => `<div class="set-row"><span class="set-label">Set ${index + 1}</span><div class="rep-control"><button data-action="rep" data-set="${index}" data-delta="-1">−</button><span class="rep-value">${reps[index] ?? '—'}</span><button data-action="rep" data-set="${index}" data-delta="1">+</button></div><button class="set-hit ${reps[index] === target ? 'done':''}" data-action="hit-set" data-set="${index}">${reps[index] === target ? 'Done' : `${target} reps`}</button></div>`).join('')}</div><div class="statuses"><button class="status ${lift.status === 'done' ? 'active':''}" data-action="status" data-status="done">Done</button><button class="status ${lift.status === 'failed' ? 'active':''}" data-action="status" data-status="failed">Failed</button><button class="status ${lift.status === 'skipped' ? 'active':''}" data-action="status" data-status="skipped">Skipped</button></div><textarea class="lift-note" data-action="lift-note" placeholder="Optional note">${escape(lift.note || '')}</textarea></article>`;
@@ -54,19 +56,29 @@ function draftFor(date) {
   draft = saved ? structuredClone(saved) : freshWorkout(date, scheduledDay(date, workouts));
   return draft;
 }
+function lastWorkoutFor(day, date) { return workouts.filter(workout => workout.day === day && workout.date < date).at(-1); }
+function resultSummary(lift) { const reps = lift.reps?.length ? lift.reps.map(rep => rep ?? '—').join(' · ') : lift.legacyRepNote ? `legacy: ${lift.legacyRepNote} reps` : 'no rep detail'; return `${formatWeight(lift.weightLb)} · ${reps}`; }
+function lastWorkoutSummary(day, date) {
+  const previous = lastWorkoutFor(day, date);
+  if (!previous) return '';
+  const lifts = ROUTINE.days[day].filter(exercise => previous.lifts?.[exercise.exercise]);
+  if (!lifts.length) return '';
+  return `<details class="last-workout"><summary><span>Last ${capitalize(day)}</span><span>${prettyDate(previous.date, true)} · tap for details</span></summary><div class="last-workout-list">${lifts.map(exercise => { const lift = previous.lifts[exercise.exercise]; return `<div><strong>${escape(exercise.name)}</strong><span>${resultSummary(lift)}</span><em class="last-status ${escape(lift.status || 'unknown')}">${escape(lift.status || 'unknown')}</em>${lift.note ? `<small>${escape(lift.note)}</small>` : ''}</div>`; }).join('')}</div></details>`;
+}
 function workoutView() {
   const today = dateKey(new Date());
-  if (!isTrainingDay(today)) return restView(today);
+  if (view === 'today' && !isTrainingDay(today)) return restView(today);
   const date = activeDate === today ? today : activeDate;
   const workout = draftFor(date);
-  const saved = !!dayWorkout(date); const day = ROUTINE.days[workout.day];
-  return `${topbar()}<div class="workout-heading"><div><p class="eyebrow">${saved ? 'Workout log' : 'Today’s training'}</p><h1>${workout.day}</h1></div><time>${prettyDate(date)}</time></div>${workouts.length === 0 ? `<div class="callout"><strong>Your old notes are ready.</strong><p>Assign dates once and they’ll become normal calendar history.</p><button class="primary" data-action="legacy">Add supplied history</button></div>` : ''}<section class="workout" data-date="${date}">${day.map(exercise => liftMarkup(exercise, workout.lifts[exercise.exercise])).join('')}<textarea class="lift-note" data-action="workout-note" placeholder="Workout notes">${escape(workout.notes || '')}</textarea><div class="save-row"><button class="primary" data-action="save">${saved ? 'Save changes' : 'Save workout'}</button><span class="saved">${saved ? 'Saved locally' : 'Nothing is sent anywhere'}</span></div></section>${nav()}`;
+  const saved = !!dayWorkout(date);
+  const exercises = view === 'edit' ? Object.entries(workout.lifts).map(([key, lift]) => exerciseById(key) || { exercise:key, name:key.replaceAll('_', ' '), scheme:lift.scheme || '—', kind:'machine', seedWeightLb:lift.weightLb }) : ROUTINE.days[workout.day];
+  return `${topbar()}<div class="workout-heading"><div><p class="eyebrow">${view === 'edit' ? 'Editing saved workout' : saved ? 'Workout log' : 'Today’s training'}</p><h1>${workout.day}</h1></div><time>${prettyDate(date)}</time></div>${view !== 'edit' ? lastWorkoutSummary(workout.day, date) : ''}${workouts.length === 0 ? `<div class="callout"><strong>Your old notes are ready.</strong><p>Assign dates once and they’ll become normal calendar history.</p><button class="primary" data-action="legacy">Add supplied history</button></div>` : ''}<section class="workout" data-date="${date}">${exercises.map(exercise => liftMarkup(exercise, workout.lifts[exercise.exercise])).join('')}<textarea class="lift-note" data-action="workout-note" placeholder="Workout notes">${escape(workout.notes || '')}</textarea><div class="save-row"><button class="primary" data-action="save">${saved ? 'Save changes' : 'Save workout'}</button><span class="saved">${saved ? 'Saved locally' : 'Nothing is sent anywhere'}</span></div></section>${nav()}`;
 }
 function restView(today) { let next = new Date(`${today}T12:00:00`); do { next.setDate(next.getDate() + 1); } while (!isTrainingDay(next)); const nextDate = dateKey(next); const day = scheduledDay(nextDate, workouts); return `${topbar()}<div class="workout-heading"><div><p class="eyebrow">Rest day</p><h1>Weekend</h1></div><time>${prettyDate(today)}</time></div><div class="callout"><strong>Next up: ${capitalize(day)}</strong><p>${prettyDate(nextDate, true)} · the cycle pauses for the weekend, then carries on.</p><button class="primary" data-action="open-next" data-date="${nextDate}">Preview ${capitalize(day)}</button></div>${nav()}`; }
 function calendarView() { const year = month.getFullYear(), monthNumber = month.getMonth(); const first = new Date(year, monthNumber, 1); const leading = (first.getDay() + 6) % 7; const days = new Date(year, monthNumber + 1, 0).getDate(); const today = dateKey(new Date()); const cells = Array(leading).fill('<span></span>'); for (let n = 1; n <= days; n++) { const key = dateKey(new Date(year, monthNumber, n, 12)); const has = !!dayWorkout(key); cells.push(`<button class="day ${has ? 'has-workout':''} ${key === today ? 'current':''}" ${has ? `data-action="open-date" data-date="${key}"` : ''}>${n}${has ? '<i class="dot"></i>' : ''}</button>`); } const entries = workouts.filter(workout => workout.date?.startsWith(`${year}-${String(monthNumber + 1).padStart(2,'0')}`)); return `${topbar()}<div class="section-head"><div><p class="eyebrow">History</p><h1>Calendar</h1></div></div><div class="month-head"><button class="icon-button" data-action="month" data-delta="-1" aria-label="Previous month">‹</button><strong>${month.toLocaleDateString(undefined,{month:'long',year:'numeric'})}</strong><button class="icon-button" data-action="month" data-delta="1" aria-label="Next month">›</button></div><div class="calendar">${['M','T','W','T','F','S','S'].map(d => `<span class="weekday">${d}</span>`).join('')}${cells.join('')}</div><p class="calendar-help">A dot marks a tracked workout. Tap it to reopen the full log.</p><section class="history"><h2>This month</h2>${entries.length ? entries.map(workout => `<button class="history-item" data-action="open-date" data-date="${workout.date}"><strong>${capitalize(workout.day)}</strong><span>${prettyDate(workout.date, true)} →</span></button>`).join('') : '<p class="empty">No workouts in this month.</p>'}</section>${nav()}`; }
 function progressView() { const exercises = Object.values(ROUTINE.days).flat(); const points = workouts.flatMap(workout => Object.entries(workout.lifts || {}).map(([exercise,lift]) => ({workout, exercise, lift}))).filter(point => point.exercise === selectedExercise && ['done','failed'].includes(point.lift.status) && Number.isFinite(point.lift.weightLb)); const labels = exercises.map(exercise => `<option value="${exercise.exercise}" ${exercise.exercise === selectedExercise ? 'selected':''}>${exercise.name}</option>`).join(''); return `${topbar()}<div class="section-head"><div><p class="eyebrow">Working weight</p><h1>Progress</h1></div></div><select class="select" data-action="select-exercise">${labels}</select>${chart(points)}<p class="calendar-help">Tap a point to open its workout. Red points indicate a failed lift; skips are not charted.</p>${nav()}`; }
 function chart(points) { if (!points.length) return '<div class="empty">No dated working sets for this lift yet.</div>'; const width=340, height=250, pad={l:40,r:16,t:20,b:34}; const values=points.map(point=>point.lift.weightLb); const min=Math.min(...values), max=Math.max(...values); const y = value => pad.t + (max === min ? 0.5 : (max-value)/(max-min))*(height-pad.t-pad.b); const x = index => pad.l + (points.length === 1 ? (width-pad.l-pad.r)/2 : index/(points.length-1)*(width-pad.l-pad.r)); const path=points.map((point,index)=>`${index?'L':'M'}${x(index)} ${y(point.lift.weightLb)}`).join(' '); return `<svg class="chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Working weight over time"><line x1="${pad.l}" x2="${pad.l}" y1="${pad.t}" y2="${height-pad.b}" stroke="#e9dfcf"/><line x1="${pad.l}" x2="${width-pad.r}" y1="${height-pad.b}" y2="${height-pad.b}" stroke="#e9dfcf"/><text x="5" y="${pad.t+4}">${formatWeight(max)}</text><text x="5" y="${height-pad.b}">${formatWeight(min)}</text><path class="line" d="${path}"/>${points.map((point,index)=>`<circle class="point ${point.lift.status === 'failed' ? 'failed':''}" data-action="chart-point" data-date="${point.workout.date}" cx="${x(index)}" cy="${y(point.lift.weightLb)}" r="6"/><text x="${x(index)}" y="${height-10}" text-anchor="middle">${prettyDate(point.workout.date,true)}</text>`).join('')}</svg>`; }
-function detailsView(workout) { return `${topbar()}<button class="small-btn" data-action="back-calendar">← Calendar</button><div class="workout-heading"><div><p class="eyebrow">Saved workout</p><h1>${workout.day}</h1></div><time>${prettyDate(workout.date)}</time></div><section class="details">${Object.entries(workout.lifts).map(([key,lift]) => { const exercise = exerciseById(key) || {name:key,scheme:lift.scheme,kind:'machine'}; return liftMarkup(exercise, lift, true); }).join('')}${workout.notes ? `<div class="callout"><strong>Workout notes</strong><p>${escape(workout.notes)}</p></div>` : ''}</section>${nav()}`; }
+function detailsView(workout) { return `${topbar()}<button class="small-btn" data-action="back-calendar">← Calendar</button><div class="workout-heading"><div><p class="eyebrow">Saved workout</p><h1>${workout.day}</h1></div><time>${prettyDate(workout.date)}</time></div><button class="secondary edit-workout" data-action="edit-workout">Edit workout</button><section class="details">${Object.entries(workout.lifts).map(([key,lift]) => { const exercise = exerciseById(key) || {name:key,scheme:lift.scheme,kind:'machine'}; return liftMarkup(exercise, lift, true); }).join('')}${workout.notes ? `<div class="callout"><strong>Workout notes</strong><p>${escape(workout.notes)}</p></div>` : ''}</section>${nav()}`; }
 function render() { const selected = view === 'calendar' ? calendarView() : view === 'progress' ? progressView() : view === 'details' ? detailsView(dayWorkout(activeDate)) : workoutView(); app.innerHTML = selected; }
 
 function currentDraft() { return draftFor(document.querySelector('.workout')?.dataset.date); }
@@ -76,6 +88,29 @@ function updateDraftWeightFromInput(input) { const card = input.closest('.lift')
 async function commitDraft() { syncDraftFromDom(); const workout=currentDraft(); await saveWorkout(workout); draft=structuredClone(workout); toast('Saved on this device'); render(); }
 
 function toast(message) { const element=document.createElement('div'); element.className='toast'; element.textContent=message; document.body.append(element); setTimeout(()=>element.remove(),1800); }
+function showUpdateReady(worker) {
+  if (!worker || document.querySelector('.update-ready')) return;
+  waitingWorker = worker;
+  const control = document.createElement('aside');
+  control.className = 'update-ready';
+  control.innerHTML = '<span>Update available</span><button class="primary" data-action="reload-update">Reload</button>';
+  document.body.append(control);
+}
+async function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  const registration = await navigator.serviceWorker.register('./sw.js');
+  if (registration.waiting && navigator.serviceWorker.controller) showUpdateReady(registration.waiting);
+  registration.addEventListener('updatefound', () => {
+    const installing = registration.installing;
+    installing?.addEventListener('statechange', () => {
+      if (installing.state === 'installed' && navigator.serviceWorker.controller) showUpdateReady(registration.waiting);
+    });
+  });
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!reloadingForUpdate) return;
+    window.location.reload();
+  });
+}
 function showSheet(content) { sheetRoot.innerHTML=`<div class="sheet-backdrop" data-action="close-sheet"><section class="sheet">${content}</section></div>`; }
 function toolsSheet() { showSheet(`<h2>Data stays on this phone</h2><p>Back up or restore your private workout history.</p><div class="sheet-actions"><button class="primary" data-action="export">Export JSON</button><button class="secondary" data-action="choose-import">Import JSON</button><button class="secondary" data-action="legacy">Add supplied history</button></div><input class="file-input" id="import-file" type="file" accept="application/json,.json"><div class="sheet-actions"><button class="secondary" data-action="close-sheet">Close</button></div>`); }
 function previousTrainingDate(date) { const copy=new Date(`${date}T12:00:00`); do { copy.setDate(copy.getDate()-1); } while (!isTrainingDay(copy)); return dateKey(copy); }
@@ -89,10 +124,11 @@ async function importDated(mode) { const incoming=normalizeImport(importPayload)
 function exportData() { const payload={schemaVersion:2,units:'lb',routineId:ROUTINE.id,exportedAt:new Date().toISOString(),workouts}; const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'})); const anchor=document.createElement('a'); anchor.href=url; anchor.download=`plates-backup-${dateKey(new Date())}.json`; anchor.click(); setTimeout(()=>URL.revokeObjectURL(url),1000); toast('Backup downloaded'); }
 
 document.addEventListener('click', async event => { const target=event.target.closest('[data-action]'); if (!target) return; const action=target.dataset.action;
-  if (action==='view') { syncDraftFromDom(); view=target.dataset.view; render(); }
+  if (action==='view') { syncDraftFromDom(); view=target.dataset.view; if (view === 'today') { activeDate=dateKey(new Date()); draft=null; } render(); }
   if (action==='tools') toolsSheet(); if (action==='close-sheet') sheetRoot.innerHTML='';
   if (action==='open-next') { activeDate=target.dataset.date; draft=null; view='today'; render(); }
   if (action==='open-date' || action==='chart-point') { activeDate=target.dataset.date; draft=null; view='details'; render(); }
+  if (action==='edit-workout') { draft=structuredClone(dayWorkout(activeDate)); view='edit'; render(); }
   if (action==='back-calendar') { view='calendar'; render(); }
   if (action==='month') { month.setMonth(month.getMonth()+Number(target.dataset.delta)); render(); }
   if (action==='weight') updateLift(event,lift => lift.weightLb=Math.max(0,Math.round((Number(lift.weightLb)+Number(target.dataset.delta))*100)/100));
@@ -101,6 +137,11 @@ document.addEventListener('click', async event => { const target=event.target.cl
   if (action==='hit-set') updateLift(event,lift=>{ const index=Number(target.dataset.set); const targetReps=targetFor(exerciseById(event.target.closest('.lift').dataset.exercise).scheme); lift.reps[index]=lift.reps[index]===targetReps ? null : targetReps; if (lift.reps.every(rep=>rep>=targetReps)) lift.status='done'; });
   if (action==='status') updateLift(event,lift=>lift.status=target.dataset.status);
   if (action==='save') await commitDraft();
+  if (action==='reload-update' && waitingWorker) {
+    reloadingForUpdate=true;
+    navigator.serviceWorker.getRegistration().then(registration => (registration?.waiting || waitingWorker)?.postMessage('skipWaiting'));
+    window.setTimeout(() => { if (reloadingForUpdate) window.location.reload(); }, 900);
+  }
   if (action==='export') exportData();
   if (action==='choose-import') document.querySelector('#import-file').click();
   if (action==='legacy') { const payload=await fetch('./legacy-history.json').then(response=>response.json()); mappingSheet(payload); }
@@ -111,4 +152,4 @@ document.addEventListener('input', event => { if (event.target.dataset.action===
 
 await loadWorkouts();
 render();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+registerServiceWorker();
