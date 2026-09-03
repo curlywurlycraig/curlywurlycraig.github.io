@@ -38,8 +38,8 @@ function topbar() { return `<div class="topbar"><div class="wordmark"><i class="
 function plateMarkup(weight) {
   const load = plateLoad(weight);
   if (!load.exact) return `<div class="plate-rack"><div class="plate-note load-warning">Not loadable with these plates. <button class="small-btn" data-action="nearest" data-weight="${weight}">Use ${formatWeight(nearestLoadable(weight))}</button></div></div>`;
-  const colors = {45:'#e85b49',25:'#4775a8',10:'#f6b85e',5:'#40816e',2.5:'#9a68a8',1.25:'#616a78'};
-  const sizes = {45:40,25:34,10:28,5:23,2.5:19,1.25:16};
+  const colors = {45:'#e85b49',35:'#4775a8',25:'#f6b85e',10:'#40816e',5:'#253247',2.5:'#253247',1.25:'#253247'};
+  const sizes = {45:40,35:37,25:34,10:28,5:23,2.5:19,1.25:16};
   return `<div class="plate-rack"><div class="plates"><span class="bar"></span>${load.plates.map(plate => `<span class="plate" style="--plate:${colors[plate]};--size:${sizes[plate]}px">${plate}</span>`).join('') || '<span class="plate-note">bar only</span>'}</div><div class="plate-note">${formatWeight(load.perSide)} each side · 45 lb bar</div></div>`;
 }
 function liftMarkup(exercise, lift, readonly = false) {
@@ -48,12 +48,17 @@ function liftMarkup(exercise, lift, readonly = false) {
   if (readonly) return `<article class="lift ${lift.status === 'skipped' ? 'skipped':''}"><div class="lift-top"><div><h2>${escape(exercise.name)}</h2><p class="scheme">${exercise.scheme}</p></div><strong>${formatWeight(lift.weightLb)}${exercise.kind === 'dumbbell' ? ' each' : ''}</strong></div>${exercise.kind === 'barbell' ? plateMarkup(lift.weightLb) : ''}<p class="reps-readout">${reps.length ? `Sets: ${reps.map(rep => rep ?? '—').join(' · ')}` : lift.legacyRepNote ? `Legacy note: ${lift.legacyRepNote} reps` : 'No set-by-set reps recorded'}</p><p class="status-readout">${lift.status || 'unknown'}${lift.substitute ? ` · substituted with ${escape(lift.substitute.exercise)} at ${formatWeight(lift.substitute.weightLb)}` : ''}</p>${lift.note ? `<p class="history-note">${escape(lift.note)}</p>` : ''}</article>`;
   return `<article class="lift ${lift.status === 'skipped' ? 'skipped':''}" data-exercise="${exercise.exercise}"><div class="lift-top"><div><h2>${escape(exercise.name)}</h2><p class="scheme">${exercise.scheme}</p></div><span class="weight-type">${exercise.kind === 'dumbbell' ? 'per dumbbell' : 'working weight'}</span></div><p class="recommendation"><strong>Suggested ${formatWeight(recommended.weight)}</strong> · ${recommended.reason}</p><div class="weight-row"><div class="weight-control"><button aria-label="Decrease weight" data-action="weight" data-delta="-${exercise.kind === 'barbell' ? 2.5 : 1.25}">−</button><input aria-label="${escape(exercise.name)} weight" data-action="weight-input" inputmode="decimal" step="1.25" type="number" value="${lift.weightLb}"><span class="unit">lb</span><button aria-label="Increase weight" data-action="weight" data-delta="${exercise.kind === 'barbell' ? 2.5 : 1.25}">+</button></div></div>${exercise.kind === 'barbell' ? plateMarkup(lift.weightLb) : ''}<div class="sets">${Array.from({length:sets}, (_, index) => `<div class="set-row"><span class="set-label">Set ${index + 1}</span><div class="rep-control"><button data-action="rep" data-set="${index}" data-delta="-1">−</button><span class="rep-value">${reps[index] ?? '—'}</span><button data-action="rep" data-set="${index}" data-delta="1">+</button></div><button class="set-hit ${reps[index] === target ? 'done':''}" data-action="hit-set" data-set="${index}">${reps[index] === target ? 'Done' : `${target} reps`}</button></div>`).join('')}</div><div class="statuses"><button class="status ${lift.status === 'done' ? 'active':''}" data-action="status" data-status="done">Done</button><button class="status ${lift.status === 'failed' ? 'active':''}" data-action="status" data-status="failed">Failed</button><button class="status ${lift.status === 'skipped' ? 'active':''}" data-action="status" data-status="skipped">Skipped</button></div><textarea class="lift-note" data-action="lift-note" placeholder="Optional note">${escape(lift.note || '')}</textarea></article>`;
 }
+function draftFor(date) {
+  if (draft?.date === date) return draft;
+  const saved = dayWorkout(date);
+  draft = saved ? structuredClone(saved) : freshWorkout(date, scheduledDay(date, workouts));
+  return draft;
+}
 function workoutView() {
   const today = dateKey(new Date());
   if (!isTrainingDay(today)) return restView(today);
-  let workout = dayWorkout(activeDate === today ? today : activeDate);
-  const date = workout?.date || today;
-  if (!workout) { workout = freshWorkout(date, scheduledDay(date, workouts)); activeDate = date; }
+  const date = activeDate === today ? today : activeDate;
+  const workout = draftFor(date);
   const saved = !!dayWorkout(date); const day = ROUTINE.days[workout.day];
   return `${topbar()}<div class="workout-heading"><div><p class="eyebrow">${saved ? 'Workout log' : 'Today’s training'}</p><h1>${workout.day}</h1></div><time>${prettyDate(date)}</time></div>${workouts.length === 0 ? `<div class="callout"><strong>Your old notes are ready.</strong><p>Assign dates once and they’ll become normal calendar history.</p><button class="primary" data-action="legacy">Add supplied history</button></div>` : ''}<section class="workout" data-date="${date}">${day.map(exercise => liftMarkup(exercise, workout.lifts[exercise.exercise])).join('')}<textarea class="lift-note" data-action="workout-note" placeholder="Workout notes">${escape(workout.notes || '')}</textarea><div class="save-row"><button class="primary" data-action="save">${saved ? 'Save changes' : 'Save workout'}</button><span class="saved">${saved ? 'Saved locally' : 'Nothing is sent anywhere'}</span></div></section>${nav()}`;
 }
@@ -64,9 +69,10 @@ function chart(points) { if (!points.length) return '<div class="empty">No dated
 function detailsView(workout) { return `${topbar()}<button class="small-btn" data-action="back-calendar">← Calendar</button><div class="workout-heading"><div><p class="eyebrow">Saved workout</p><h1>${workout.day}</h1></div><time>${prettyDate(workout.date)}</time></div><section class="details">${Object.entries(workout.lifts).map(([key,lift]) => { const exercise = exerciseById(key) || {name:key,scheme:lift.scheme,kind:'machine'}; return liftMarkup(exercise, lift, true); }).join('')}${workout.notes ? `<div class="callout"><strong>Workout notes</strong><p>${escape(workout.notes)}</p></div>` : ''}</section>${nav()}`; }
 function render() { const selected = view === 'calendar' ? calendarView() : view === 'progress' ? progressView() : view === 'details' ? detailsView(dayWorkout(activeDate)) : workoutView(); app.innerHTML = selected; }
 
-function currentDraft() { const section = document.querySelector('.workout'); const date = section?.dataset.date; if (draft?.date === date) return draft; draft = dayWorkout(date) ? structuredClone(dayWorkout(date)) : freshWorkout(date, scheduledDay(date, workouts)); return draft; }
+function currentDraft() { return draftFor(document.querySelector('.workout')?.dataset.date); }
 function syncDraftFromDom() { if (!document.querySelector('.workout')) return; const workout=currentDraft(); workout.notes = document.querySelector('[data-action="workout-note"]')?.value || ''; document.querySelectorAll('.lift[data-exercise]').forEach(card => { const lift=workout.lifts[card.dataset.exercise]; lift.note=card.querySelector('[data-action="lift-note"]')?.value || ''; const input=card.querySelector('[data-action="weight-input"]'); if (input) lift.weightLb=Math.round(Number(input.value || lift.weightLb)*100)/100; }); }
 function updateLift(event, change) { const card=event.target.closest('.lift'); if (!card) return; syncDraftFromDom(); const workout=currentDraft(), lift=workout.lifts[card.dataset.exercise]; change(lift); render(); }
+function updateDraftWeightFromInput(input) { const card = input.closest('.lift'); const weight = Number(input.value); if (!card || !Number.isFinite(weight) || weight < 0) return; const workout = currentDraft(); workout.lifts[card.dataset.exercise].weightLb = Math.round(weight * 100) / 100; }
 async function commitDraft() { syncDraftFromDom(); const workout=currentDraft(); await saveWorkout(workout); draft=structuredClone(workout); toast('Saved on this device'); render(); }
 
 function toast(message) { const element=document.createElement('div'); element.className='toast'; element.textContent=message; document.body.append(element); setTimeout(()=>element.remove(),1800); }
@@ -101,8 +107,8 @@ document.addEventListener('click', async event => { const target=event.target.cl
   if (action==='legacy') { const payload=await fetch('./legacy-history.json').then(response=>response.json()); mappingSheet(payload); }
   if (action==='propose-dates') reviewMapping(); if (action==='save-mapped') await importWithDates(target.dataset.mode); if (action==='import-dated') await importDated(target.dataset.mode);
 });
-document.addEventListener('change', async event => { if (event.target.dataset.action==='weight-input') updateLift(event,lift=>lift.weightLb=Math.round(Number(event.target.value||0)*100)/100); if (event.target.dataset.action==='select-exercise') { selectedExercise=event.target.value; render(); } if (event.target.id==='import-file' && event.target.files[0]) { try { await receiveImport(JSON.parse(await event.target.files[0].text())); } catch { toast('Could not read that JSON file'); } } });
-document.addEventListener('input', event => { if (event.target.dataset.action==='lift-note' || event.target.dataset.action==='workout-note') { /* retained until Save, intentionally no background writes */ } });
+document.addEventListener('change', async event => { if (event.target.dataset.action==='weight-input') updateDraftWeightFromInput(event.target); if (event.target.dataset.action==='select-exercise') { selectedExercise=event.target.value; render(); } if (event.target.id==='import-file' && event.target.files[0]) { try { await receiveImport(JSON.parse(await event.target.files[0].text())); } catch { toast('Could not read that JSON file'); } } });
+document.addEventListener('input', event => { if (event.target.dataset.action==='weight-input') updateDraftWeightFromInput(event.target); if (event.target.dataset.action==='lift-note' || event.target.dataset.action==='workout-note') { /* retained until Save, intentionally no background writes */ } });
 
 await loadWorkouts();
 render();

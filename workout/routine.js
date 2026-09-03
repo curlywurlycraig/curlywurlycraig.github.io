@@ -1,7 +1,7 @@
 export const ROUTINE = {
   id: 'craig-ppl-v1',
   barbellWeightLb: 45,
-  platesLb: [45, 25, 10, 5, 2.5, 1.25],
+  platesLb: [45, 35, 25, 10, 5, 2.5, 1.25],
   cycle: ['pull', 'push', 'legs'],
   days: {
     pull: [
