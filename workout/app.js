@@ -95,7 +95,6 @@ document.addEventListener('click', async event => { const target=event.target.cl
   if (action==='open-date' || action==='chart-point') { activeDate=target.dataset.date; draft=null; view='details'; render(); }
   if (action==='back-calendar') { view='calendar'; render(); }
   if (action==='month') { month.setMonth(month.getMonth()+Number(target.dataset.delta)); render(); }
-  if (action==='select-exercise') { selectedExercise=target.value; render(); }
   if (action==='weight') updateLift(event,lift => lift.weightLb=Math.max(0,Math.round((Number(lift.weightLb)+Number(target.dataset.delta))*100)/100));
   if (action==='nearest') updateLift(event,lift=>lift.weightLb=nearestLoadable(Number(target.dataset.weight)));
   if (action==='rep') updateLift(event,lift=>{ const index=Number(target.dataset.set); const now=lift.reps[index] ?? 0; lift.reps[index]=Math.max(0,now+Number(target.dataset.delta)); });
